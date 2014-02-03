@@ -50,14 +50,14 @@ Access through `Mix.getTrack('name').<track>`.
 #### Track Options
 
 name | default | notes
---|--|--
+---------|---------|---------
 source       | `null`     | path to audio source (without file extension)
-nodes        | `[ ]`       | array of strings: names of desired additional audio nodes
+nodes        | `[ ]`      | array of strings: names of desired additional audio nodes
 gain         | `0`        | initial/current gain (0-1)
 pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
 start        | `0`        | start time in seconds
 currentTime  | `0`        | current time (cached for resuming from pause)
-looping      | `false`    |          
+looping      | `false`    | 
 autoplay     | `true`     | play immediately on load
 loadCallback | `false`    | callback after track is loaded
 muted        | `false`    | 
