@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Audio Mixer Test Page</title>
+
+	<style>
+		* { font-family: sans-serif; }
+
+		h4 { 
+			display: inline-block;
+			width: 5em;
+			margin: 0;
+			margin-right: 1em;
+		}
+	</style>
+</head>
+<body>
+
+
+	<h1>Helios Audio Mixer Test Page</h1>
+
+	<hr>
+
+		Web Audio: <span id="webaudio"></span> <br>
+		Audio type: <span id="audioType"></span>
+
+	<hr>
+
+		<h4>Create</h4>
+		
+		<button onclick="createDrone()">
+			Drone
+		</button>
+
+		<button onclick="createFluorescent()">
+			Fluorescent (no autoplay)
+		</button>
+
+		<button onclick="createHelicopter()">
+			Helicopter (callback + compressor)
+		</button>
+
+
+	<hr>
+
+		<h4>Remove</h4>
+
+		<button onclick="Mixer.removeTrack('drone')">Drone</button>
+		<button onclick="Mixer.removeTrack('fluorescent')">Fluorescent</button>
+		<button onclick="Mixer.removeTrack('helicopter')">Helicopter</button>
+
+	<hr>
+
+		<h4>Gain</h4>
+
+		<input name="track1gain" id="track1gain" type="range" min="0" max="100" value="100">
+		<input name="track2gain" id="track2gain" type="range" min="0" max="100" value="10">
+		<input name="track3gain" id="track3gain" type="range" min="0" max="100" value="50">
+
+	<hr>
+
+		<h4>Tween Gain</h4>
+
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(0,1000)">Drone Out</button>
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(1,1000,function(){ console.log('Drone in callback')})">Drone In (callback)</button>
+
+	<hr>
+
+		<h4>Pan</h4>
+
+		<input name="track1pan" id="track1pan" type="range" min="0" max="360" value="0">
+		<input name="track2pan" id="track2pan" type="range" min="0" max="360" value="0">
+		<input name="track3pan" id="track3pan" type="range" min="0" max="360" value="0">
+
+	<hr>
+
+		<h4>Tween Pan</h4> 
+
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenPan(720, 6000)">Drone</button>
+		<!-- <button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button> -->
+		<!-- <button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button> -->
+
+	<hr>
+
+		<h4>Pan Position</h4>
+
+		<canvas id="track1panCanvas" width="100" height="100"></canvas>
+		<canvas id="track2panCanvas" width="100" height="100"></canvas>
+		<canvas id="track3panCanvas" width="100" height="100"></canvas>
+
+	<hr>
+
+		<h4>Play</h4> 
+
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').play()">Drone</button>
+		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button>
+		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button>
+
+	<hr>
+
+		<h4>Pause</h4> 
+
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pause()">Drone</button>
+		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pause()">Fluorescent</button>
+		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pause()">Helicopter</button>
+
+	<hr>
+
+		<h4>Stop</h4> 
+
+		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').stop()">Drone</button>
+		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').stop()">Fluorescent</button>
+		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').stop()">Helicopter</button>
+
+	<hr>
+
+	<h4>Mixer</h4>
+
+	<button onclick="Mixer.pause()">Pause All ||</button>
+	<button onclick="Mixer.play()">Play All &gt;</button>
+	<button onclick="Mixer.stop()">Stop All</button>
+
+	<button onclick="Mixer.mute()">Toggle Mute</button>
+	
+	<input name="mastergain" id="mastergain" type="range" min="0" max="100" value="100">
+
+
+
+
+
+	<script src="js/tween.min.js"></script>
+	<script src="js/frameRunner.js"></script>
+	<script src="../helios-audio-mixer.js"></script>
+
+	<script>
+
+
+		var Mixer = new Mix();
+
+		frameRunner.start();
+		frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
+
+		console.log('Feature detection:')
+		console.log(Mixer.detect)
+
+		if(Mixer.detect.webAudio) document.getElementById('webaudio').innerHTML = "YES";
+		else 					  document.getElementById('webaudio').innerHTML = "NO";
+
+		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
+		
+
+		// ********************************************************
+		// Setup and Events
+
+		var track1panCanvas = document.getElementById('track1panCanvas');
+		var track2panCanvas = document.getElementById('track2panCanvas');
+		var track3panCanvas = document.getElementById('track3panCanvas');
+
+		function updatePanDisplay(trackName,canvas){
+			// Canvas
+			var x = 50 + (Mixer.getTrack(trackName).options.panX * 20);
+			var y = 50 + (-Mixer.getTrack(trackName).options.panY * 20);
+
+			var ctx = canvas.getContext('2d');
+
+			ctx.clearRect(0,0, 100,100);
+
+			ctx.arc(50,50, 2, 0,2*Math.PI);
+			ctx.fill()
+
+			ctx.fillRect(x-5,y-5,10,10)
+		}
+
+
+		function createDrone(){
+			
+			Mixer.createTrack('drone', { source: 'audio/Drone_1_norm', gain: 1.0 })
+
+			Mixer.getTrack('drone').on('pan',function(){
+				updatePanDisplay('drone',track1panCanvas)
+				document.getElementById('track1pan').value = Mixer.getTrack('drone').options.pan
+			})
+
+			Mixer.getTrack('drone').on('gain',function(){
+				document.getElementById('track1gain').value = Mixer.getTrack('drone').options.gain*100
+			})
+
+		}
+
+		// ~~~
+
+		function createFluorescent(){
+
+			Mixer.createTrack('fluorescent', { 
+				source: 'audio/Fluorescencent_Tone', 
+				autoplay: false, 
+				gain: 0.2,
+				pan: 'left'
+			})
+
+			Mixer.getTrack('fluorescent').on('pan',function(){
+				updatePanDisplay('fluorescent',track2panCanvas)
+				document.getElementById('track2pan').value = Mixer.getTrack('fluorescent').options.pan
+			})
+
+			Mixer.getTrack('fluorescent').on('gain',function(){
+				document.getElementById('track2gain').value = Mixer.getTrack('fluorescent').options.gain*100
+			})
+
+		}
+
+
+
+		function createHelicopter(){
+			Mixer.createTrack('helicopter', { 
+				source: 'audio/Helicopter_Interior', 
+				gain: 0.5, 
+				pan: 0,
+				loadCallback : function(){ console.log('TRACK 3 LOADED CALLBACK') },
+				nodes: [ 'compressor' ]
+			})
+
+
+			Mixer.getTrack('helicopter').on('pan',function(){
+				updatePanDisplay('helicopter',track3panCanvas)
+				document.getElementById('track3pan').value = Mixer.getTrack('helicopter').options.pan
+			})
+
+			Mixer.getTrack('helicopter').on('gain',function(){
+				document.getElementById('track3gain').value = Mixer.getTrack('helicopter').options.gain*100
+			})
+		}
+
+		// ~~~
+
+
+
+		// ********************************************************
+		// Gain Sliders
+
+		document.getElementById('track1gain').addEventListener('change',function(e){
+			if(Mixer.getTrack('drone')) Mixer.getTrack('drone').gain(e.target.value/100)
+		},false)
+
+		document.getElementById('track2gain').addEventListener('change',function(e){
+			if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').gain(e.target.value/100)
+		},false)
+
+		document.getElementById('track3gain').addEventListener('change',function(e){
+			if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').gain(e.target.value/100)
+		},false)
+
+		document.getElementById('mastergain').addEventListener('change',function(e){
+			Mixer.setGain(e.target.value/100)
+		},false)
+
+
+
+		// ********************************************************
+		// Pan Sliders
+
+		document.getElementById('track1pan').addEventListener('change',function(e){
+			if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pan( e.target.valueAsNumber );
+		},false)
+
+		document.getElementById('track2pan').addEventListener('change',function(e){
+			if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pan( e.target.valueAsNumber )
+		},false)
+
+		document.getElementById('track3pan').addEventListener('change',function(e){
+			if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pan( e.target.valueAsNumber )
+		},false)
+
+	</script>
+
+</body>
+</html>
