@@ -2,30 +2,35 @@
 var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
     replace = require('gulp-replace'),
-    rename = require('gulp-rename');
+    rename = require('gulp-rename'),
+    fs = require('fs');
 
-// Build dist & test versions
+var content = fs.readFileSync('source/helios-audio-mixer.js', 'utf8');
 
 gulp.task('build', function(){
-
-    var content = gulp.src('source/js/helios-audio-mixer.js');
-
-    gulp.src(['source/js/wrapper.standalone.js'])
+    return gulp.src(['source/wrapper.standalone.js'])
         .pipe(replace('%%% REPLACE %%%', content))
-        .pipe(gulp.dest('./helios-audio-mixer.js'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(uglify())
-        .pipe(gulp.dest('./'))
+        .pipe(rename({ basename: 'helios-audio-mixer' }))
+        .pipe(gulp.dest('.'))
+        .pipe(uglify({ mangle: false }))
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest('.'))
+})
 
-    gulp.src(['source/js/wrapper.angular.js'])
-        .pipe(replace(/ /g, content))
-        .pipe(gulp.dest('./helios-audio-mixer.angular.js'))
-        .pipe(rename({suffix: '.min'}))
-        .pipe(uglify())
-        .pipe(gulp.dest('./'))
-
+gulp.task('build-ng', function(){
+    return gulp.src(['source/wrapper.angular.js'])
+        .pipe(replace('%%% REPLACE %%%', content))
+        .pipe(rename({
+            basename: 'helios-audio-mixer.angular'
+        }))
+        .pipe(gulp.dest('.'))
 })
 
 
-gulp.task('default', ['build']);
+gulp.task('default', ['build', 'build-ng']);
 
+gulp.task('watch',function(){
+
+    gulp.watch('source/helios-audio-mixer.js', ['build', 'build-ng']);
+
+})

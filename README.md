@@ -24,7 +24,7 @@ Create your Mixer: `var Mixer = new Mix()`.
 - `unmute()`
 - `setGain(0-1)`
 
-- `updateTween()` **IMPORTANT:** call this using `requestAnimationFrame()` for tweens to work
+- `updateTween()` **IMPORTANT:** call this (or `TWEEN.update()`) using rAF for tweens to work
 - `setLogLvl()` 0 none, 1 minimal, 2 all (very spammy)
 
 ##### Track Methods
@@ -65,7 +65,7 @@ muted        | `false`    |
 
 #### Props
 
-to Kevin Ennis for his excellent [Mix.js](https://github.com/kevincennis/Mix.js), which we based this library on when we started writing it (quite a while ago).
+to Kevin Ennis for his excellent [Mix.js](https://github.com/kevincennis/Mix.js), which we based this library on when we started working on this web audio stuff a couple years ago.
 
 #### Resources
 
