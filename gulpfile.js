@@ -1,3 +1,11 @@
+/*
+
+    wtf is this?
+
+        edit source/helios-audio-mixer.js using gulp watch.
+        It'll auto-compile into standalone and angular versions.
+
+*/
 
 var gulp = require('gulp'),
     uglify = require('gulp-uglify'),
