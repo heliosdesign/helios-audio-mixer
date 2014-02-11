@@ -34,8 +34,20 @@ gulp.task('build-ng', function(){
         .pipe(gulp.dest('.'))
 })
 
+gulp.task('build-require', function(){
+    return gulp.src(['source/wrapper.require.js'])
+        .pipe(replace('%%% REPLACE %%%', content))
+        .pipe(rename({
+            basename: 'helios-audio-mixer.require'
+        }))
+        .pipe(gulp.dest('.'))
+        .pipe(uglify({ mangle: false }))
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(gulp.dest('.'))
+})
 
-gulp.task('default', ['build', 'build-ng']);
+
+gulp.task('default', ['build', 'build-ng', 'build-require']);
 
 gulp.task('watch',function(){
 
