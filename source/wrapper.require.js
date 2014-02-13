@@ -1,4 +1,4 @@
-define([], function(){
+define(['tween'], function(tween){
 
     %%% REPLACE %%%
 

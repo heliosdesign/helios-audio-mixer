@@ -1,3 +1,5 @@
+**Bower** `helios-audio-mixer`
+
 ## Web Audio Mixer
 
 Javascript audio mixer library. Optimally uses the web audio API but gracefully degrades to HTML5.

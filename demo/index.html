@@ -175,7 +175,10 @@
 
 		function createDrone(){
 			
-			Mixer.createTrack('drone', { source: 'audio/Drone_1_norm', gain: 1.0 })
+			Mixer.createTrack('drone', { 
+				source: 'audio/Drone_1_norm', 
+				gain: 1.0 
+			})
 
 			Mixer.getTrack('drone').on('pan',function(){
 				updatePanDisplay('drone',track1panCanvas)
@@ -194,6 +197,7 @@
 
 			Mixer.createTrack('fluorescent', { 
 				source: 'audio/Fluorescencent_Tone', 
+				group: 'testgroup',
 				autoplay: false, 
 				gain: 0.2,
 				pan: 'left'
@@ -215,6 +219,7 @@
 		function createHelicopter(){
 			Mixer.createTrack('helicopter', { 
 				source: 'audio/Helicopter_Interior', 
+				group: 'testgroup',
 				gain: 0.5, 
 				pan: 0,
 				loadCallback : function(){ console.log('TRACK 3 LOADED CALLBACK') },

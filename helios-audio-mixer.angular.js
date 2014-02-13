@@ -217,10 +217,13 @@ Mix.prototype.createTrack = function(name, opts){
         return;
     }
 
+
     var track = new Track(name, opts, this);
 
     this.tracks.push(track);
     this.lookup[name] = track;
+
+    if(this.muted) track.mute();
     return track;
     
 };
@@ -902,7 +905,7 @@ Track.prototype.play = function(){
         }, timer_duration * 1000);
 
     }
-    
+
     self.trigger('play');
 };
 

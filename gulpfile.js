@@ -13,11 +13,13 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     fs = require('fs');
 
-var content = fs.readFileSync('source/helios-audio-mixer.js', 'utf8');
+var content = function(){
+    return fs.readFileSync('source/helios-audio-mixer.js', 'utf8');
+}
 
 gulp.task('build', function(){
     return gulp.src(['source/wrapper.standalone.js'])
-        .pipe(replace('%%% REPLACE %%%', content))
+        .pipe(replace('%%% REPLACE %%%', content() ))
         .pipe(rename({ basename: 'helios-audio-mixer' }))
         .pipe(gulp.dest('.'))
         .pipe(uglify({ mangle: false }))
@@ -27,7 +29,7 @@ gulp.task('build', function(){
 
 gulp.task('build-ng', function(){
     return gulp.src(['source/wrapper.angular.js'])
-        .pipe(replace('%%% REPLACE %%%', content))
+        .pipe(replace('%%% REPLACE %%%', content() ))
         .pipe(rename({
             basename: 'helios-audio-mixer.angular'
         }))
@@ -36,7 +38,7 @@ gulp.task('build-ng', function(){
 
 gulp.task('build-require', function(){
     return gulp.src(['source/wrapper.require.js'])
-        .pipe(replace('%%% REPLACE %%%', content))
+        .pipe(replace('%%% REPLACE %%%', content() ))
         .pipe(rename({
             basename: 'helios-audio-mixer.require'
         }))
@@ -51,6 +53,6 @@ gulp.task('default', ['build', 'build-ng', 'build-require']);
 
 gulp.task('watch',function(){
 
-    gulp.watch('source/helios-audio-mixer.js', ['build', 'build-ng']);
+    gulp.watch('source/helios-audio-mixer.js', ['build', 'build-ng', 'build-require']);
 
 })
