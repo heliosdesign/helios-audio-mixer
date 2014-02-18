@@ -2,6 +2,6 @@
 
     %%% REPLACE %%%
 
-    window.Mix = Mix;
+    window.heliosAudioMixer = Mix;
 
 }(window));

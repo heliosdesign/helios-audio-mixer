@@ -11,55 +11,12 @@ angular.module('heliosAudioMixer', ['ng'])
     debug = 1; // 0 no logging, 1 minimal, 2 all (very spammy)
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Utility Functions
-
-***************************************************************************
-**************************************************************************/
 
 
-var debounce = function(func, wait) {
-    var timeout;
-    return function() {
-        var context = this, args = arguments,
-        later = function() {
-            timeout = null;
-            func.apply(context, args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-};
-
-var on = function( type, callback ){
-    this.events[type] = this.events[type] || [];
-    this.events[type].push( callback );
-};
-
-var off = function( type ){
-    this.events[type] = [];
-};
-
-var trigger = function( type ){
-    if ( !this.events[type] ) return;
-    var args = Array.prototype.slice.call(arguments, 1);
-    for (var i = 0, l = this.events[type].length; i < l;  i++)
-        if ( typeof this.events[type][i] == 'function' ) 
-            this.events[type][i].apply(this, args);
-};
-
-var constrain = function(val, min, max){
-    if(val < min) return min;
-    if(val > max) return max;
-    return val;
-}
 
 
-var log = function(msg, lvl){
-    if(lvl <= debug) console.log(msg);
-}
+
+
 
 
 
@@ -158,6 +115,141 @@ Detect = {
 
 
 
+
+
+
+/**************************************************************************
+***************************************************************************
+    
+    Utility Functions
+
+***************************************************************************
+**************************************************************************/
+
+
+var debounce = function(func, wait) {
+    var timeout;
+    return function() {
+        var context = this, args = arguments,
+        later = function() {
+            timeout = null;
+            func.apply(context, args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
+// var on = function( type, callback ){
+//     this.events[type] = this.events[type] || [];
+//     this.events[type].push( callback );
+// };
+
+// var off = function( type ){
+//     this.events[type] = [];
+// };
+
+// var trigger = function( type ){
+//     if ( !this.events[type] ) return;
+//     var args = Array.prototype.slice.call(arguments, 1);
+//     for (var i = 0, l = this.events[type].length; i < l;  i++)
+//         if ( typeof this.events[type][i] == 'function' ) 
+//             this.events[type][i].apply(this, args);
+// };
+
+var constrain = function(val, min, max){
+    if(val < min) return min;
+    if(val > max) return max;
+    return val;
+}
+
+
+var log = function(msg, lvl){
+    if(lvl <= debug) console.log(msg);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**************************************************************************
+***************************************************************************
+    
+    Base class
+    
+    (for inheriting common methods from)
+
+***************************************************************************
+**************************************************************************/
+
+
+
+var BaseClass = function(){};
+
+BaseClass.prototype.on = function(type, callback){
+    this.events[type] = this.events[type] || [];
+    this.events[type].push( callback );
+};
+
+BaseClass.prototype.off = function(type){
+    this.events[type] = [];
+};
+
+BaseClass.prototype.trigger = function(type){
+
+    if ( !this.events[type] ) return;
+
+    log(arguments,2);
+
+    var args = Array.prototype.slice.call(arguments, 1);
+
+    for (var i = 0, l = this.events[type].length; i < l;  i++)
+            if ( typeof this.events[type][i] == 'function' ) 
+                this.events[type][i].apply(this, args);
+
+};
+
+BaseClass.prototype.extend = function(){
+    var output = {}, 
+        args = arguments,
+        l = args.length;
+
+    for ( var i = 0; i < l; i++ )       
+        for ( var key in args[i] )
+            if ( args[i].hasOwnProperty(key) )
+                output[key] = args[i][key];
+    return output;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**************************************************************************
 ***************************************************************************
     
@@ -167,18 +259,19 @@ Detect = {
 **************************************************************************/
 
 
-Mix = function(opts){
+var Mix = function(opts){
 
     log("[Mixer] Loaded", 1)
 
     this.tracks  = [];    // tracks as numbered array
+    this.groups  = {};    // easy access to groups: group['groupname']
     this.lookup  = {};    // tracks as lookup table: lookup['trackname']
 
-    this.playing = false; // 
+    this.playing = false; // true if any tracks are playing
     this.muted   = false; // 
     this.gain = 1;        // master gain for entire mix
 
-    this.events  = {};
+    this.events  = {};    
     this.context = null;  // AudioContext object (if webAudio is available)
 
     this.detect  = Detect; // just an external reference for debugging
@@ -199,6 +292,8 @@ Mix = function(opts){
 
 }
 
+Mix.prototype = new BaseClass(); // inherit utility methods
+
 
 /**************************************************************************
     
@@ -206,17 +301,12 @@ Mix = function(opts){
 
 **************************************************************************/
 
-Mix.prototype.getTrack = function(name){
-    return this.lookup[name] || false;
-};
-
 Mix.prototype.createTrack = function(name, opts){
 
     if(this.lookup[name]) {
-        console.warn('[Mixer] A track called "'+name+'" already exists');
+        console.warn('[Mixer] A track called "%s" already exists', name);
         return;
     }
-
 
     var track = new Track(name, opts, this);
 
@@ -228,13 +318,14 @@ Mix.prototype.createTrack = function(name, opts){
     
 };
 
+
 Mix.prototype.removeTrack = function(name){
 
     var self  = this,
         track = self.lookup[name];
 
     if(!track) {
-        console.warn('[Mixer] can’t remove "'+name+'", it doesn’t exist')
+        console.warn('[Mixer] can’t remove "%s", it doesn’t exist', name)
         return;
     }
 
@@ -270,19 +361,49 @@ Mix.prototype.removeTrack = function(name){
     
 };
 
+
+
+Mix.prototype.removeTracks = function(group){
+
+    var tracks = this.getTracks(group);
+
+    if(tracks) {
+        for (var i = 0; i < tracks.length; i++) {
+            this.removeTrack(tracks[i].name);
+        }
+    }
+
+}
+
+
+
+Mix.prototype.getTrack = function(name){
+    return this.lookup[name] || false;
+};
+
 Mix.prototype.getTracks = function(group){
+
     if(typeof group === 'undefined') {
+
+        return false;
+
+    } else if( group === '*') {
+
         return this.tracks;
+
     } else {
-        var tracks = [];
 
-        for (var i = this.tracks.length - 1; i >= 0; i--) {
-            if(this.tracks[i].options.group === group) tracks.push(this.tracks[i]);
-        };
+        if( ! this.groups[group]){
+            console.warn('[Mixer] Can’t get group "%s", it doesn’t exist.', group);
+            return;
+        }
 
-        return tracks;
+        return this.groups[group];
+
     }
 }
+
+
 
 Mix.prototype.removeAll = function(group){
 
@@ -304,6 +425,9 @@ Mix.prototype.removeAll = function(group){
         this.removeTrack(tracks[i].name);
     
 }
+
+
+
 
 
 
@@ -351,6 +475,8 @@ Mix.prototype.stop = function(group){
 
 
 
+
+
 /**************************************************************************
     
     Volume
@@ -370,7 +496,11 @@ Mix.prototype.mute = function(group){
     this.muted   = true;
 
     for ( var i = 0; i < total; i++ )
-        if ( this.tracks[i].ready ) this.tracks[i].mute();
+        this.tracks[i].mute();
+
+    for (var i = 0; i < this.tracks.length; i++) {
+        if(this.tracks[i].playing) this.playing = true;
+    };
 };
 
 
@@ -382,7 +512,8 @@ Mix.prototype.unmute = function(group){
     this.muted   = false;
 
     for ( var i = 0; i < total; i++ )
-        if ( this.tracks[i].ready ) this.tracks[i].unmute();
+        this.tracks[i].unmute();
+
 };
 
 
@@ -408,73 +539,186 @@ Mix.prototype.setGain = function(masterGain){
 
 
 
-
-// TODO: what is this for?
-Mix.prototype.createTrackZero = function(name, opts){
-    //if ( !name || this.lookup[name] ) return;
-    var track = new Track(name, opts, this);
+/**************************************************************************
     
-    this.tracks[0] =  track;
-    this.lookup[name] = track;
-    return track;
+    Crossfade
+
+**************************************************************************/
+
+Mix.prototype.replaceTrack = function(opts){
+
+    var defaults = {
+        duration: 1000,
+
+        from: false,
+        to:   false,
+        toOpts: {
+            source: false
+        }
+    }
+    var options = this.extend(defaults, opts);
+
+    console.log('options: %O', options)
+
+    if(Detect.tween) {
+
+        if(options.from) {
+            console.log('FROM: %s',options.from)
+            var from = this.getTrack(options.from);
+            from.tweenGain(0, options.duration, function(){
+                this.removeTrack(options.from);
+            });    
+        }
+
+        if(options.to){
+            options.toOpts.gain = 0;
+            this.createTrack(options.to, options.toOpts);
+            this.getTrack(options.to).tweenGain(1, options.duration);    
+        }
+        
+
+    } else {
+        if(options.from) this.removeTrack(options.from);
+        if(options.to) this.createTrack(options.to, options.toOpts);
+    }
     
-};  
+
+}
 
 
 
-// ********************************************************
-// Utilities
+/**************************************************************************
+    
+    Utilities
+
+**************************************************************************/
+
 
 // call this using requestanimationframe
 Mix.prototype.updateTween = function(){
     TWEEN.update();
 }
 
-Mix.prototype.extend = function(){
-    var output = {}, 
-        args = arguments,
-        l = args.length;
+Mix.prototype.setLogLvl = function(lvl){
+    debug = constrain(lvl,0,2);
+}
 
-    for ( var i = 0; i < l; i++ )       
-        for ( var key in args[i] )
-            if ( args[i].hasOwnProperty(key) )
-                output[key] = args[i][key];
-    return output;
-};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 /**************************************************************************
+***************************************************************************
     
-    Event System
+    Group
 
-    on() and off() work like jQuery, trigger() calls events
-
+***************************************************************************
 **************************************************************************/
 
-Mix.prototype.on = function(type, callback){
-    this.events[type] = this.events[type] || [];
-    this.events[type].push( callback );
-};
 
-Mix.prototype.off = function(type){
-    this.events[type] = [];
-};
 
-// manually triggers events
-Mix.prototype.trigger = function(type){
-   if ( !this.events[type] ) return;
-   var args = Array.prototype.slice.call(arguments, 1);
-   for (var i = 0, l = this.events[type].length; i < l;  i++)
-           if ( typeof this.events[type][i] == 'function' ) 
-                   this.events[type][i].apply(this, args);
+var Group = function(name, tracks){
+
+    this.tracks = tracks || [];
+    this.events = {};
+
+}
+
+
+Group.prototype = new BaseClass(); // inherit base methods
+
+Group.prototype.play = function(){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].play();
+    };
+    this.trigger('play');
+}
+
+Group.prototype.pause = function(){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].pause();
+    };
+    this.trigger('play');
+}
+
+Group.prototype.stop = function(){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].stop();
+    };
+    this.trigger('stop');
 }
 
 
 
-Mix.prototype.setLogLvl = function(lvl){
-    debug = constrain(lvl,0,2);
+Group.prototype.mute = function(){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].mute();
+    };
+    this.trigger('mute');
 }
+
+Group.prototype.unmute = function(){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].unmute();
+    };
+    this.trigger('unmute');
+}
+
+
+
+
+Group.prototype.pan = function(angle){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].pan(angle);
+    };
+    this.trigger('pan');
+}
+
+Group.prototype.tweenPan = function(angle, duration, callback){
+    for (var i = 0; i < this.tracks.length; i++) {
+        if(i===0) this.tracks[i].tweenPan(angle, duration, callback);
+        else      this.tracks[i].tweenPan(angle, duration);
+    };
+    this.trigger('tweenPan');
+}
+
+
+
+
+Group.prototype.gain = function(setTo){
+    for (var i = 0; i < this.tracks.length; i++) {
+        this.tracks[i].gain(setTo);
+    };
+    this.trigger('gain');
+}
+
+
+Group.prototype.tweenGain = function(setTo, duration, callback){
+    for (var i = 0; i < this.tracks.length; i++) {
+        if(i===0) this.tracks[i].tweenGain(setTo, duration, callback);
+        else      this.tracks[i].tweenGain(setTo, duration);
+        
+    };
+    this.trigger('tweenGain');
+}
+
 
 
 
@@ -501,12 +745,13 @@ Mix.prototype.setLogLvl = function(lvl){
 **************************************************************************/
 
 
-Track = function(name, opts, mix){
+var Track = function(name, opts, mix){
 
     // default options
     var defaults = {
-        group: "",
-        source: null,      // path to audio source (without file extension)
+        source: false,     // path to audio source (without file extension)
+        group:  false,
+
         nodes: [],         // array of strings: names of desired additional audio nodes
 
         gain:        0,    // initial/current gain (0-1)
@@ -532,22 +777,14 @@ Track = function(name, opts, mix){
     };
 
     // override option defaults
-    this.options = Mix.prototype.extend.call(this, defaults, opts || {});
+    this.options = this.extend.call(this, defaults, opts || {});
     this.options.source = this.options.source + Detect.audioType;
     
     this.name = name;
 
     this.events = {};
     this.ready = false;  // is the track loaded and ready to play?
-
-    // holds the web audio nodes (gain and pan are defaults, all other optional)
-    this.nodes = {
-        gain:       undefined,
-        panner:     undefined,
-        convolver:  undefined,
-        compressor: undefined,
-        delay:      undefined
-    };
+    this.nodes = {}; // holds the web audio nodes (gain and pan are defaults, all other optional)
 
     this.mix     = mix;  // reference to parent
     this.element = null; // html5 <audio> element
@@ -559,6 +796,15 @@ Track = function(name, opts, mix){
         return;
     }
 
+
+    if(this.options.group){
+        if( ! this.mix.groups[ this.options.group ] ) {
+            this.mix.groups[ this.options.group ] = new Group();
+        }
+
+        this.mix.groups[this.options.group].tracks.push(this);
+    }
+
     log('[Mixer] Creating track "'+name, 1);
     log(this.options, 2)
         
@@ -566,6 +812,8 @@ Track = function(name, opts, mix){
     else                this.loadDOM(this.options.source);
 
 }
+
+Track.prototype = new BaseClass();
 
 
 
@@ -1002,10 +1250,10 @@ Track.prototype.pan = function(angle_deg){
     if(!Detect.webAudio || !this.options.playing) return
 
     if(typeof angle_deg === 'string') {
-        if(angle_deg === 'front') angle_deg = 0;
-        else if(angle_deg === 'back') angle_deg = 180;
-        else if(angle_deg === 'left') angle_deg = 270;
-        else if(angle_deg === 'right') angle_deg = 90;
+        if     ( angle_deg === 'front' ) angle_deg =   0;
+        else if( angle_deg === 'back'  ) angle_deg = 180;
+        else if( angle_deg === 'left'  ) angle_deg = 270;
+        else if( angle_deg === 'right' ) angle_deg =  90;
     }
   
     if(typeof angle_deg === 'number') {
@@ -1052,79 +1300,6 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
     return true;
 
 }
-
-
-
-
-
-// // coords should be { x: num, y: num, z: num }
-// // http://www.html5rocks.com/en/tutorials/webaudio/games/#toc-3d
-// Track.prototype.pan3d = function(coords){
-
-//     if(!Detect.webAudio) return
-
-//     if(typeof coords !== 'undefined') {
-//         if ( typeof coords.x === 'number' || typeof coords.y === 'number' || typeof coords.z === 'number' ) {
-
-//             this.options.panX = constrain(coords.x,-1,1) ||  0;
-//             this.options.panY = constrain(coords.y,-1,1) ||  0;
-//             this.options.panZ = constrain(coords.z,-1,1) || -1;
-
-//             this.nodes.panner.setPosition(this.options.pan, this.options.panY, this.options.panZ);
-            
-//             this.trigger('pan3d', { 'x': this.options.pan, 'y': this.options.panY, 'z': this.options.panZ });
-//         }    
-//     }
-        
-//     return { 'x': this.options.pan, 'y': this.options.panY, 'z': this.options.panZ };
-// }
-
-// // coords should be { x: num, y: num, z: num }
-// Track.prototype.tweenPan3d = function(coords, tweenDuration, callback){
-
-//     if(!Detect.tween || !Detect.webAudio) return; // check for tween lib
-
-//     if(typeof coords === 'undefined' || typeof tweenDuration !== 'number') return;
-
-//     var self = this;
-
-//     console.log('[Mixer] "'+self.name+'" tweening pan3d')
-
-//     var x = constrain(coords.x,-1,1) || 0;
-//     var y = constrain(coords.y,-1,1) || 0;
-//     var z = constrain(coords.z,-1,1) || -1;
-
-//     var panTween = new TWEEN.Tween({ 
-//             currentX: self.options.pan,
-//             currentY: self.options.panY,
-//             currentZ: self.options.panZ
-//         })
-
-//         .to( { 
-//             currentX: x,
-//             currentY: y,
-//             currentZ: z 
-//         }, tweenDuration )
-
-//         .easing(TWEEN.Easing.Sinusoidal.InOut)
-
-//         .onUpdate(function(){
-//             self.pan3d({
-//                 x: currentX,
-//                 y: currentY,
-//                 z: currentZ
-//             })
-//         })
-
-//         .onComplete(function(){
-//             if(typeof callback === 'function') callback();
-//         })
-
-//         .start();
-
-//     return true;
-
-// }
 
 
 
@@ -1238,36 +1413,6 @@ Track.prototype.getDuration = function(){
 
 
 
-
-
-/**************************************************************************
-    
-    Event System
-
-**************************************************************************/
-
-Track.prototype.on = function(type, callback){
-    this.events[type] = this.events[type] || [];
-    this.events[type].push( callback );
-};
-
-Track.prototype.off = function(type){
-    this.events[type] = [];
-};
-
-Track.prototype.trigger = function(type){
-
-    if ( !this.events[type] ) return;
-
-    log(arguments,2);
-
-    var args = Array.prototype.slice.call(arguments, 1);
-
-    for (var i = 0, l = this.events[type].length; i < l;  i++)
-            if ( typeof this.events[type][i] == 'function' ) 
-                this.events[type][i].apply(this, args);
-
-};
 
         var Mixer = new Mix();
 

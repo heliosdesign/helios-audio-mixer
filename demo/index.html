@@ -136,7 +136,9 @@
 	<script>
 
 
-		var Mixer = new Mix();
+		var Mixer = new heliosAudioMixer();
+
+		console.log(Mixer)
 
 		frameRunner.start();
 		frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
