@@ -1140,16 +1140,16 @@ Track.prototype.gainCache = function(setTo){
 // gain range 0-1
 Track.prototype.gain = function(val){
 
-    if(this.options.muted || !this.options.playing) return;
-
    if(typeof val === 'number') {
 
         this.options.gain = constrain(val,0,1);
 
-        if(!Detect.webAudio){
-            this.element.volume = this.options.gain * this.mix.gain;
-        } else {
-            this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
+        if( ! this.options.muted ){
+            if(!Detect.webAudio){
+                this.element.volume = this.options.gain * this.mix.gain;
+            } else {
+                this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
+            }    
         }
 
         this.trigger('gain',this.options.gain);
