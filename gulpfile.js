@@ -7,11 +7,15 @@
 
 */
 
-var gulp = require('gulp'),
-    uglify = require('gulp-uglify'),
-    replace = require('gulp-replace'),
-    rename = require('gulp-rename'),
-    fs = require('fs');
+var gulp        = require('gulp'),
+    uglify      = require('gulp-uglify'),
+    replace     = require('gulp-replace'),
+    rename      = require('gulp-rename'),
+    fs          = require('fs'),
+    refresh     = require('gulp-livereload'),
+    live_reload = require('tiny-lr');
+
+var lr_server   = live_reload();
 
 var content = function(){
     return fs.readFileSync('source/helios-audio-mixer.js', 'utf8');
@@ -25,6 +29,7 @@ gulp.task('build', function(){
         .pipe(uglify({ mangle: false }))
         .pipe(rename({ suffix: '.min' }))
         .pipe(gulp.dest('.'))
+        .pipe(refresh(lr_server))
 })
 
 gulp.task('build-ng', function(){
@@ -49,10 +54,12 @@ gulp.task('build-require', function(){
 })
 
 
-gulp.task('default', ['build', 'build-ng', 'build-require']);
+gulp.task('default', ['build', 'build-ng', 'build-require', 'watch']);
 
 gulp.task('watch',function(){
 
-    gulp.watch('source/helios-audio-mixer.js', ['build', 'build-ng', 'build-require']);
+    lr_server.listen(35729);
+
+    gulp.watch('source/*.js', ['build', 'build-ng', 'build-require']);
 
 })

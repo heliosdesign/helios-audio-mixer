@@ -9,6 +9,8 @@
     "gulp-replace": "~0.2.0",
     "gulp": "~3.5.2",
     "gulp-uglify": "~0.2.1",
-    "gulp-notify": "~0.4.5"
+    "gulp-notify": "~0.4.5",
+    "tiny-lr": "0.0.5",
+    "gulp-livereload": "~1.1.1"
   }
 }
