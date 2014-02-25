@@ -13,7 +13,7 @@ Create your Mixer: `var Mixer = new Mix()`.
 
 ##### Mix Methods
 
-- `on('event',function)`
+- `on('event',function)` events: see below
 - `off('event')`
 
 - `createTrack(name, opts)` opts: see below
@@ -61,9 +61,11 @@ start        | `0`        | start time in seconds
 currentTime  | `0`        | current time (cached for resuming from pause)
 looping      | `false`    | 
 autoplay     | `true`     | play immediately on load
-loadCallback | `false`    | callback after track is loaded
 muted        | `false`    | 
 
+#### Track Events
+
+`remove`, `load`, `end`, `play`, `pause`, `stop`, `pan`, `gain`
 
 #### Props
 
