@@ -181,18 +181,13 @@ var log = function(msg, lvl){
 
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Base class
-    
-    (for inheriting common methods from)
-
-***************************************************************************
-**************************************************************************/
-
-
-
+// ██████╗  █████╗ ███████╗███████╗
+// ██╔══██╗██╔══██╗██╔════╝██╔════╝
+// ██████╔╝███████║███████╗█████╗  
+// ██╔══██╗██╔══██║╚════██║██╔══╝  
+// ██████╔╝██║  ██║███████║███████╗
+// ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
+                                
 var BaseClass = function(){};
 
 BaseClass.prototype.on = function(type, callback){
@@ -250,13 +245,12 @@ BaseClass.prototype.extend = function(){
 
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Mix
-
-***************************************************************************
-**************************************************************************/
+// ███╗   ███╗██╗██╗  ██╗
+// ████╗ ████║██║╚██╗██╔╝
+// ██╔████╔██║██║ ╚███╔╝ 
+// ██║╚██╔╝██║██║ ██╔██╗ 
+// ██║ ╚═╝ ██║██║██╔╝ ██╗
+// ╚═╝     ╚═╝╚═╝╚═╝  ╚═╝
 
 
 var Mix = function(opts){
@@ -313,7 +307,7 @@ Mix.prototype.createTrack = function(name, opts){
     this.tracks.push(track);
     this.lookup[name] = track;
 
-    if(this.muted) track.mute();
+    // if(this.muted) track.mute();
     return track;
     
 };
@@ -625,14 +619,13 @@ Mix.prototype.setLogLvl = function(lvl){
 
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Group
-
-***************************************************************************
-**************************************************************************/
-
+//  ██████╗ ██████╗  ██████╗ ██╗   ██╗██████╗ 
+// ██╔════╝ ██╔══██╗██╔═══██╗██║   ██║██╔══██╗
+// ██║  ███╗██████╔╝██║   ██║██║   ██║██████╔╝
+// ██║   ██║██╔══██╗██║   ██║██║   ██║██╔═══╝ 
+// ╚██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║     
+//  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝     
+                                           
 
 
 var Group = function(name, tracks){
@@ -737,14 +730,12 @@ Group.prototype.tweenGain = function(setTo, duration, callback){
 
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Track
-
-***************************************************************************
-**************************************************************************/
-
+// ████████╗██████╗  █████╗  ██████╗██╗  ██╗
+// ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
+//    ██║   ██████╔╝███████║██║     █████╔╝ 
+//    ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
+//    ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
+//    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
 
 var Track = function(name, opts, mix){
 
@@ -783,9 +774,9 @@ var Track = function(name, opts, mix){
     
     this.name = name;
 
-    this.events = {};
+    this.events = {};    
     this.ready = false;  // is the track loaded and ready to play?
-    this.nodes = {}; // holds the web audio nodes (gain and pan are defaults, all other optional)
+    this.nodes = {};     // holds the web audio nodes (gain and pan are defaults, all other optional)
 
     this.mix     = mix;  // reference to parent
     this.element = null; // html5 <audio> element
@@ -819,11 +810,13 @@ Track.prototype = new BaseClass();
 
 
 
-/**************************************************************************
-    
-    Load
-
-**************************************************************************/
+// ██╗      ██████╗  █████╗ ██████╗ 
+// ██║     ██╔═══██╗██╔══██╗██╔══██╗
+// ██║     ██║   ██║███████║██║  ██║
+// ██║     ██║   ██║██╔══██║██║  ██║
+// ███████╗╚██████╔╝██║  ██║██████╔╝
+// ╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ 
+                                 
 
 
 Track.prototype.loadDOM = function( source ){
@@ -899,14 +892,15 @@ Track.prototype.loadBuffer = function( source ){
 
 
 
-/**************************************************************************
-    
-    AudioNode Creation
-
-    -> this function can be chained
-
-**************************************************************************/
-
+// ███╗   ██╗ ██████╗ ██████╗ ███████╗
+// ████╗  ██║██╔═══██╗██╔══██╗██╔════╝
+// ██╔██╗ ██║██║   ██║██║  ██║█████╗  
+// ██║╚██╗██║██║   ██║██║  ██║██╔══╝  
+// ██║ ╚████║╚██████╔╝██████╔╝███████╗
+// ╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝
+                                   
+// AudioNode Creation
+// -> this function can be chained
 
 Track.prototype.addNode = function(nodeType){
 
@@ -1019,12 +1013,12 @@ Track.prototype.addNode = function(nodeType){
 
 
 
-/**************************************************************************
-    
-    Play/Pause/Stop
-
-**************************************************************************/
-
+//  ██████╗ ██████╗ ███╗   ██╗████████╗██████╗  ██████╗ ██╗     
+// ██╔════╝██╔═══██╗████╗  ██║╚══██╔══╝██╔══██╗██╔═══██╗██║     
+// ██║     ██║   ██║██╔██╗ ██║   ██║   ██████╔╝██║   ██║██║     
+// ██║     ██║   ██║██║╚██╗██║   ██║   ██╔══██╗██║   ██║██║     
+// ╚██████╗╚██████╔╝██║ ╚████║   ██║   ██║  ██║╚██████╔╝███████╗
+//  ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
 Track.prototype.play = function(){
 
@@ -1242,11 +1236,13 @@ Track.prototype.stop = function(){
 
 
 
-/**************************************************************************
-    
-    Pan
-
-**************************************************************************/
+// ██████╗  █████╗ ███╗   ██╗
+// ██╔══██╗██╔══██╗████╗  ██║
+// ██████╔╝███████║██╔██╗ ██║
+// ██╔═══╝ ██╔══██║██║╚██╗██║
+// ██║     ██║  ██║██║ ╚████║
+// ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝
+                          
 
 // proper 3d stereo panning
 Track.prototype.pan = function(angle_deg){
@@ -1309,17 +1305,21 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
 
 
-/**************************************************************************
-    
-    Gain/Mute
-
-**************************************************************************/
+//  ██████╗  █████╗ ██╗███╗   ██╗
+// ██╔════╝ ██╔══██╗██║████╗  ██║
+// ██║  ███╗███████║██║██╔██╗ ██║
+// ██║   ██║██╔══██║██║██║╚██╗██║
+// ╚██████╔╝██║  ██║██║██║ ╚████║
+//  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+                              
 
 // cache current gain for restoring later   
 Track.prototype.gainCache = function(setTo){
     
     if( typeof setTo !== 'undefined' ) 
         this.options.gainCache = setTo;
+
+    console.log('gainCache %s', this.options.gainCache);
 
     return this.options.gainCache || 0;
 }
@@ -1331,7 +1331,8 @@ Track.prototype.gain = function(val){
 
         this.options.gain = constrain(val,0,1);
 
-        if(this.ready){
+        if(this.options.playing){
+
             if(!Detect.webAudio){
                 this.element.volume = this.options.gain * this.mix.gain;
             } else {
@@ -1369,7 +1370,10 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
             self.gain(this.currentGain)
         })
         .onComplete(function(){
-            if(typeof callback === 'function') callback();
+
+            if(callback)
+                if(typeof callback === 'function') 
+                    callback();
         })
         .start();
 };
@@ -1377,21 +1381,14 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
 Track.prototype.mute = function(){
     var self = this;
-    self.options.muted = true;  
+    self.options.muted = true;
 
     console.log('TRACK %s muting... %O', self.name, self.options)
-
-    // if(self.options.muted === true) {
-    //     self.unmute();
-    //     return;
-    // }
 
     self.gainCache(self.options.gain);
     console.log('self.gainCache: %s', self.gainCache() )
 
-    self.tweenGain(0, 500,function(){
-        console.log('end gain tween')
-    });
+    self.tweenGain(0, 500);
 
 };
 
