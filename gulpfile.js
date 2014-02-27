@@ -58,7 +58,7 @@ gulp.task('default', ['build', 'build-ng', 'build-require', 'watch']);
 
 gulp.task('watch',function(){
 
-    lr_server.listen(35729);
+    // lr_server.listen(35729);
 
     gulp.watch('source/*.js', ['build', 'build-ng', 'build-require']);
 

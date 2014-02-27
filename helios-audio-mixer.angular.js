@@ -1331,11 +1331,13 @@ Track.prototype.gain = function(val){
 
         this.options.gain = constrain(val,0,1);
 
-        if(!Detect.webAudio){
-            this.element.volume = this.options.gain * this.mix.gain;
-        } else {
-            this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
-        }   
+        if(this.ready){
+            if(!Detect.webAudio){
+                this.element.volume = this.options.gain * this.mix.gain;
+            } else {
+                this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
+            }       
+        }
 
         this.trigger('gain',this.options.gain);
 
