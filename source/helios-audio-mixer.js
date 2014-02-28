@@ -770,7 +770,8 @@ var Track = function(name, opts, mix){
     this.name = name;
 
     this.events = {};    
-    this.ready = false;  // is the track loaded and ready to play?
+    this.ready = false;  // is the track set up and initialized?
+    this.loaded = false; // is the track loaded and ready to play?
     this.nodes = {};     // holds the web audio nodes (gain and pan are defaults, all other optional)
 
     this.mix     = mix;  // reference to parent
@@ -827,6 +828,7 @@ Track.prototype.loadDOM = function( source ){
     self.element.addEventListener('canplaythrough', function(e) {
         log('[Mixer] canplaythrough "'+source+'"',2)
         self.ready = true;
+        self.loaded = true;
 
         self.trigger('load');
 
@@ -868,7 +870,7 @@ Track.prototype.loadBuffer = function( source ){
         log('[Mixer] "'+self.name+'" loaded "' + source + '"',2)
 
         self.options.audioData = request.response; // cache the audio data
-        self.ready = true; // ready to play
+        self.loaded = true; // ready to play
 
         if(self.options.autoplay) self.play();
 
@@ -1019,7 +1021,6 @@ Track.prototype.play = function(){
 
     var self = this;
 
-    if(!self.ready) return;
     if(self.options.playing === true) return;
 
     self.options.playing = true;
@@ -1141,9 +1142,11 @@ Track.prototype.play = function(){
                 self.stop();
             }
 
-            self.trigger('end');
+            self.trigger('ended');
 
         }, timer_duration * 1000);
+
+        self.ready = true;
 
     }
 
@@ -1161,7 +1164,7 @@ Track.prototype.pause = function(){
 
     var doIt = function(){
 
-        self.options.cachedTime = self.getCurrentTime(); // cache time to resume from later
+        self.options.cachedTime = self.currentTime(); // cache time to resume from later
         self.options.playing = false;
 
         if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
@@ -1326,7 +1329,7 @@ Track.prototype.gain = function(val){
 
         this.options.gain = constrain(val,0,1);
 
-        if(this.options.playing){
+        if(this.options.playing && ! this.options.muted){
 
             if(!Detect.webAudio){
                 this.element.volume = this.options.gain * this.mix.gain;
@@ -1347,6 +1350,11 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
     if(!Detect.tween) {
         this.gain(val);
+
+        if(callback)
+            if(typeof callback === 'function') 
+                callback();
+
         return;
     }
 
@@ -1376,14 +1384,15 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
 Track.prototype.mute = function(){
     var self = this;
-    self.options.muted = true;
 
     console.log('TRACK %s muting... %O', self.name, self.options)
 
     self.gainCache(self.options.gain);
     console.log('self.gainCache: %s', self.gainCache() )
 
-    self.tweenGain(0, 500);
+    self.tweenGain(0, 500, function(){
+        self.options.muted = true;
+    });
 
 };
 
@@ -1401,7 +1410,7 @@ Track.prototype.unmute = function(){
 **************************************************************************/
 
 
-Track.prototype.getCurrentTime = function(){
+Track.prototype.currentTime = function(){
     if(!this.ready) return;
     
     if(!this.options.playing) return this.options.cachedTime || 0;
@@ -1410,7 +1419,7 @@ Track.prototype.getCurrentTime = function(){
     else                return this.element.currentTime;
 }
 
-Track.prototype.getDuration = function(){
+Track.prototype.duration = function(){
     if(!this.ready) return;
 
     if(Detect.webAudio) return this.options.source.buffer.duration;
