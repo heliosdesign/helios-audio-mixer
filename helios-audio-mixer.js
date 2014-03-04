@@ -166,7 +166,11 @@ var log = function(msg, lvl){
 }
 
 
-
+var timeFormat = function(seconds){
+    var m=Math.floor(seconds/60)<10?"0"+Math.floor(seconds/60):Math.floor(seconds/60);
+    var s=Math.floor(seconds-(m*60))<10?"0"+Math.floor(seconds-(m*60)):Math.floor(seconds-(m*60));
+    return m+":"+s;
+}
 
 
 
@@ -252,7 +256,7 @@ BaseClass.prototype.extend = function(){
 
 var Mix = function(opts){
 
-    log("[Mixer] Loaded", 1)
+    log("[Mixer] Loaded", 2)
 
     this.tracks  = [];    // tracks as numbered array
     this.groups  = {};    // easy access to groups: group['groupname']
@@ -1044,7 +1048,7 @@ Track.prototype.play = function(){
 
     if(!Detect.webAudio) {
 
-        log('[Mixer] Playing track "'+self.name+'" >',1)
+        log('[Mixer] Playing track "'+self.name+'" >', 1)
         self.ready  = true;
         self.element.play();
 
@@ -1125,7 +1129,6 @@ Track.prototype.play = function(){
         if(self.options.muted) self.options.gain = 0;
 
         self.gain(self.options.gain);
-        console.log('SETTING GAIN %s', self.gain() )
         this.options.gainCache = this.gain();
 
         self.pan(self.options.pan);
@@ -1151,6 +1154,7 @@ Track.prototype.play = function(){
         }
 
         self.ready = true;
+        self.trigger('ready');
 
         // onend timer
         // ~~~~~~~~~~~
@@ -1167,6 +1171,7 @@ Track.prototype.play = function(){
         }, timer_duration * 1000);
 
         self.ready = true;
+        self.trigger('ready');
 
     }
 
@@ -1185,7 +1190,7 @@ Track.prototype.pause = function(){
     var doIt = function(){
 
 
-        self.options.cachedTime = self.getCurrentTime(); // cache time to resume from later
+        self.options.cachedTime = self.currentTime(); // cache time to resume from later
         self.playing = false;
 
         if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
@@ -1324,13 +1329,12 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
 
 
-//  ██████╗  █████╗ ██╗███╗   ██╗
-// ██╔════╝ ██╔══██╗██║████╗  ██║
-// ██║  ███╗███████║██║██╔██╗ ██║
-// ██║   ██║██╔══██║██║██║╚██╗██║
-// ╚██████╔╝██║  ██║██║██║ ╚████║
-//  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
-                              
+//  ██████╗  █████╗ ██╗███╗   ██╗ 
+// ██╔════╝ ██╔══██╗██║████╗  ██║ 
+// ██║  ███╗███████║██║██╔██╗ ██║ 
+// ██║   ██║██╔══██║██║██║╚██╗██║ 
+// ╚██████╔╝██║  ██║██║██║ ╚████║ 
+//  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ 
 
 // cache current gain for restoring later   
 Track.prototype.gainCache = function(setTo){
@@ -1350,7 +1354,7 @@ Track.prototype.gain = function(val){
 
         this.options.gain = constrain(val,0,1);
 
-        if(this.options.playing && ! this.options.muted){
+        if(this.playing && ! this.options.muted){
 
             if(!Detect.webAudio){
                 this.element.volume = this.options.gain * this.mix.gain;
@@ -1433,7 +1437,6 @@ Track.prototype.unmute = function(){
 
 
 Track.prototype.currentTime = function( setTo ){
-
     if(!this.ready) return;
 
     if( typeof setTo === 'number' ){
@@ -1448,9 +1451,20 @@ Track.prototype.currentTime = function( setTo ){
     
     if(!this.playing) return this.options.cachedTime || 0;
 
-    // if(Detect.webAudio) return this.source.context.currentTime - this.options.startTime;
-    if(Detect.webAudio) return this.source.context.currentTime;
+    if(Detect.webAudio) return this.source.context.currentTime - this.options.startTime;
+    // if(Detect.webAudio) return this.source.context.currentTime;
     else                return this.element.currentTime;
+}
+
+
+Track.prototype.formattedTime = function(){
+    if(!this.ready) return;
+
+    var duration = this.duration(),
+        currentTime = this.currentTime();
+
+    return timeFormat(currentTime) + '/' + timeFormat(duration);
+
 }
 
 Track.prototype.duration = function(){

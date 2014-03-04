@@ -13,6 +13,21 @@
 			margin: 0;
 			margin-right: 1em;
 		}
+
+		.slider {
+			display: inline-block;
+			position: relative;
+			width: 100px;
+			margin: 10px 0;
+			background: #eee;
+			height: 1em;
+		}
+		.playhead {
+			position: absolute;
+			width: 1px;
+			height: 100%;
+			background: black;
+		}
 	</style>
 </head>
 <body>
@@ -20,101 +35,127 @@
 
 	<h1>Helios Audio Mixer Test Page</h1>
 
-	<hr>
+	Web Audio: <span id="webaudio"></span> <br>
+	Audio type: <span id="audioType"></span>
 
-		Web Audio: <span id="webaudio"></span> <br>
-		Audio type: <span id="audioType"></span>
 
-	<hr>
+	<br><br><br>
 
-		<h4>Create</h4>
+
+	<table>
+
+		<tr>
+			
+			<td><h4>Create</h4></td>
+
+			<td> <button onclick="createDrone()"> Drone </button> </td>
+			<td> <button onclick="createFluorescent()"> Fluorescent (no autoplay) </button> </td>
+			<td> <button onclick="createHelicopter()"> Helicopter (callback + compressor) </button> </td>
+
+		</tr><tr>
+
+			<td> <h4>Remove</h4></td>
+
+			<td> <button onclick="Mixer.removeTrack('drone')">Drone</button> </td>
+			<td> <button onclick="Mixer.removeTrack('fluorescent')">Fluorescent</button> </td>
+			<td> <button onclick="Mixer.removeTrack('helicopter')">Helicopter</button> </td>
 		
-		<button onclick="createDrone()">
-			Drone
-		</button>
+		</tr><tr>
 
-		<button onclick="createFluorescent()">
-			Fluorescent (no autoplay)
-		</button>
+			<td><h4>Gain</h4></td>
 
-		<button onclick="createHelicopter()">
-			Helicopter (callback + compressor)
-		</button>
+			<td><input name="track1gain" id="track1gain" type="range" min="0" max="100" value="100"></td>
+			<td><input name="track2gain" id="track2gain" type="range" min="0" max="100" value="10"></td>
+			<td><input name="track3gain" id="track3gain" type="range" min="0" max="100" value="50"></td>
+
+		</tr><tr>
+
+			<td><h4>Tween Gain</h4></td>
+
+			<td>
+				<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(0,1000)">Drone Out</button><br>
+				<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(1,1000,function(){ console.log('Drone in callback')})">Drone In +callback</button>
+			</td>
+
+		</tr><tr>
+
+			<td><h4>Pan</h4></td>
+
+			<td><input name="track1pan" id="track1pan" type="range" min="0" max="360" value="0"></td>
+			<td><input name="track2pan" id="track2pan" type="range" min="0" max="360" value="0"></td>
+			<td><input name="track3pan" id="track3pan" type="range" min="0" max="360" value="0"></td>
+
+		</tr><tr>
+
+			<td><h4>Tween Pan</h4> </td>
+
+			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenPan(720, 6000)">Drone</button></td>
+			<!-- <td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button> </td> -->
+			<!-- <td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button> </td> -->
+
+		</tr><tr>
+
+			<td><h4>Pan Position</h4></td>
+
+			<td><canvas id="track1panCanvas" width="100" height="100"></canvas></td>
+			<td><canvas id="track2panCanvas" width="100" height="100"></canvas></td>
+			<td><canvas id="track3panCanvas" width="100" height="100"></canvas></td>
+
+		</tr><tr>
+
+			<td><h4>Progress</h4></td>
+
+			<td> 
+				<div class="slider" id="track1slider"> <div class="playhead" id="track1playhead"></div></div> <br>
+				<div id="track1time">00:00/00:00</div>
+			</td>
+			<td> 
+				<div class="slider" id="track2slider"> <div class="playhead" id="track2playhead"></div></div> <br>
+				<div id="track2time">00:00/00:00</div>
+			</td>
+			<td> 
+				<div class="slider" id="track3slider"> <div class="playhead" id="track3playhead"></div></div> <br>
+				<div id="track3time">00:00/00:00</div>
+			</td>
+
+		</tr><!-- <tr>
+
+			<td><h4>Set Time</h4></td>
+
+			<td><input type="text" id="track1setTime"></td>
 
 
-	<hr>
+		</tr> --><tr>
 
-		<h4>Remove</h4>
+			<td><h4>Play</h4> </td>
 
-		<button onclick="Mixer.removeTrack('drone')">Drone</button>
-		<button onclick="Mixer.removeTrack('fluorescent')">Fluorescent</button>
-		<button onclick="Mixer.removeTrack('helicopter')">Helicopter</button>
+			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').play()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button></td>
+			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button></td>
 
-	<hr>
+		</tr><tr>
 
-		<h4>Gain</h4>
+			<td><h4>Pause</h4> </td>
 
-		<input name="track1gain" id="track1gain" type="range" min="0" max="100" value="100">
-		<input name="track2gain" id="track2gain" type="range" min="0" max="100" value="10">
-		<input name="track3gain" id="track3gain" type="range" min="0" max="100" value="50">
+			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pause()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pause()">Fluorescent</button></td>
+			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pause()">Helicopter</button></td>
 
-	<hr>
+		</tr><tr>
 
-		<h4>Tween Gain</h4>
+			<td><h4>Stop</h4> </td>
 
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(0,1000)">Drone Out</button>
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(1,1000,function(){ console.log('Drone in callback')})">Drone In (callback)</button>
+			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').stop()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').stop()">Fluorescent</button></td>
+			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').stop()">Helicopter</button></td>
+	
 
-	<hr>
+	</table>
 
-		<h4>Pan</h4>
+	
+	<br><br><br>
 
-		<input name="track1pan" id="track1pan" type="range" min="0" max="360" value="0">
-		<input name="track2pan" id="track2pan" type="range" min="0" max="360" value="0">
-		<input name="track3pan" id="track3pan" type="range" min="0" max="360" value="0">
-
-	<hr>
-
-		<h4>Tween Pan</h4> 
-
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenPan(720, 6000)">Drone</button>
-		<!-- <button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button> -->
-		<!-- <button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button> -->
-
-	<hr>
-
-		<h4>Pan Position</h4>
-
-		<canvas id="track1panCanvas" width="100" height="100"></canvas>
-		<canvas id="track2panCanvas" width="100" height="100"></canvas>
-		<canvas id="track3panCanvas" width="100" height="100"></canvas>
-
-	<hr>
-
-		<h4>Play</h4> 
-
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').play()">Drone</button>
-		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button>
-		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button>
-
-	<hr>
-
-		<h4>Pause</h4> 
-
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pause()">Drone</button>
-		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pause()">Fluorescent</button>
-		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pause()">Helicopter</button>
-
-	<hr>
-
-		<h4>Stop</h4> 
-
-		<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').stop()">Drone</button>
-		<button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').stop()">Fluorescent</button>
-		<button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').stop()">Helicopter</button>
-
-	<hr>
-
+	
 	<h4>Mixer</h4>
 
 	<button onclick="Mixer.pause()">Pause All ||</button>
@@ -138,6 +179,8 @@
 
 		var Mixer = new heliosAudioMixer();
 
+		Mixer.setLogLvl(2)
+
 		console.log(Mixer)
 
 		frameRunner.start();
@@ -150,7 +193,18 @@
 		else 					  document.getElementById('webaudio').innerHTML = "NO";
 
 		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
-		
+
+
+
+		var updateTime = function(){
+			if( Mixer.getTrack('drone') ){
+				document.getElementById('track1time').innerHTML = Mixer.getTrack('drone').formattedTime();
+				document.getElementById('track1playhead').style.left = Mixer.getTrack('drone').currentTime() + 'px';
+			}
+		}
+
+		frameRunner.add('updateTime','everyFrame',updateTime)
+
 
 		// ********************************************************
 		// Setup and Events
@@ -278,6 +332,7 @@
 		document.getElementById('track3pan').addEventListener('change',function(e){
 			if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pan( e.target.valueAsNumber )
 		},false)
+
 
 	</script>
 

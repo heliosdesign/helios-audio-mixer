@@ -70,7 +70,6 @@ function cats(){
 ```
 
 
-
 ## Reference
 
 ### Detect Object
@@ -128,25 +127,32 @@ Detect = {
 - `play()`
 - `pause()`
 - `stop()`
-- `mute()`
-- `unmute()`
 
 ##### Pan
 
-- `pan(angle)` stereo pan: angle can be a number in degrees (0° is front, counts clockwise) or a string: `'front'`, `'back'`, `'left'`, `'right'`
+- `pan(angle)` stereo pan: angle can be a number in degrees (0° front, counts clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
 - `tweenPan(angle, duration, callback)`
 
 ##### Gain
 
 - `gain(setTo)` range 0-1
 - `tweenGain(setTo, duration, callback)`
+- `mute()`
+- `unmute()`
+
+##### Time
+
+- `currentTime()` returns current time in seconds
+- `formattedTime()` returns ie "00:23/00:45"
+- `duration()` returns track duration in seconds
+
 
 ### Track Options
 
 name | default | notes
 ---------|---------|---------
 source       | `null`     | path to audio source (without file extension)
-nodes        | `[ ]`      | array of strings: names of desired additional audio nodes
+nodes        | `[]`      | array of strings: names of desired additional audio nodes
 gain         | `0`        | initial/current gain (0-1)
 pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
 start        | `0`        | start time in seconds
@@ -160,9 +166,10 @@ muted        | `false`    |
 `remove`, `load`, `end`, `play`, `pause`, `stop`, `pan`, `gain`
 
 ```
-mix.getTrack('name').on('event',function(){
+mix.getTrack('name').on('eventType',function(){
 	// do!
-})
+});
+mix.getTrack('name').off('eventType');
 ```
 
 #### Props
