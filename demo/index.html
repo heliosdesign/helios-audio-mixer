@@ -176,18 +176,23 @@
 
 	<script>
 
+		var Mixer = new heliosAudioMixer;
 
-		var Mixer = new heliosAudioMixer();
+		if(window.location.hash === '#html5' || ! Mixer.detect.webAudio) {
+			console.log('HTML5 mode')
+			Mixer.detect.webAudio = false;
+			Mixer = new heliosAudioMixer({
+				html5 : true,
+				tracks : ['drone', 'fluorescent','helicopter']
+			});
+		}
 
 		Mixer.setLogLvl(2)
-
-		console.log(Mixer)
 
 		frameRunner.start();
 		frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
 
-		console.log('Feature detection:')
-		console.log(Mixer.detect)
+		console.log('Feature detection: %O', Mixer.detect)
 
 		if(Mixer.detect.webAudio) document.getElementById('webaudio').innerHTML = "YES";
 		else 					  document.getElementById('webaudio').innerHTML = "NO";

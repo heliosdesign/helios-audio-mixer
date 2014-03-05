@@ -172,8 +172,18 @@ mix.getTrack('name').on('eventType',function(){
 mix.getTrack('name').off('eventType');
 ```
 
-#### Props
+## HTML5 Mode
 
-to Kevin Ennis for his excellent [Mix.js](https://github.com/kevincennis/Mix.js), which we based this library on when we started working on this web audio stuff a couple years ago.
+This is a fallback mode for older browsers, and iOS 7. iOS 7 "supports" the Web Audio API, but it’s incredibly unstable.
 
+#### Tracks
 
+You need to declare the number of tracks you want up front, and you can’t add/remove tracks later.
+
+```
+var Mixer = new heliosAudioMixer({ 
+	tracks: [ 'bg', 'vo', 'fx' ]
+});
+```
+
+Panning and crossfading are not supported.

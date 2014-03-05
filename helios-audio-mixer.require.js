@@ -1,6 +1,8 @@
 define(['tween'], function(tween){
 
-    var Mix,    // Mixer class
+    
+
+var Mix,    // Mixer class
     Track,  // Track class, accessed through Mix.tracks
 
     Detect, // Feature detection
@@ -12,21 +14,12 @@ define(['tween'], function(tween){
 
 
 
-
-
-
-
-
-
-
-
-/**************************************************************************
-***************************************************************************
-    
-    Detect
-
-***************************************************************************
-**************************************************************************/
+// ██████╗ ███████╗████████╗███████╗ ██████╗████████╗
+// ██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
+// ██║  ██║█████╗     ██║   █████╗  ██║        ██║   
+// ██║  ██║██╔══╝     ██║   ██╔══╝  ██║        ██║   
+// ██████╔╝███████╗   ██║   ███████╗╚██████╗   ██║   
+// ╚═════╝ ╚══════╝   ╚═╝   ╚══════╝ ╚═════╝   ╚═╝   
 
 Detect = {
 
@@ -115,14 +108,12 @@ Detect = {
 
 
 
-/**************************************************************************
-***************************************************************************
-    
-    Utility Functions
-
-***************************************************************************
-**************************************************************************/
-
+// ██╗   ██╗████████╗██╗██╗     ███████╗
+// ██║   ██║╚══██╔══╝██║██║     ██╔════╝
+// ██║   ██║   ██║   ██║██║     ███████╗
+// ██║   ██║   ██║   ██║██║     ╚════██║
+// ╚██████╔╝   ██║   ██║███████╗███████║
+//  ╚═════╝    ╚═╝   ╚═╝╚══════╝╚══════╝
 
 var debounce = function(func, wait) {
     var timeout;
@@ -136,23 +127,6 @@ var debounce = function(func, wait) {
         timeout = setTimeout(later, wait);
     };
 };
-
-// var on = function( type, callback ){
-//     this.events[type] = this.events[type] || [];
-//     this.events[type].push( callback );
-// };
-
-// var off = function( type ){
-//     this.events[type] = [];
-// };
-
-// var trigger = function( type ){
-//     if ( !this.events[type] ) return;
-//     var args = Array.prototype.slice.call(arguments, 1);
-//     for (var i = 0, l = this.events[type].length; i < l;  i++)
-//         if ( typeof this.events[type][i] == 'function' ) 
-//             this.events[type][i].apply(this, args);
-// };
 
 var constrain = function(val, min, max){
     if(val < min) return min;
@@ -188,7 +162,7 @@ var timeFormat = function(seconds){
 // ██╔══██╗██╔══██║╚════██║██╔══╝  
 // ██████╔╝██║  ██║███████║███████╗
 // ╚═════╝ ╚═╝  ╚═╝╚══════╝╚══════╝
-                                
+
 var BaseClass = function(){};
 
 BaseClass.prototype.on = function(type, callback){
@@ -258,6 +232,14 @@ var Mix = function(opts){
 
     log("[Mixer] Loaded", 2)
 
+    var defaults = {
+        html5: false,
+        tracks : []
+    }
+    this.options = this.extend.call(this, defaults, opts || {});
+
+    console.log('this.options: %O', this.options)
+
     this.tracks  = [];    // tracks as numbered array
     this.groups  = {};    // easy access to groups: group['groupname']
     this.lookup  = {};    // tracks as lookup table: lookup['trackname']
@@ -272,17 +254,32 @@ var Mix = function(opts){
     this.detect  = Detect; // just an external reference for debugging
 
     // Overrides
-    if(Detect.browser.Firefox) Detect.webAudio = false;
+    if(Detect.browser.Firefox || this.options.html5) Detect.webAudio = false;
 
     // Initialize
+
     if(Detect.webAudio === true) {
+
         log('[Mixer] Web Audio Supported', 1)
         if ( typeof AudioContext === 'function' ) 
             this.context = new AudioContext();
         else 
             this.context = new webkitAudioContext();
     } else {
+
         log('[Mixer] no Web Audio, falling back to HTML5', 1)
+
+        var track;
+
+        // create all tracks at the beginning
+        for (var i = 0; i < this.options.tracks.length; i++) {
+
+            track = new Track( this.options.tracks[i], {}, this );
+
+            this.tracks.push( track );
+            this.lookup[ this.options.tracks[i] ] = track;
+        };
+
     }
 
 }
@@ -298,17 +295,36 @@ Mix.prototype = new BaseClass(); // inherit utility methods
 
 Mix.prototype.createTrack = function(name, opts){
 
-    if(this.lookup[name]) {
-        console.warn('[Mixer] A track called "%s" already exists', name);
-        return;
+    var track;
+
+    if(Detect.webAudio === true) {
+
+        if(this.lookup[name]) {
+            console.warn('[Mixer] A track called "%s" already exists', name);
+            return;
+        }
+
+        track = new Track(name, opts, this);
+
+        this.tracks.push( track );
+        this.lookup[name] = track;
+
+    } else {
+
+        track = this.lookup[name];
+
+        if(!track) {
+            console.warn('[Mixer] Can’t load file for track %s, no track named %s exists',name,name)
+            return;
+        }
+
+        track.options = track.extend( track, track.defaults, opts || {} );
+
+        if(opts.source) 
+            track.loadDOM( opts.source )
+
     }
 
-    var track = new Track(name, opts, this);
-
-    this.tracks.push(track);
-    this.lookup[name] = track;
-
-    // if(this.muted) track.mute();
     return track;
     
 };
@@ -324,35 +340,48 @@ Mix.prototype.removeTrack = function(name){
         return;
     }
 
-    // Fade the track out if we can,
-    // to avoid nasty crackling
+    if( Detect.webAudio === true ){
 
-    var doIt = function(){
-        track.pause();
+        // Fade the track out if we can,
+        // to avoid nasty crackling
 
-        var rest, 
-            arr   = self.tracks, 
-            total = arr.length;
+        var doIt = function(){
+            track.pause();
 
-        for ( var i = 0; i < total; i++ ){
-            if ( arr[i] && arr[i].name == name ) {
-                rest = arr.slice(i + 1 || total);
-                arr.length = i < 0 ? total + i : i;
-                arr.push.apply( arr, rest );
+            var rest, 
+                arr   = self.tracks, 
+                total = arr.length;
+
+            for ( var i = 0; i < total; i++ ){
+                if ( arr[i] && arr[i].name == name ) {
+                    rest = arr.slice(i + 1 || total);
+                    arr.length = i < 0 ? total + i : i;
+                    arr.push.apply( arr, rest );
+                }
             }
+
+            track.trigger('remove');
+
+            track.events = [];
+
+            track = null;
+            delete self.lookup[name];
+            log('[Mixer] Removed track "'+name+'"', 1)
         }
 
-        track.trigger('remove');
+        if(Detect.tween) track.tweenGain(0,100, doIt);
+        else doIt();
 
-        track.events = [];
+    } else {
 
-        track = null;
-        delete self.lookup[name];
-        log('[Mixer] Removed track "'+name+'"', 1)
+        track.pause();
+
+        track.element.src = track.source = null;
+
+        track.ready = false;
+        track.loaded = false;
+
     }
-
-    if(Detect.tween) track.tweenGain(0,100, doIt);
-    else doIt();
     
 };
 
@@ -378,11 +407,7 @@ Mix.prototype.getTrack = function(name){
 
 Mix.prototype.getTracks = function(group){
 
-    if(typeof group === 'undefined') {
-
-        return false;
-
-    } else if( group === '*') {
+    if(typeof group === 'undefined' ||  group === '*') {
 
         return this.tracks;
 
@@ -535,51 +560,51 @@ Mix.prototype.setGain = function(masterGain){
 
 
 
-/**************************************************************************
+// /**************************************************************************
     
-    Crossfade
+//     Crossfade
 
-**************************************************************************/
+// **************************************************************************/
 
-Mix.prototype.replaceTrack = function(opts){
+// Mix.prototype.replaceTrack = function(opts){
 
-    var defaults = {
-        duration: 1000,
+//     var defaults = {
+//         duration: 1000,
 
-        from: false,
-        to:   false,
-        toOpts: {
-            source: false
-        }
-    }
-    var options = this.extend(defaults, opts);
+//         from: false,
+//         to:   false,
+//         toOpts: {
+//             source: false
+//         }
+//     }
+//     var options = this.extend(defaults, opts);
 
-    console.log('options: %O', options)
+//     console.log('options: %O', options)
 
-    if(Detect.tween) {
+//     if(Detect.tween) {
 
-        if(options.from) {
-            console.log('FROM: %s',options.from)
-            var from = this.getTrack(options.from);
-            from.tweenGain(0, options.duration, function(){
-                this.removeTrack(options.from);
-            });    
-        }
+//         if(options.from) {
+//             console.log('FROM: %s',options.from)
+//             var from = this.getTrack(options.from);
+//             from.tweenGain(0, options.duration, function(){
+//                 this.removeTrack(options.from);
+//             });    
+//         }
 
-        if(options.to){
-            options.toOpts.gain = 0;
-            this.createTrack(options.to, options.toOpts);
-            this.getTrack(options.to).tweenGain(1, options.duration);    
-        }
+//         if(options.to){
+//             options.toOpts.gain = 0;
+//             this.createTrack(options.to, options.toOpts);
+//             this.getTrack(options.to).tweenGain(1, options.duration);    
+//         }
         
 
-    } else {
-        if(options.from) this.removeTrack(options.from);
-        if(options.to) this.createTrack(options.to, options.toOpts);
-    }
+//     } else {
+//         if(options.from) this.removeTrack(options.from);
+//         if(options.to) this.createTrack(options.to, options.toOpts);
+//     }
     
 
-}
+// }
 
 
 
@@ -627,7 +652,7 @@ Mix.prototype.setLogLvl = function(lvl){
 // ╚██████╔╝██║  ██║╚██████╔╝╚██████╔╝██║     
 //  ╚═════╝ ╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚═╝     
                                            
-
+// Just wrapper functions.
 
 var Group = function(name, tracks){
 
@@ -746,7 +771,7 @@ Group.prototype.tweenGain = function(setTo, duration, callback){
 var Track = function(name, opts, mix){
 
     // default options
-    var defaults = {
+    this.defaults = {
         source: false,     // path to audio source (without file extension)
         group:  false,
 
@@ -775,7 +800,7 @@ var Track = function(name, opts, mix){
     };
 
     // override option defaults
-    this.options = this.extend.call(this, defaults, opts || {});
+    this.options = this.extend.call(this, this.defaults, opts || {});
     this.options.source = this.options.source + Detect.audioType;
     
     this.name = name;
@@ -800,6 +825,11 @@ var Track = function(name, opts, mix){
         return;
     }
 
+    log('[Mixer] Creating track "'+name, 1);
+    log(this.options, 2)
+
+    // Group
+    // ~~~~~
 
     if(this.options.group){
         if( ! this.mix.groups[ this.options.group ] ) {
@@ -808,12 +838,53 @@ var Track = function(name, opts, mix){
 
         this.mix.groups[this.options.group].tracks.push(this);
     }
+    
+    // Load
+    // ~~~~
 
-    log('[Mixer] Creating track "'+name, 1);
-    log(this.options, 2)
-        
-    if(Detect.webAudio) this.loadBuffer( this.options.source );
-    else                this.loadDOM( this.options.source );
+    if( Detect.webAudio === true ) {
+
+        this.loadBuffer( this.options.source );
+
+    } else {
+
+        console.log('creating element')
+
+        self.element = document.createElement('audio'); // Does this need to be in the DOM???
+
+        self.element.addEventListener('canplaythrough', function(e) {
+
+            log('[Mixer] "'+self.name+'" canplaythrough',2)
+
+            self.loaded = true;
+            self.ready = true;
+
+            self.trigger('load', self);
+
+            if(self.options.autoplay) self.play();
+
+        }, false)
+
+        // Looping
+        self.element.addEventListener('ended', function(){
+
+            if(self.options.looping){
+
+                log('Track '+self.name+' looping', 2);
+
+                self.element.currentTime = 0;
+                self.element.play();  
+
+            } else {
+
+                self.mix.removeTrack(self.name);
+            }
+
+        }, false);
+
+        if(self.options.autoplay) this.loadDOM( this.options.source );
+
+    }                
 
 }
 
@@ -833,40 +904,19 @@ Track.prototype = new BaseClass();
 
 Track.prototype.loadDOM = function( source ){
 
-    log('[Mixer] load DOM "'+source+'"...',2)
+    if( ! source ) return;
 
-    var self = this
+    log('[Mixer] Track "'+this.name+'" load DOM: "'+source + Detect.audioType +'"',2)
 
-    self.element = document.createElement('audio');
-    self.element.src = source;
+    var self = this;
+    self.ready = false;
+
+    self.element.src = source + Detect.audioType;
+    self.element.load();
 
     self.source = self.element;
 
-    // Loaded Event
-    self.element.addEventListener('canplaythrough', function(e) {
-        log('[Mixer] canplaythrough "'+source+'"',2)
-
-        self.loaded = true;
-        self.ready  = true;
-
-        self.trigger('load');
-
-        if(self.options.autoplay) self.play();
-
-    }, false);
-
-    // Looping
-    if(this.options.looping) {
-        self.element.addEventListener('ended',function(e){
-            self.element.currentTime = 0;
-            self.element.play();
-        }, false);
-    }
-
-    self.element.load();
-
-    // Firefox only fires canplaythrough after seeking
-    if(Detect.browser.Firefox) {
+    if( Detect.Firefox === true ) {
         self.element.play();
     }
 
@@ -875,13 +925,15 @@ Track.prototype.loadDOM = function( source ){
 
 Track.prototype.loadBuffer = function( source ){
 
+    if( ! source ) return;
+
     var self = this;
 
     var request = new XMLHttpRequest();
     request.open("GET", source, true);
     request.responseType = "arraybuffer";
 
-    log('[Mixer] load Buffer "'+source+'"...',2)
+    log('[Mixer] Track "'+this.name+'" load Buffer "'+source+'"...',2)
 
     // asynchronous callback
     request.onload = function() {
@@ -1040,15 +1092,24 @@ Track.prototype.play = function(){
 
     var self = this;
 
-
     if(!self.loaded) return;
     if(self.playing === true) return;
 
     self.playing = true;
 
-    if(!Detect.webAudio) {
+    if( ! Detect.webAudio ) {
 
         log('[Mixer] Playing track "'+self.name+'" >', 1)
+
+        // Apply Options
+        // ~~~~~~~~~~~~~~
+
+        if(self.options.muted) self.options.gain = 0;
+
+        self.gain(self.options.gain);
+        this.options.gainCache = this.gain();
+
+
         self.ready  = true;
         self.element.play();
 
@@ -1181,6 +1242,10 @@ Track.prototype.play = function(){
 
 
 
+
+
+
+
 Track.prototype.pause = function(){
 
     if(!this.ready || !this.playing) return;
@@ -1189,21 +1254,22 @@ Track.prototype.pause = function(){
 
     var doIt = function(){
 
-
         self.options.cachedTime = self.currentTime(); // cache time to resume from later
         self.playing = false;
 
         if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
 
-        if(!Detect.webAudio) {
-            self.element.pause();
-        } else {
+        if( Detect.webAudio === true) {
 
             // prefer stop(), fallback to deprecated noteOff()
             if(typeof self.source.stop === 'function')
                 self.source.stop(0);
             else if(typeof self.source.noteOff === 'function')
                 self.source.noteOff(0);
+
+        } else {
+
+            self.element.pause();
         }
 
         log('[Mixer] Pausing track "'+self.name+'" at '+self.options.cachedTime,1)
@@ -1221,6 +1287,10 @@ Track.prototype.pause = function(){
 
 
 
+
+
+
+
 Track.prototype.stop = function(){
 
     if(!this.ready || !this.playing) return;
@@ -1231,10 +1301,7 @@ Track.prototype.stop = function(){
         self.playing = false;
         self.options.cachedTime = self.options.startTime = 0;
 
-        if(!Detect.webAudio) {
-            self.element.pause();
-            self.element.currentTime = 0;
-        } else {
+        if( Detect.webAudio === true ) {
 
             if(typeof self.source.noteOff === 'function')
                 self.source.noteOff(0);
@@ -1242,6 +1309,13 @@ Track.prototype.stop = function(){
                 self.source.stop(0);
 
             self.source.context.currentTime = 0;
+
+        } else {
+
+            self.options.autoplay = false;
+
+            self.element.pause();
+            self.element.currentTime = 0;
         }
 
         log('[Mixer] Stopping track "'+self.name+'"',1)
@@ -1260,6 +1334,8 @@ Track.prototype.stop = function(){
 
 
 
+
+
 // ██████╗  █████╗ ███╗   ██╗
 // ██╔══██╗██╔══██╗████╗  ██║
 // ██████╔╝███████║██╔██╗ ██║
@@ -1267,11 +1343,10 @@ Track.prototype.stop = function(){
 // ██║     ██║  ██║██║ ╚████║
 // ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═══╝
                           
-
 // proper 3d stereo panning
 Track.prototype.pan = function(angle_deg){
 
-    if(!Detect.webAudio || !this.playing) return
+    if( ! Detect.webAudio ||  ! this.ready ) return
 
     if(typeof angle_deg === 'string') {
         if     ( angle_deg === 'front' ) angle_deg =   0;
@@ -1302,7 +1377,7 @@ Track.prototype.pan = function(angle_deg){
 
 Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
-    if(!Detect.tween || !Detect.webAudio) return;
+    if( ! Detect.tween ||  ! Detect.webAudio || ! this.ready ) return;
 
     if(typeof angle_deg !== 'number' || typeof tweenDuration !== 'number') return;
 
@@ -1347,6 +1422,9 @@ Track.prototype.gainCache = function(setTo){
     return this.options.gainCache || 0;
 }
 
+
+
+
 // gain range 0-1
 Track.prototype.gain = function(val){
 
@@ -1370,6 +1448,9 @@ Track.prototype.gain = function(val){
     return this.options.gain;
 
 };
+
+
+
 
 Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
