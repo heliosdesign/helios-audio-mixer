@@ -4,15 +4,25 @@
 
 Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5.
 
-[WC3: Web Audio API](http://www.w3.org/TR/webaudio/)
+#### Contents
 
-[MDN: Web Audio API](https://developer.mozilla.org/en-US/docs/Web_Audio_API
-)
+- Dependencies
+- How To Use
+	- Basic
+	- Groups
+- Reference
+	- Mixer Methods
+	- Track/Group Methods
+	- Track Options
+	- Track Events
+- HTML5 Mode
+
 
 ### Dependencies
 
-- [tween.js](https://github.com/sole/tween.js/) (but works without it too)
 - [heliosFrameRunner](https://github.com/heliosdesign/helios-frame-runner) (not _really_ a dependency, but recommended for managing `requestAnimationFrame`)
+- [tween.js](https://github.com/sole/tween.js/) (recommended, but works without it)
+- [Bowser](https://github.com/ded/bowser) (recommended, but works without it)
 
 ### Props
 
@@ -28,7 +38,7 @@ var Mixer = new heliosAudioMixer();
 
 Mixer.createTrack('track1', { source: 'audio/file' });
 
-Mixer.getTrack(']track1').gain(0.5);
+Mixer.getTrack('track1').gain(0.5);
 
 Mixer.getTrack('track1').tweenGain(0, 1000, function(){
 	Mixer.getTrack('track1').stop();
@@ -74,13 +84,15 @@ function cats(){
 
 ### Detect Object
 
+Used internally for falling back and playing the right type of audio file. Access/override/whatever through `Mixer.detect`.
+
 ```
 Detect = {
-	webAudio:    true/false,
-	nodes:     { gain, gainNode, panner, convolver, delay, delayNode, compressor },
-	audioType:  .m4a/.ogg/.mp3,
-	videoType:  .webm/.mp4/.ogv,
-	tween:       true/false		
+	webAudio:    true | false
+	nodes:     { gain, gainNode, panner, convolver, delay, delayNode, compressor }
+	audioType:  '.m4a' | '.ogg' | '.mp3'
+	videoType:  '.webm' | '.mp4' | '.ogv'
+	tween:       true | false
 }
 ```
 
@@ -174,8 +186,7 @@ mix.getTrack('name').off('eventType');
 
 ## HTML5 Mode
 
-This is a fallback mode for older browsers, and iOS 7. iOS 7 "supports" the Web Audio API, but it’s incredibly unstable.
-
+This is a fallback mode for older browsers, and iOS 7.
 #### Tracks
 
 You need to declare the number of tracks you want up front, and you can’t add/remove tracks later.
@@ -187,3 +198,9 @@ var Mixer = new heliosAudioMixer({
 ```
 
 Panning and crossfading are not supported.
+
+#### iOS Notes
+
+iOS 6 supports the Web Audio API and it works pretty well. iOS 7 "supports" the Web Audio API, but it’s very unstable. Web apps that worked perfectly on iOS 6 will crash in under a minute on iOS 7. Unfortunately Apple won’t allow alternative web rendering engines, so this library falls back to HTML5 for iOS 7.
+
+iOS *does not* support volume control for HTML5 audio elements. The reasoning is that the user should be able to control the volume with the OS-level volume control. Apparently in Apple-land nobody could ever possibly want to layer two tracks, or fade anything in or out, ever.

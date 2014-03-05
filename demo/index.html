@@ -170,6 +170,7 @@
 
 
 
+	<script src="js/bowser.min.js"></script>
 	<script src="js/tween.min.js"></script>
 	<script src="js/frameRunner.js"></script>
 	<script src="../helios-audio-mixer.js"></script>
@@ -306,6 +307,7 @@
 		// Gain Sliders
 
 		document.getElementById('track1gain').addEventListener('change',function(e){
+			console.log('CHANGE')
 			if(Mixer.getTrack('drone')) Mixer.getTrack('drone').gain(e.target.value/100)
 		},false)
 

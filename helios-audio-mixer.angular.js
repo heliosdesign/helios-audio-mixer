@@ -89,12 +89,19 @@ Detect = {
 
     })(),
 
-    browser : {
-        iOS     : navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false,
-        Android : navigator.userAgent.match(/Android/g) ? true : false,
-        Firefox : navigator.userAgent.match(/Firefox/g) ? true : false,
-        MSIE    : navigator.userAgent.match(/MSIE/g) ? true : false
-    },
+    browser : (function(){
+
+        if( typeof bowser !== 'undefined' ) return bowser;
+
+        return {
+            firefox: navigator.userAgent.match(/Firefox/g) ? true : false,
+            android: navigator.userAgent.match(/Android/g) ? true : false,
+            msie:    navigator.userAgent.match(/MSIE/g) ? true : false,
+            ios:     navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false,
+
+            version: false
+        }
+    })(),
 
     tween : !!TWEEN // is tween.js present?
 
@@ -257,20 +264,27 @@ var Mix = function(opts){
     this.detect  = Detect; // just an external reference for debugging
 
     // Overrides
-    if(Detect.browser.Firefox || this.options.html5) Detect.webAudio = false;
+    if( 
+        Detect.browser.name === 'Firefox' ||
+        ( Detect.browser.ios === true && Detect.browser.version > 6 ) ||
+        ( Detect.browser.ios === true && ! Detect.browser.version ) ||
+        this.options.html5 
+    ){
+        Detect.webAudio = false;
+    }
 
     // Initialize
 
     if(Detect.webAudio === true) {
 
-        log('[Mixer] Web Audio Supported', 1)
+        log('[Mixer] Web Audio Mode', 1)
         if ( typeof AudioContext === 'function' ) 
             this.context = new AudioContext();
         else 
             this.context = new webkitAudioContext();
     } else {
 
-        log('[Mixer] no Web Audio, falling back to HTML5', 1)
+        log('[Mixer] HTML5 Mode', 1)
 
         var track;
 
@@ -1206,8 +1220,10 @@ Track.prototype.play = function(){
         var startFrom = self.options.cachedTime || 0;
         log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+')', 1)
 
-        if(Detect.browser.iOS){
+        if( Detect.browser.ios === true ){
+
             self.source.noteOn(self.options.start)
+
         } else {
 
             // prefer start() but fall back to deprecated noteOn()
