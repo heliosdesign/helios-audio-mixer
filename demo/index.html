@@ -182,10 +182,10 @@
 		if(window.location.hash === '#html5' || ! Mixer.detect.webAudio) {
 			console.log('HTML5 mode')
 			Mixer.detect.webAudio = false;
-			Mixer = new heliosAudioMixer({
-				html5 : true,
-				tracks : ['drone', 'fluorescent','helicopter']
-			});
+
+			Mixer.createTrack('drone', {});
+			Mixer.createTrack('fluorescent', {});
+			Mixer.createTrack('helicopter', {});
 		}
 
 		Mixer.setLogLvl(2)
@@ -284,10 +284,12 @@
 				group: 'testgroup',
 				gain: 0.5, 
 				pan: 0,
-				loadCallback : function(){ console.log('TRACK 3 LOADED CALLBACK') },
 				nodes: [ 'compressor' ]
 			})
 
+			Mixer.getTrack('helicopter').on('load',function(){
+				console.log('TRACK 3 LOADED CALLBACK')
+			})
 
 			Mixer.getTrack('helicopter').on('pan',function(){
 				updatePanDisplay('helicopter',track3panCanvas)

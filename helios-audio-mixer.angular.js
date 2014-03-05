@@ -288,15 +288,6 @@ var Mix = function(opts){
 
         var track;
 
-        // create all tracks at the beginning
-        for (var i = 0; i < this.options.tracks.length; i++) {
-
-            track = new Track( this.options.tracks[i], {}, this );
-
-            this.tracks.push( track );
-            this.lookup[ this.options.tracks[i] ] = track;
-        };
-
     }
 
 }
@@ -330,15 +321,21 @@ Mix.prototype.createTrack = function(name, opts){
 
         track = this.lookup[name];
 
-        if(!track) {
-            console.warn('[Mixer] Can’t load file for track %s, no track named %s exists',name,name)
-            return;
+        if( ! track ){ // create new track
+
+            track = new Track( name, opts, this );
+
+            this.tracks.push( track );
+            this.lookup[ name ] = track;
+
+        } else { // change source
+
+            track.options = track.extend( track, track.defaults, opts || {} );
+
+            if(opts.source) 
+                track.loadDOM( opts.source )
+
         }
-
-        track.options = track.extend( track, track.defaults, opts || {} );
-
-        if(opts.source) 
-            track.loadDOM( opts.source )
 
     }
 

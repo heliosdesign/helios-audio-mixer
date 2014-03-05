@@ -186,21 +186,35 @@ mix.getTrack('name').off('eventType');
 
 ## HTML5 Mode
 
-This is a fallback mode for older browsers, and iOS 7.
+Fallback mode for older browsers, and iOS 7. Trying to use Web Audio features like pan will fail without error messages (`return false`).
+
 #### Tracks
 
-You need to declare the number of tracks you want up front, and you can’t add/remove tracks later.
+In HTML5 mode, creating a track that already exists will change its source, unlike Web Audio mode where this will return an error. This allows you to circumvent the iOS requirement that media elements can only be played after a user taps 'play'—simply play all your tracks on that first tap.
 
 ```
-var Mixer = new heliosAudioMixer({ 
-	tracks: [ 'bg', 'vo', 'fx' ]
+// Create all tracks at the start
+Mixer.createTrack('track1', {
+	source: 'a_file.mp3'
+});
+Mixer.createTrack('track2', {});
+
+// on iOS play button tap
+for(var i=0; i < Mixer.tracks.length; i++ ){
+	Mixer.tracks[i].play();
+}
+
+// If the track’s already been created, the mixer will swap its source
+Mixer.createTrack('track1', { 
+	source:   'file.mp3',
+	autoplay:  true
 });
 ```
 
-Panning and crossfading are not supported.
-
-#### iOS Notes
+#### iOS 7
 
 iOS 6 supports the Web Audio API and it works pretty well. iOS 7 "supports" the Web Audio API, but it’s very unstable. Web apps that worked perfectly on iOS 6 will crash in under a minute on iOS 7. Unfortunately Apple won’t allow alternative web rendering engines, so this library falls back to HTML5 for iOS 7.
+
+#### Volume Control
 
 iOS *does not* support volume control for HTML5 audio elements. The reasoning is that the user should be able to control the volume with the OS-level volume control. Apparently in Apple-land nobody could ever possibly want to layer two tracks, or fade anything in or out, ever.
