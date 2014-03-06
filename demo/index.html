@@ -200,12 +200,11 @@
 
 		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
 
-
-
 		var updateTime = function(){
-			if( Mixer.getTrack('drone') ){
-				document.getElementById('track1time').innerHTML = Mixer.getTrack('drone').formattedTime();
-				document.getElementById('track1playhead').style.left = Mixer.getTrack('drone').currentTime() + 'px';
+			var drone = Mixer.getTrack('drone')
+			if( drone ){
+				document.getElementById('track1time').innerHTML = drone.formattedTime();
+				document.getElementById('track1playhead').style.left = ( drone.currentTime() / drone.duration() ) * 100 + 'px';
 			}
 		}
 

@@ -283,8 +283,6 @@ var Mix = function(opts){
 
         log('[Mixer] HTML5 Mode', 1)
 
-        var track;
-
     }
 
 }
@@ -316,7 +314,7 @@ Mix.prototype.createTrack = function(name, opts){
 
     } else {
 
-        track = this.lookup[name]
+        track = this.lookup[name];
 
         if( ! track ){ // create new track
 
@@ -1212,19 +1210,20 @@ Track.prototype.play = function(){
         self.options.startTime = self.source.context.currentTime - self.options.cachedTime;
 
         var startFrom = self.options.cachedTime || 0;
+
         log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+')', 1)
 
         if( Detect.browser.ios === true ){
 
-            self.source.noteOn(self.options.start)
+            self.source.noteOn( startFrom );
 
         } else {
 
             // prefer start() but fall back to deprecated noteOn()
             if(typeof self.source.start === 'function') 
-                self.source.start(0, startFrom)
+                self.source.start( 0, startFrom );
             else
-                self.source.noteOn(self.options.start)
+                self.source.noteOn( startFrom );
         }
 
         self.ready = true;
@@ -1259,15 +1258,18 @@ Track.prototype.play = function(){
 
 
 
-Track.prototype.pause = function(){
+Track.prototype.pause = function( at ){
 
     if(!this.ready || !this.playing) return;
 
     var self = this;
 
-    var doIt = function(){
+    var doIt = function(){  
 
-        self.options.cachedTime = self.currentTime(); // cache time to resume from later
+        // cache time to resume from later
+        if( typeof at === 'number' ) self.options.cachedTime = at;
+        else                         self.options.cachedTime = self.currentTime(); 
+        
         self.playing = false;
 
         if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
@@ -1292,8 +1294,10 @@ Track.prototype.pause = function(){
 
     }
 
-    if(Detect.tween) this.tweenGain(0, 100, function(){ doIt() } );
-    else doIt();
+    // if(Detect.tween) this.tweenGain(0, 100, function(){ doIt() } );
+    // else doIt();
+
+    doIt();
     
 };
 
@@ -1536,11 +1540,19 @@ Track.prototype.currentTime = function( setTo ){
     if( typeof setTo === 'number' ){
 
         if( !Detect.webAudio ){
-            self.element.currentTime = setTo;
-        } else {
-            self.source.currentTime = setTo;
-        }
 
+            this.element.currentTime = setTo;
+
+        } else {
+
+            if( this.playing ){
+                this.pause( setTo );
+                this.play();
+            } else {
+                this.options.cachedTime = setTo;  
+            }
+            
+        }
     }
     
     if(!this.playing) return this.options.cachedTime || 0;
