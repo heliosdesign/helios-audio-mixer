@@ -1290,7 +1290,7 @@ Track.prototype.pause = function( at ){
         log('[Mixer] Pausing track "'+self.name+'" at '+self.options.cachedTime,1)
         self.trigger('pause', self);
 
-        self.options.gain = self.options.gainCache;
+        if( ! at ) self.options.gain = self.options.gainCache;
 
     }
 
@@ -1434,8 +1434,6 @@ Track.prototype.gainCache = function(setTo){
     if( typeof setTo !== 'undefined' ) 
         this.options.gainCache = setTo;
 
-    console.log('gainCache %s', this.options.gainCache);
-
     return this.options.gainCache || 0;
 }
 
@@ -1508,10 +1506,7 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 Track.prototype.mute = function(){
     var self = this;
 
-    console.log('TRACK %s muting... %O', self.name, self.options)
-
     self.gainCache(self.options.gain);
-    console.log('self.gainCache: %s', self.gainCache() )
 
     self.tweenGain(0, 500, function(){
         self.options.muted = true;
