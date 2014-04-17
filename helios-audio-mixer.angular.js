@@ -471,7 +471,7 @@ Mix.prototype.removeTrack = function(name){
                 }
             }
 
-            track.trigger('remove');
+            track.trigger('remove', self);
 
             track.events = [];
 
@@ -951,7 +951,7 @@ var Track = function(name, opts, mix){
 
             } else {
 
-                self.trigger('ended');
+                self.trigger('ended', self);
                 self.mix.removeTrack(self.name);
             }
 
@@ -1018,7 +1018,7 @@ Track.prototype.loadWebAudio = function( source ){
 
         if(self.options.autoplay) self.play();
 
-        self.trigger('load')
+        self.trigger('load', self)
 
     };
 
@@ -1189,7 +1189,7 @@ Track.prototype.play = function(){
 
         self.ready  = true;
         self.element.play();
-        self.trigger('play');
+        self.trigger('play', self);
 
     } else {
 
@@ -1207,7 +1207,7 @@ Track.prototype.play = function(){
         var finish = function(){
 
             self.ready = true;
-            self.trigger('ready');
+            self.trigger('ready', self);
 
             // Apply Options
             // ~~~~~~~~~~~~~~
@@ -1242,7 +1242,7 @@ Track.prototype.play = function(){
 
             self.options.onendtimer = setTimeout(function() {
                 if(!self.options.looping) self.stop();
-                self.trigger('ended');
+                self.trigger('ended', self);
             }, timer_duration * 1000);
 
         }
@@ -1313,7 +1313,7 @@ Track.prototype.play = function(){
 
     }
 
-    self.trigger('play');
+    self.trigger('play', self);
 };
 
 
@@ -1380,6 +1380,7 @@ Track.prototype.stop = function(){
             else if(typeof self.source.stop === 'function')
                 self.source.stop(0);
 
+            // BUG
             self.source.context.currentTime = 0;
 
         } else {
@@ -1439,7 +1440,7 @@ Track.prototype.pan = function(angle_deg){
 
         this.nodes.panner.setPosition( x, y, z );
 
-        this.trigger('pan', this.options.pan)
+        this.trigger('pan', this.options.pan, self)
     }
 
     return {
@@ -1511,7 +1512,7 @@ Track.prototype.gain = function(val){
             }       
         }
 
-        this.trigger('gain',this.options.gain);
+        this.trigger('gain',this.options.gain, self);
 
     }
 
