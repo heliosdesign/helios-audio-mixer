@@ -749,8 +749,8 @@ var Track = function(name, opts, mix){
 
         nodes: [],         // array of strings: names of desired additional audio nodes
 
-        gain:        0,    // initial/current gain (0-1)
-        gainCache:   0,    // for resuming from mute
+        gain:        1,    // initial/current gain (0-1)
+        gainCache:   1,    // for resuming from mute
 
         pan:         0,    // circular horizontal pan
 
@@ -1464,20 +1464,33 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 };
 
 
-Track.prototype.mute = function(){
+Track.prototype.mute = function( duration ){
     var self = this;
 
     self.gainCache(self.options.gain);
 
-    self.tweenGain(0, 500, function(){
+    if( duration ) {
+        self.tweenGain(0, 500, function(){
+            self.options.muted = true;
+        });    
+    } else {
+        self.gain(0);
         self.options.muted = true;
-    });
+    }
+
+    
 
 };
 
-Track.prototype.unmute = function(){
+Track.prototype.unmute = function( duration ){
     this.options.muted = false;
-    this.tweenGain(this.options.gainCache, 500);
+
+    if( duration ){
+        this.tweenGain(this.options.gainCache, 500);
+    } else {
+        this.gain(this.options.gainCache)
+    }
+    
 };
 
 
