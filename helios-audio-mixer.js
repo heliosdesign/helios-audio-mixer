@@ -5,9 +5,7 @@
 var Mix,    // Mixer class
     Track,  // Track class, accessed through Mix.tracks
 
-    Detect, // Feature detection
-
-    debug = 1; // 0 no logging, 1 minimal, 2 all (very spammy)
+    Detect; // Feature detection
 
 
 
@@ -119,48 +117,6 @@ Detect = {
 
 
 
-// ██╗   ██╗████████╗██╗██╗     ███████╗
-// ██║   ██║╚══██╔══╝██║██║     ██╔════╝
-// ██║   ██║   ██║   ██║██║     ███████╗
-// ██║   ██║   ██║   ██║██║     ╚════██║
-// ╚██████╔╝   ██║   ██║███████╗███████║
-//  ╚═════╝    ╚═╝   ╚═╝╚══════╝╚══════╝
-
-// var debounce = function(func, wait) {
-//     var timeout;
-//     return function() {
-//         var context = this, args = arguments,
-//         later = function() {
-//             timeout = null;
-//             func.apply(context, args);
-//         };
-//         clearTimeout(timeout);
-//         timeout = setTimeout(later, wait);
-//     };
-// };
-
-var constrain = function(val, min, max){
-    if(val < min) return min;
-    if(val > max) return max;
-    return val;
-}
-
-
-var log = function(msg, lvl){
-    if(lvl <= debug) console.log(msg);
-}
-
-
-var timeFormat = function(seconds){
-    var m=Math.floor(seconds/60)<10 ? '0'+Math.floor(seconds/60):Math.floor(seconds/60);
-    var s=Math.floor(seconds-(m*60))<10 ? '0'+Math.floor(seconds-(m*60)):Math.floor(seconds-(m*60));
-    return m+':'+s;
-}
-
-
-
-
-
 
 
 
@@ -191,7 +147,7 @@ BaseClass.prototype.trigger = function(type){
 
     if ( !this.events[type] ) return;
 
-    log(arguments,2);
+    // Mix.log(arguments,2);
 
     var args = Array.prototype.slice.call(arguments, 1);
 
@@ -224,7 +180,11 @@ BaseClass.prototype.extend = function(){
 
 
 
-
+var constrain = function(val, min, max){
+    if(val < min) return min;
+    if(val > max) return max;
+    return val;
+}
 
 
 
@@ -243,7 +203,17 @@ BaseClass.prototype.extend = function(){
 
 var Mix = function(opts){
 
-    log('[Mixer] Loaded', 2)
+    this.debug = 1;      // 0 no logging, 1 minimal, 2 all (very spammy)
+
+    this.log = function(msg, lvl){
+        if(lvl <= this.debug) console.log(msg);
+    }
+
+    this.setLogLvl = function( lvl ){
+        // this.debug = constrain(lvl,0,2);
+        // this.log('[Mixer] Set log level: ' + lvl, 1)
+        // console.log(this)
+    }
 
     var defaults = {
         html5: false,
@@ -251,7 +221,6 @@ var Mix = function(opts){
     }
     this.options = this.extend.call(this, defaults, opts || {});
 
-    // console.log('this.options: %O', this.options)
 
     this.tracks  = [];    // tracks as numbered array
     this.groups  = {};    // easy access to groups: group['groupname']
@@ -259,12 +228,13 @@ var Mix = function(opts){
 
     this.playing = false; // true if any tracks are playing
     this.muted   = false; // 
-    this.gain = 1;        // master gain for entire mix
+    this.gain    = 1;     // master gain for entire mix
 
     this.events  = {};    
     this.context = null;  // AudioContext object (if webAudio is available)
 
     this.detect  = Detect; // just an external reference for debugging
+
 
     // Overrides
     if( 
@@ -279,20 +249,30 @@ var Mix = function(opts){
 
     if(Detect.webAudio === true) {
 
-        log('[Mixer] Web Audio Mode', 1)
+        this.log('[Mixer] Web Audio Mode', 1)
 
         if ( typeof AudioContext === 'function' ) this.context = new AudioContext();
         else                                      this.context = new webkitAudioContext();
 
     } else {
 
-        log('[Mixer] HTML5 Mode', 1)
+        this.log('[Mixer] HTML5 Mode', 1)
 
     }
 
 }
 
 Mix.prototype = new BaseClass(); // inherit utility methods
+
+// Mix.prototype.log = function(msg, lvl){
+//     if(lvl <= this.debug) console.log(msg);
+//     else console.warn( this.debug )
+// }
+
+// Mix.prototype.setLogLvl = function(lvl){
+//     this.debug = lvl;
+//     this.log('[Mixer] Set log level: ' + this.debug, 1)
+// }
 
 
 /**************************************************************************
@@ -303,6 +283,7 @@ Mix.prototype = new BaseClass(); // inherit utility methods
 
 Mix.prototype.createTrack = function(name, opts){
 
+    var self = this;
     var track;
 
     if(Detect.webAudio === true) {
@@ -312,7 +293,7 @@ Mix.prototype.createTrack = function(name, opts){
             return;
         }
 
-        track = new Track(name, opts, this);
+        track = new Track(name, opts, self);
 
         this.tracks.push( track );
         this.lookup[name] = track;
@@ -323,7 +304,7 @@ Mix.prototype.createTrack = function(name, opts){
 
         if( ! track ){ // create new track
 
-            track = new Track( name, opts, this );
+            track = new Track( name, opts, self );
 
             this.tracks.push( track );
             this.lookup[ name ] = track;
@@ -382,7 +363,7 @@ Mix.prototype.removeTrack = function(name){
 
             track = null;
             delete self.lookup[name];
-            log('[Mixer] Removed track "'+name+'"', 1)
+            this.log('[Mixer] Removed track "'+name+'"', 1)
         }
 
         if(Detect.tween) track.tweenGain(0,100, doIt);
@@ -450,11 +431,11 @@ Mix.prototype.removeAll = function(group){
 
         // no group specified, remove ALL tracks
         this.playing = false;
-        log('[Mixer] Removing all '+total+' track(s)', 1)
+        this.log('[Mixer] Removing all '+total+' track(s)', 1)
 
     } else {
         // group specified: remove tracks from group only
-        log('[Mixer] Removing '+total+' track(s) from group '+group, 1)
+        this.log('[Mixer] Removing '+total+' track(s) from group '+group, 1)
     }
 
     for ( var i = 0; i < total; i++ )
@@ -478,7 +459,7 @@ Mix.prototype.pause = function(group){
     var tracks = this.getTracks(group),
         total = tracks.length;
 
-    log('[Mixer] Pausing '+total+' track(s) ||', 1)
+    this.log('[Mixer] Pausing '+total+' track(s) ||', 1)
 
     this.playing = false;
     for ( var i = 0; i < total; i++ )
@@ -490,7 +471,7 @@ Mix.prototype.play = function(group){
     var tracks = this.getTracks(group),
         total = tracks.length;
 
-    log('[Mixer] Playing '+total+' track(s) >', 1)
+    this.log('[Mixer] Playing '+total+' track(s) >', 1)
 
     this.playing = true;
     for ( var i = 0; i < total; i++ )
@@ -502,7 +483,7 @@ Mix.prototype.stop = function(group){
     var tracks = this.getTracks(group),
         total = tracks.length;
 
-    log('[Mixer] Stopping '+total+' track(s) .', 1)
+    this.log('[Mixer] Stopping '+total+' track(s) .', 1)
 
     this.playing = true;
     for ( var i = 0; i < total; i++ )
@@ -528,7 +509,7 @@ Mix.prototype.mute = function(group){
     var tracks = this.getTracks(group),
         total = tracks.length;
     
-    log('[Mixer] Muting '+total+' tracks', 1)
+    this.log('[Mixer] Muting '+total+' tracks', 1)
 
     this.playing = false;
     this.muted   = true;
@@ -547,7 +528,7 @@ Mix.prototype.unmute = function(group){
     var tracks = this.getTracks(group),
         total = tracks.length;
     
-    log('[Mixer] Unmuting '+total+' tracks', 1)
+    this.log('[Mixer] Unmuting '+total+' tracks', 1)
 
     this.playing = true;
     this.muted   = false;
@@ -593,9 +574,6 @@ Mix.prototype.updateTween = function(){
     TWEEN.update();
 }
 
-Mix.prototype.setLogLvl = function(lvl){
-    debug = constrain(lvl,0,2);
-}
 
 
 
@@ -795,7 +773,7 @@ var Track = function(name, opts, mix){
 
     var self = this;
 
-    log(this.options, 2)
+    this.mix.log(this.options, 2)
 
     // Group
     // ~~~~~
@@ -814,7 +792,7 @@ var Track = function(name, opts, mix){
     if( Detect.webAudio === true ) {
 
         if(!this.options.source) {
-            log('[Mixer] Creating track "'+name+'" without a source', 1);
+            this.mix.log('[Mixer] Creating track "'+name+'" without a source', 1);
             return;
         }
 
@@ -822,7 +800,7 @@ var Track = function(name, opts, mix){
 
     } else {
 
-        log('[Mixer] creating html5 element for track '+name, 1)
+        this.mix.log('[Mixer] creating html5 element for track '+name, 1)
 
         // Look for pre-created audio element and failing that create one
         self.element = document.querySelector( 'audio#'+name );
@@ -849,7 +827,7 @@ var Track = function(name, opts, mix){
 
             if(self.options.looping){
 
-                log('Track '+self.name+' looping', 2);
+                self.mix.log('Track '+self.name+' looping', 2);
 
                 self.element.currentTime = 0;
                 self.element.play();  
@@ -884,7 +862,7 @@ Track.prototype.loadHTML5 = function( source ){
 
     if( ! source ) return;
 
-    log('[Mixer] Track "'+this.name+'" load DOM: "'+source + Detect.audioType +'"',2)
+    this.mix.log('[Mixer] Track "'+this.name+'" load DOM: "'+source + Detect.audioType +'"',2)
 
     var self = this;
     self.ready = false;
@@ -911,12 +889,12 @@ Track.prototype.loadWebAudio = function( source ){
     request.open('GET', source, true);
     request.responseType = 'arraybuffer';
 
-    log('[Mixer] Track "'+this.name+'" load Buffer "'+source+'"...',2)
+    this.mix.log('[Mixer] Track "'+this.name+'" load Buffer "'+source+'"...',2)
 
     // asynchronous callback
     request.onload = function() {
 
-        log('[Mixer] "'+self.name+'" loaded "' + source + '"',2)
+        self.mix.log('[Mixer] "'+self.name+'" loaded "' + source + '"',2)
 
         self.options.audioData = request.response; // cache the audio data
         self.loaded = true; // ready to play
@@ -1052,7 +1030,7 @@ Track.prototype.addNode = function(nodeType){
 
     }
 
-    log('+ addNode '+nodeType, 2)
+    this.mix.log('+ addNode '+nodeType, 2)
 
     // it’s chainable
     return self;
@@ -1081,7 +1059,7 @@ Track.prototype.play = function(){
 
     if( ! Detect.webAudio ) {
 
-        log('[Mixer] Playing track "'+self.name+'" >', 1)
+        this.mix.log('[Mixer] Playing track "'+self.name+'" >', 1)
 
         // Apply Options
         // ~~~~~~~~~~~~~~
@@ -1132,7 +1110,7 @@ Track.prototype.play = function(){
 
             var startFrom = self.options.cachedTime || 0;
 
-            log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+') gain '+self.gain(), 1)
+            self.mix.log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+') gain '+self.gain(), 1)
 
             // prefer start() but fall back to deprecated noteOn()
             if( typeof self.source.start === 'function' ) 
@@ -1185,7 +1163,7 @@ Track.prototype.play = function(){
 
             self.mix.context.decodeAudioData( self.options.audioData, function onSuccess(decodedBuffer) {
 
-                log('web audio file decoded', 2)
+                self.mix.log('web audio file decoded', 2)
 
                 self.source        = self.mix.context.createBufferSource();
                 self.sourceBuffer  = decodedBuffer;
@@ -1211,7 +1189,6 @@ Track.prototype.play = function(){
                 finish();
 
             }, function onFailure() {
-                console.warn('Buggah!');
             })
             
         }
@@ -1255,7 +1232,7 @@ Track.prototype.pause = function( at ){
         self.element.pause();
     }
 
-    log('[Mixer] Pausing track "'+self.name+'" at '+self.options.cachedTime, 2)
+    self.mix.log('[Mixer] Pausing track "'+self.name+'" at '+self.options.cachedTime, 2)
     self.trigger('pause', self);
     
 };
@@ -1296,7 +1273,7 @@ Track.prototype.stop = function(){
             self.element.currentTime = 0;
         }
 
-        log('[Mixer] Stopping track "'+self.name, 2)
+        self.mix.log('[Mixer] Stopping track "'+self.name, 2)
         self.trigger('stop', self);
 
         self.options.gain = self.options.gainCache;
@@ -1361,7 +1338,7 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
     var self = this;
 
-    log('[Mixer] "'+self.name+'" tweening pan2d',2)
+    self.mix.log('[Mixer] "'+self.name+'" tweening pan2d',2)
 
     new TWEEN.Tween({ currentAngle: self.options.pan })
         .to( { currentAngle: angle_deg }, tweenDuration )
@@ -1417,7 +1394,7 @@ Track.prototype.gain = function(val){
             }       
         }
 
-        log('[Mixer] "'+this.name+'" setting gain to '+this.options.gain, 2)
+        this.mix.log('[Mixer] "'+this.name+'" setting gain to '+this.options.gain, 2)
 
         this.trigger('gain',this.options.gain, self);
 
@@ -1448,7 +1425,7 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
     var self = this;
 
-    log('[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+val, 1)
+    self.mix.log('[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+val, 1)
 
     new TWEEN.Tween({ currentGain: self.options.gain })
         .to( { currentGain: val }, tweenDuration )
@@ -1538,6 +1515,12 @@ Track.prototype.formattedTime = function(){
 
     var duration = this.duration(),
         currentTime = this.currentTime();
+
+    var timeFormat = function(seconds){
+        var m=Math.floor(seconds/60)<10 ? '0'+Math.floor(seconds/60):Math.floor(seconds/60);
+        var s=Math.floor(seconds-(m*60))<10 ? '0'+Math.floor(seconds-(m*60)):Math.floor(seconds-(m*60));
+        return m+':'+s;
+    }
 
     return timeFormat(currentTime) + '/' + timeFormat(duration);
 
