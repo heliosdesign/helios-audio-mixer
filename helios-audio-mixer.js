@@ -840,7 +840,7 @@ var Track = function(name, opts, mix){
 
         }, false);
 
-        if(self.options.autoplay) this.loadHTML5( this.options.source );
+        this.loadHTML5( this.options.source );
     }                
 }
 

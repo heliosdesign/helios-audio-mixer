@@ -190,7 +190,7 @@ Fallback mode for older browsers, and iOS 7. Trying to use Web Audio features li
 
 #### Tracks
 
-In HTML5 mode, creating a track that already exists will change its source, unlike Web Audio mode where this will return an error. This allows you to circumvent the iOS requirement that media elements can only be played after a user taps 'play'—simply play all your tracks on that first tap.
+In HTML5 mode, creating a track that already exists will change its source, unlike Web Audio mode where this will return an error. This allows you to circumvent the iOS requirement that media elements can only be played after a user taps 'play'—simply play all your tracks on that first tap. **NOTE** that you can only play one audio element at a time.
 
 ```
 // Create all tracks at the start
