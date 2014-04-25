@@ -1,5 +1,5 @@
 ;(function(window, undefined){
-    
+
 'use strict';
 
 
@@ -91,12 +91,12 @@ var Detect = {
             ios:     navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false,
 
             version: false
-        }
+        };
     })(),
 
     tween : !!TWEEN // is tween.js present?
 
-}
+};
 
 
 
@@ -176,7 +176,7 @@ var constrain = function(val, min, max){
     if(val < min) return min;
     if(val > max) return max;
     return val;
-}
+};
 
 
 
@@ -199,18 +199,18 @@ var Mix = function(opts){
 
     this.log = function(msg, lvl){
         if(lvl <= this.debug) console.log(msg);
-    }
+    };
 
     this.setLogLvl = function( lvl ){
         // this.debug = constrain(lvl,0,2);
         // this.log('[Mixer] Set log level: ' + lvl, 1)
         // console.log(this)
-    }
+    };
 
     var defaults = {
         html5: false,
         tracks : []
-    }
+    };
     this.options = this.extend.call(this, defaults, opts || {});
 
 
@@ -241,18 +241,18 @@ var Mix = function(opts){
 
     if(Detect.webAudio === true) {
 
-        this.log('[Mixer] Web Audio Mode', 1)
+        this.log('[Mixer] Web Audio Mode', 1);
 
         if ( typeof AudioContext === 'function' ) this.context = new AudioContext();
         else                                      this.context = new webkitAudioContext();
 
     } else {
 
-        this.log('[Mixer] HTML5 Mode', 1)
+        this.log('[Mixer] HTML5 Mode', 1);
 
     }
 
-}
+};
 
 Mix.prototype = new BaseClass(); // inherit utility methods
 
@@ -807,7 +807,8 @@ var Track = function(name, opts, mix){
         // canplaythrough listener
         self.element.addEventListener('canplaythrough', function() {
 
-            self.loaded = self.ready = true;
+            self.loaded = true;
+            self.ready = true;
             self.trigger('load', self);
 
             if(self.options.autoplay) self.play();
