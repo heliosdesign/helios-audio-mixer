@@ -1,14 +1,6 @@
 ;(function(window, undefined){
-
-    'use strict';
-
-var Mix,    // Mixer class
-    Track,  // Track class, accessed through Mix.tracks
-
-    Detect; // Feature detection
-
-
-
+    
+'use strict';
 
 
 // ██████╗ ███████╗████████╗███████╗ ██████╗████████╗
@@ -20,7 +12,7 @@ var Mix,    // Mixer class
 
 // Feature Detection
 
-Detect = {
+var Detect = {
 
     audioElement : !!document.createElement('audio').canPlayType,
     videoElement : !!document.createElement('video').canPlayType,
