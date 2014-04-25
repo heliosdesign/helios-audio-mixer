@@ -315,11 +315,11 @@ Mix.prototype.createTrack = function(name, opts){
 
             track.options = track.extend( track, track.defaults, opts || {} );
 
-            if(opts.source) 
-                track.loadHTML5( opts.source )
-
+            if(track.options.source) {
+                track.options.source += Detect.audioType;
+                track.loadHTML5()
+            }
         }
-
     }
 
     return track;
@@ -754,7 +754,7 @@ var Track = function(name, opts, mix){
     // override option defaults
     this.options = this.extend.call(this, this.defaults, opts || {});
 
-    if(this.options.source)
+    if( this.options.source )
         this.options.source += Detect.audioType;
     
     this.name = name;
@@ -796,7 +796,7 @@ var Track = function(name, opts, mix){
             return;
         }
 
-        this.loadWebAudio( this.options.source );
+        this.loadWebAudio();
 
     } else {
 
@@ -858,16 +858,16 @@ Track.prototype = new BaseClass();
 // ╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ 
 
 
-Track.prototype.loadHTML5 = function( source ){
-
-    if( ! source ) return;
-
-    this.mix.log('[Mixer] Track "'+this.name+'" load DOM: "'+source + Detect.audioType +'"',2)
+Track.prototype.loadHTML5 = function(){
 
     var self = this;
+    if( ! self.options.source ) return;
+
+    self.mix.log('[Mixer] Track "'+this.name+'" load DOM: "'+self.options.source + Detect.audioType +'"',2)
+
     self.ready = false;
 
-    self.element.src = source + Detect.audioType;
+    self.element.src = self.options.source;
     self.element.load();
 
     self.source = self.element;
@@ -879,22 +879,21 @@ Track.prototype.loadHTML5 = function( source ){
 }
 
 
-Track.prototype.loadWebAudio = function( source ){
-
-    if( ! source ) return;
+Track.prototype.loadWebAudio = function(){
 
     var self = this;
+    if( ! self.options.source ) return;
 
     var request = new XMLHttpRequest();
-    request.open('GET', source, true);
+    request.open('GET', self.options.source, true);
     request.responseType = 'arraybuffer';
 
-    this.mix.log('[Mixer] Track "'+this.name+'" load Buffer "'+source+'"...',2)
+    this.mix.log('[Mixer] Track "'+this.name+'" load Buffer "'+self.options.source+'"...',2)
 
     // asynchronous callback
     request.onload = function() {
 
-        self.mix.log('[Mixer] "'+self.name+'" loaded "' + source + '"',2)
+        self.mix.log('[Mixer] "'+self.name+'" loaded "' + self.options.source + '"',2)
 
         self.options.audioData = request.response; // cache the audio data
         self.loaded = true; // ready to play
