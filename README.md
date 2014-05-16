@@ -175,7 +175,16 @@ muted        | `false`    |
 
 #### Track Events
 
-`remove`, `load`, `end`, `play`, `pause`, `stop`, `pan`, `gain`
+name | when
+:-- | :--
+`remove` | removeTrack()
+`load` | audio track is ready to play
+`play` | 
+`pause` | 
+`stop` | 
+`ended` | track reaches the end
+`pan` | pan is changed
+`gain` | gain is changed
 
 ```
 mix.getTrack('name').on('eventType',function(){
