@@ -1370,6 +1370,8 @@ Track.prototype.gainCache = function(setTo){
     
     if( typeof setTo !== 'undefined' ) 
         this.options.gainCache = setTo;
+    else
+        this.options.gainCache = this.options.gain;
 
     return this.options.gainCache || 0;
 }
