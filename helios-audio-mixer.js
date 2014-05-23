@@ -132,7 +132,10 @@ BaseClass.prototype.on = function(type, callback){
 };
 
 BaseClass.prototype.off = function(type){
-    this.events[type] = [];
+    if( type === '*' )
+        this.events = {};
+    else
+        this.events[type] = [];
 };
 
 BaseClass.prototype.trigger = function(type){
