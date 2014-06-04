@@ -766,6 +766,9 @@ var Track = function(name, opts, mix){
 
     var self = this;
 
+    if( self.mix.muted == true )
+        self.options.muted = true;
+
     this.mix.log(this.options, 2);
 
     // Group
@@ -1381,7 +1384,9 @@ Track.prototype.gain = function(val){
 
         this.options.gain = constrain(val,0,1);
 
-        if(this.playing && ! this.options.muted && this.nodes.gain){
+        if( this.options.muted ) this.options.gain = 0;
+
+        if(this.playing && this.nodes.gain){
 
             if(!Detect.webAudio){
                 this.element.volume = this.options.gain * this.mix.gain;
