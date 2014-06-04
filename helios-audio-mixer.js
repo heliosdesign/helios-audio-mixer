@@ -132,7 +132,10 @@ BaseClass.prototype.on = function(type, callback){
 };
 
 BaseClass.prototype.off = function(type){
-    this.events[type] = [];
+    if( type === '*' )
+        this.events = {};
+    else
+        this.events[type] = [];
 };
 
 BaseClass.prototype.trigger = function(type){
@@ -1370,6 +1373,8 @@ Track.prototype.gainCache = function(setTo){
     
     if( typeof setTo !== 'undefined' ) 
         this.options.gainCache = setTo;
+    else
+        this.options.gainCache = this.options.gain;
 
     return this.options.gainCache || 0;
 }
