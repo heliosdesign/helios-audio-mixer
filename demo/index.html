@@ -49,7 +49,7 @@
 			<td><h4>Create</h4></td>
 
 			<td> <button onclick="createDrone()"> Drone </button> </td>
-			<td> <button onclick="createFluorescent()"> Fluorescent (no autoplay) </button> </td>
+			<td> <button onclick="createFluorescent()"> Fluorescent (media element source) </button> </td>
 			<td> <button onclick="createHelicopter()"> Helicopter (callback + compressor) </button> </td>
 
 		</tr><tr>
@@ -168,7 +168,7 @@
 
 
 
-
+	<audio id="audioElement" src="audio/Fluorescencent_Tone.mp3"> </audio>
 
 	<script src="js/bowser.min.js"></script>
 	<script src="js/tween.min.js"></script>
@@ -257,10 +257,11 @@
 		function createFluorescent(){
 
 			Mixer.createTrack('fluorescent', { 
-				source: 'audio/Fluorescencent_Tone', 
+				// source: 'audio/Fluorescencent_Tone', 
+				source: document.querySelector('#audioElement'), 
 				group: 'testgroup',
-				autoplay: false,
-				gain: 0.2,
+				autoplay: true,
+				gain: 1,
 				pan: 'left'
 			})
 

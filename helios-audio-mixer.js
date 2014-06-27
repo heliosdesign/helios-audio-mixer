@@ -205,9 +205,9 @@ var Mix = function(opts){
     };
 
     this.setLogLvl = function( lvl ){
-        // this.debug = constrain(lvl,0,2);
-        // this.log('[Mixer] Set log level: ' + lvl, 1)
-        // console.log(this)
+        this.debug = constrain(lvl,0,2);
+        this.log('[Mixer] Set log level: ' + lvl, 1)
+        console.log(this)
     };
 
     var defaults = {
@@ -246,8 +246,8 @@ var Mix = function(opts){
 
         this.log('[Mixer] Web Audio Mode', 1);
 
-        if ( typeof AudioContext === 'function' ) this.context = new AudioContext();
-        else                                      this.context = new webkitAudioContext();
+        if ( typeof AudioContext === 'function' ) this.context = new window.AudioContext();
+        else                                      this.context = new window.webkitAudioContext();
 
     } else {
 
@@ -312,7 +312,7 @@ Mix.prototype.createTrack = function(name, opts){
 
             if(track.options.source) {
                 track.options.source += Detect.audioType;
-                track.loadHTML5();
+                track.createHTML5elementSource();
             }
         }
     }
@@ -720,7 +720,8 @@ var Track = function(name, opts, mix){
     // default options
     this.defaults = {
 
-        source: false,     // path to audio source (without file extension)
+        source: false,     // either a) path to audio source (without file extension)
+                           //     or b) html5 <audio> or <video> element
         group:  false,
 
         nodes: [],         // array of strings: names of desired additional audio nodes
@@ -730,7 +731,7 @@ var Track = function(name, opts, mix){
 
         pan:         0,    // circular horizontal pan
 
-        panX:        0,    // 
+        panX:        0,    // real 3d pan
         panY:        0,    // 
         panZ:        0,    // 
 
@@ -742,7 +743,7 @@ var Track = function(name, opts, mix){
 
         autoplay: true,    // play immediately on load
 
-        onendtimer: null,  // web audio api in chrome/ doesn't support onend event yet (WTF)
+        onendtimer: null,  // web audio api in chrome doesn't support onend event yet (WTF)
 
         muted: false
     };
@@ -750,26 +751,36 @@ var Track = function(name, opts, mix){
     // override option defaults
     this.options = this.extend.call(this, this.defaults, opts || {});
 
-    if( this.options.source )
+    // append extension only if it’s a file path
+    if( typeof this.options.source === 'string' ){
         this.options.source += Detect.audioType;
+        this.sourceMode = 'buffer'
+    } else if( typeof this.options.source === 'object' ){
+        this.sourceMode = 'element'
+    }
+        
+
     
     this.name = name;
 
     // Status
-    this.loaded  = false; // is the track file loaded?
-    this.ready   = false; // is the track ready to play/query?
-    this.playing = false;
+    this.status = {
+        loaded:  false,
+        ready:   false,
+        playing: false
+    }
 
-    this.events  = {};
-    this.nodes   = {};   // holds the web audio nodes (gain and pan are defaults, all other optional)
+    this.events  = {};   
+    this.nodes   = null;   // holds the web audio nodes (gain and pan are defaults, all other optional)
 
     this.mix     = mix;  // reference to parent
-    this.element = null; // html5 <audio> element
-    this.source  = null; // the audiobuffer source
+    this.element = null; // html5 <audio> or <video> element
+
+    this.source     = null; //  web audio source:
 
     var self = this;
 
-    if( self.mix.muted == true )
+    if( self.mix.muted === true )
         self.options.muted = true;
 
     this.mix.log(this.options, 2);
@@ -795,7 +806,10 @@ var Track = function(name, opts, mix){
             return;
         }
 
-        this.loadWebAudio();
+        if( this.sourceMode === 'buffer' )
+            this.webAudioSource()
+        else if ( this.sourceMode === 'element' )
+            this.useHTML5elementSource()
 
     } else {
 
@@ -812,10 +826,10 @@ var Track = function(name, opts, mix){
         }
 
         var canplay = function(){
-            if( self.loaded ) return;
+            if( self.status.loaded ) return;
 
-            self.loaded = true;
-            self.ready = true;
+            self.status.loaded = true;
+            self.status.ready = true;
             self.trigger('load', self);
 
             if( ! self.options.autoplay) 
@@ -844,7 +858,7 @@ var Track = function(name, opts, mix){
 
         }, false);
 
-        this.loadHTML5( this.options.source );
+        this.createHTML5elementSource( this.options.source );
     }                
 };
 
@@ -861,15 +875,15 @@ Track.prototype = new BaseClass();
 // ███████╗╚██████╔╝██║  ██║██████╔╝
 // ╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ 
 
-
-Track.prototype.loadHTML5 = function(){
+// Create out-of-DOM html5 <audio> element as source
+Track.prototype.createHTML5elementSource = function(){
 
     var self = this;
     if( ! self.options.source ) return;
 
-    self.mix.log('[Mixer] Track "'+this.name+'" load DOM: "'+self.options.source + Detect.audioType +'"',2);
+    self.mix.log('[Mixer] Track "'+this.name+'" create HTML5 element source: "'+self.options.source + Detect.audioType +'"',2);
 
-    self.ready = false;
+    self.status.ready = false
 
     self.element.src = self.options.source;
 
@@ -881,17 +895,40 @@ Track.prototype.loadHTML5 = function(){
 
 }
 
-
-Track.prototype.loadWebAudio = function(){
+// Use existing in-DOM html5 <audio> or <video> element as source
+Track.prototype.useHTML5elementSource = function(){
 
     var self = this;
     if( ! self.options.source ) return;
 
+    self.mix.log('[Mixer] Track "' + this.name + '" use HTML5 element source: "' + self.options.source + '"', 2)
+
+    self.element = self.options.source
+    self.options.source = self.element.src
+
+    self.source = self.mix.context.createMediaElementSource( self.element );
+    console.log(self.source)
+
+    self.status.loaded = true
+
+    self.trigger('load', self);
+
+    if( self.options.autoplay ) self.play();
+
+}
+
+Track.prototype.webAudioSource = function(){
+
+    console.log(this)
+
+    var self = this;
+    if( ! self.options.source ) return;
+
+    this.mix.log('[Mixer] Track "' + this.name + '" webAudio source: "' + self.options.source + '"', 2)
+
     var request = new XMLHttpRequest();
     request.open('GET', self.options.source, true);
     request.responseType = 'arraybuffer';
-
-    this.mix.log('[Mixer] Track "'+this.name+'" load Buffer "'+self.options.source+'"...',2);
 
     // asynchronous callback
     request.onload = function() {
@@ -899,7 +936,8 @@ Track.prototype.loadWebAudio = function(){
         self.mix.log('[Mixer] "'+self.name+'" loaded "' + self.options.source + '"',2);
 
         self.options.audioData = request.response; // cache the audio data
-        self.loaded = true; // ready to play
+
+        self.status.loaded = true;
 
         if(self.options.autoplay) self.play();
 
@@ -909,7 +947,8 @@ Track.prototype.loadWebAudio = function(){
 
     request.send();
    
-};
+}
+
 
 
 
@@ -961,7 +1000,6 @@ Track.prototype.addNode = function(nodeType){
     // http://www.w3.org/TR/webaudio/#PannerNode
 
     else if(nodeType === 'panner'){
-
 
         if( window.webkitAudioContext ){
 
@@ -1056,160 +1094,222 @@ Track.prototype.play = function(){
 
     var self = this;
 
-    if( !self.loaded || self.playing === true ) return;
-    self.playing = true;
-
-    if( ! Detect.webAudio ) {
-
-        this.mix.log('[Mixer] Playing track "'+self.name+'" >', 1);
-
-        // Apply Options
-        // ~~~~~~~~~~~~~~
-
-        if(self.options.muted) self.options.gain = 0;
-
-        self.gain(self.options.gain);
-        this.options.gainCache = this.gain();
-
-
-        self.ready  = true;
-        self.element.play();
-        self.trigger('play', self);
-
-    } else {
-
-        // Construct Audio Buffer
-        // ~~~~~~~~~~~~~~~~~~~~~~
-
-        // (we have to re-construct the buffer every time we begin play)
-
-        self.source = self.options.sourceBuffer = null;
-        self.nodes = {};
-
-
-        // *sigh* async shit makes for such messy code
-
-        var finish = function(){
-
-            self.ready = true;
-            self.trigger('ready', self);
-
-            // Apply Options
-            // ~~~~~~~~~~~~~~
-
-            if(self.options.muted) self.options.gain = 0;
-
-            self.gain(self.options.gain);
-            self.options.gainCache = self.gain();
-
-            self.pan( self.options.pan );
-
-
-            // Play Audio Buffer
-            // ~~~~~~~~~~~~~~~~~
-
-            self.options.startTime = self.source.context.currentTime - self.options.cachedTime;
-
-            var startFrom = self.options.cachedTime || 0;
-
-            self.mix.log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+') gain '+self.gain(), 1);
-
-            // prefer start() but fall back to deprecated noteOn()
-            if( typeof self.source.start === 'function' ) 
-                self.source.start( 0, startFrom );
-            else
-                self.source.noteOn( startFrom );
-
-            // onend timer
-            // ~~~~~~~~~~~
-
-            var timer_duration = ( self.source.buffer.duration - startFrom );
-
-            self.options.onendtimer = setTimeout(function() {
-                if(!self.options.looping) self.stop();
-                self.trigger('ended', self);
-            }, timer_duration * 1000);
-
-        };
-
-
-        // Webkit
-        if( typeof self.mix.context.createGainNode === 'function' ){
-
-            // Create source & buffer
-            self.source        = self.mix.context.createBufferSource();
-            self.sourceBuffer  = self.mix.context.createBuffer(self.options.audioData, true);
-            self.source.buffer = self.sourceBuffer;
-
-            if(self.options.looping) self.source.loop = true;
-            else                     self.source.loop = false;
-
-            // Nodes //
-            // ~~~~~ //
-
-            // 1. Create standard nodes (gain and pan)
-            self.addNode('panner').addNode('gain');
-
-            // 2. Create additional nodes
-            for (var i = 0; i < self.options.nodes.length; i++) {
-                self.addNode(self.options.nodes[i]);
-            }
-
-            // 3. Connect the last node in the chain to the destination
-            self.nodes.lastnode.connect(self.mix.context.destination);
-
-            finish();
-
-        // W3C standard (Firefox)
-        } else if( typeof self.mix.context.createGain === 'function' ){
-
-            self.mix.context.decodeAudioData( self.options.audioData, function onSuccess(decodedBuffer) {
-
-                self.mix.log('web audio file decoded', 2);
-
-                self.source        = self.mix.context.createBufferSource();
-                self.sourceBuffer  = decodedBuffer;
-                self.source.buffer = self.sourceBuffer;
-                
-                if(self.options.looping) self.source.loop = true;
-                else                     self.source.loop = false;
-                
-                // Nodes //
-                // ~~~~~ //
-
-                // 1. Create standard nodes (gain and pan)
-                self.addNode('panner').addNode('gain');
-                
-                // 2. Create additional nodes
-                for (var i = 0; i < self.options.nodes.length; i++) {
-                    self.addNode(self.options.nodes[i]);
-                }
-
-                // 3. Connect the last node in the chain to the destination
-                self.nodes.lastnode.connect(self.mix.context.destination);
-
-                finish();
-
-            }, function onFailure() {
-            });
-            
-        }
-
+    if( !self.status.loaded ){
+        this.mix.log('Can’t play track "' + self.name + '", not loaded', 1)
+        return;
     }
 
-    self.trigger('play', self);
+    if( self.status.playing === true ) return;
+    self.status.playing = true;
+
+    if( ! Detect.webAudio )
+        play_singleElement( self )
+
+    else if( Detect.webAudio && self.sourceMode === 'buffer' )
+        play_bufferSource( self )
+
+    else if( Detect.webAudio && self.sourceMode === 'element' )
+        play_elementSource( self )
+
 };
 
 
 
+function play_createNodes( self ){
+
+    console.log('Creating nodes for track "' + self.name + '"')
+
+    // Create Nodes
+    // ~~~~~~~~~~~~
+
+    self.nodes = {}
+
+    // 1. Create standard nodes (gain and pan)
+    self.addNode('panner').addNode('gain');
+
+    // 2. Create additional nodes
+    for (var i = 0; i < self.options.nodes.length; i++) {
+        self.addNode(self.options.nodes[i]);
+    }
+
+    // 3. Connect the last node in the chain to the destination
+    self.nodes.lastnode.connect(self.mix.context.destination);
+
+}
+
+// ********************************************************
+
+function play_elementSource( self ){
+
+    // unlike buffer mode, we only need to construct the nodes once
+    if( ! self.nodes ){
+
+        play_createNodes( self )
+
+        // we also only want one event listener
+        self.element.addEventListener('ended', function(){
+            if( !self.options.looping ) self.stop()
+            else { self.stop(); self.play() }
+            self.trigger('ended', self)
+        }, false)
+    }
+        
+
+    // Apply Options
+    // ~~~~~~~~~~~~~~
+
+    self.status.ready = true;
+    self.trigger('ready', self);
+
+    if(self.options.looping) self.source.loop = true;
+    else                     self.source.loop = false;
+
+    if(self.options.muted) self.options.gain = 0;
+
+    self.gain(self.options.gain);
+    self.options.gainCache = self.gain();
+
+    self.pan( self.options.pan );
+
+    // Start Time
+
+    self.options.startTime = self.element.currentTime - self.options.cachedTime;
+    var startFrom = self.options.cachedTime || 0;
+
+    self.mix.log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+') gain '+self.gain(), 1);
+
+    // Play!
+
+    self.element.currentTime = startFrom;
+    self.element.play()
+
+    self.trigger('play', self);
+
+}
+
+
+// ********************************************************
+
+function play_bufferSource( self ){
+
+    // Construct Audio Buffer
+    // ~~~~~~~~~~~~~~~~~~~~~~
+
+    // (we have to re-construct the buffer every time we begin play)
+
+    self.source = null
+    self.options.sourceBuffer = null    
+
+    // *sigh* async makes for such messy code
+
+    var finish = function(){
+
+        play_createNodes( self )
+
+        // Apply Options
+        // ~~~~~~~~~~~~~~
+
+        self.status.ready = true;
+        self.trigger('ready', self);
+
+        if(self.options.looping) self.source.loop = true;
+        else                     self.source.loop = false;
+
+        if(self.options.muted) self.options.gain = 0;
+
+        self.gain(self.options.gain);
+        self.options.gainCache = self.gain();
+
+        self.pan( self.options.pan );
+
+
+        // Play
+        // ~~~~
+
+        self.options.startTime = self.source.context.currentTime - self.options.cachedTime;
+        var startFrom = self.options.cachedTime || 0;
+
+        self.mix.log('[Mixer] Playing track "'+self.name+'" from '+startFrom+' ('+self.options.startTime+') gain '+self.gain(), 1);
+
+        // prefer start() but fall back to deprecated noteOn()
+        if( typeof self.source.start === 'function' ) self.source.start( 0, startFrom );
+        else                                          self.source.noteOn( startFrom );
+
+        self.trigger('play', self);
+
+        // fake ended event
+        var timer_duration = ( self.source.buffer.duration - startFrom );
+
+        self.options.onendtimer = setTimeout(function() {
+            if(!self.options.looping) self.stop();
+            self.trigger('ended', self);
+        }, timer_duration * 1000);
+
+    }
+
+
+    // Create source
+    // ~~~~~~~~~~~~~
+
+    // Non-standard Webkit implementation
+    if( typeof self.mix.context.createGainNode === 'function' ){
+
+        // Web Audio buffer source
+        self.source = self.mix.context.createBufferSource();
+        self.sourceBuffer  = self.mix.context.createBuffer(self.options.audioData, true);
+        self.source.buffer = self.sourceBuffer;
+
+        finish()
+    }
+
+    // W3C standard implementation (Firefox)
+    else if( typeof self.mix.context.createGain === 'function' ){
+
+        self.mix.context.decodeAudioData( self.options.audioData, function onSuccess(decodedBuffer) {
+            self.mix.log('web audio file decoded', 2);
+
+            self.source        = self.mix.context.createBufferSource();
+            self.sourceBuffer  = decodedBuffer;
+            self.source.buffer = self.sourceBuffer;
+
+            finish()
+        })
+    }
+}
+
+
+
+// ********************************************************
+
+function play_singleElement( self ){
+
+    self.mix.log('[Mixer] Playing track "'+self.name+'" >', 1);
+
+    if(self.options.muted) self.options.gain = 0;
+
+    self.gain(self.options.gain);
+    self.options.gainCache = self.gain();
+
+    self.status.ready  = true;
+    self.element.play();
+    self.trigger('play', self);
+}
 
 
 
 
+
+
+// ██████╗  █████╗ ██╗   ██╗███████╗███████╗
+// ██╔══██╗██╔══██╗██║   ██║██╔════╝██╔════╝
+// ██████╔╝███████║██║   ██║███████╗█████╗  
+// ██╔═══╝ ██╔══██║██║   ██║╚════██║██╔══╝  
+// ██║     ██║  ██║╚██████╔╝███████║███████╗
+// ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝
 
 Track.prototype.pause = function( at ){
 
-    if( !this.ready || !this.playing) return;
+    if( !this.status.ready || !this.status.playing) return;
 
     var self = this;
 
@@ -1217,17 +1317,24 @@ Track.prototype.pause = function( at ){
     if( typeof at === 'number' ) self.options.cachedTime = at;
     else                         self.options.cachedTime = self.currentTime(); 
     
-    self.playing = false;
+    self.status.playing = false;
 
     if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
 
-    if( Detect.webAudio === true) {
+    if( Detect.webAudio === true ) {
 
-        // prefer stop(), fallback to deprecated noteOff()
-        if(typeof self.source.stop === 'function')
-            self.source.stop(0);
-        else if(typeof self.source.noteOff === 'function')
-            self.source.noteOff(0);
+        if( self.sourceMode === 'buffer' ){
+
+            // prefer stop(), fallback to deprecated noteOff()
+            if(typeof self.source.stop === 'function')
+                self.source.stop(0);
+            else if(typeof self.source.noteOff === 'function')
+                self.source.noteOff(0);
+
+        } else if( self.sourceMode === 'element' ){
+
+            self.element.pause()
+        }
 
     } else {
 
@@ -1244,28 +1351,40 @@ Track.prototype.pause = function( at ){
 
 
 
-
+// ███████╗████████╗ ██████╗ ██████╗ 
+// ██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗
+// ███████╗   ██║   ██║   ██║██████╔╝
+// ╚════██║   ██║   ██║   ██║██╔═══╝ 
+// ███████║   ██║   ╚██████╔╝██║     
+// ╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
 
 Track.prototype.stop = function(){
 
-    if(!this.ready || !this.playing) return;
+    if( !this.status.ready || !this.status.playing) return;
 
     var self = this;
  
     var doIt = function(){
-        if(!self.playing) return;
-        self.playing = false;
+
+        if(!self.status.playing) return;
+        self.status.playing = false;
         self.options.cachedTime = self.options.startTime = 0;
 
         if( Detect.webAudio === true ) {
 
-            if(typeof self.source.noteOff === 'function')
-                self.source.noteOff(0);
-            else if(typeof self.source.stop === 'function')
-                self.source.stop(0);
+            if( self.sourceMode === 'buffer' ){
 
-            // // BUG
-            // self.source.context.currentTime = 0;
+                // prefer stop(), fallback to deprecated noteOff()
+                if(typeof self.source.stop === 'function')
+                    self.source.stop(0);
+                else if(typeof self.source.noteOff === 'function')
+                    self.source.noteOff(0);
+
+            } else if( self.sourceMode === 'element' ){
+                
+                self.element.pause()
+                self.element.currentTime = 0;
+            }
 
         } else {
 
@@ -1303,7 +1422,7 @@ Track.prototype.stop = function(){
 // proper 3d stereo panning
 Track.prototype.pan = function(angle_deg){
 
-    if( ! Detect.webAudio ||  ! this.ready ) return
+    if( ! Detect.webAudio ||  ! this.status.ready ) return
 
     if(typeof angle_deg === 'string') {
         if     ( angle_deg === 'front' ) angle_deg =   0;
@@ -1324,7 +1443,7 @@ Track.prototype.pan = function(angle_deg){
 
         this.nodes.panner.setPosition( x, y, z );
 
-        this.trigger('pan', this.options.pan, self)
+        this.trigger( 'pan', this.options.pan, this )
     }
 
     return {
@@ -1334,7 +1453,7 @@ Track.prototype.pan = function(angle_deg){
 
 Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
-    if( ! Detect.tween ||  ! Detect.webAudio || ! this.ready ) return;
+    if( ! Detect.tween ||  ! Detect.webAudio || ! this.status.ready ) return;
 
     if(typeof angle_deg !== 'number' || typeof tweenDuration !== 'number') return;
 
@@ -1391,7 +1510,7 @@ Track.prototype.gain = function(val){
 
         if( this.options.muted ) this.options.gain = 0;
 
-        if(this.playing && this.nodes.gain){
+        if(this.status.playing && this.nodes.gain){
 
             if(!Detect.webAudio){
                 this.element.volume = this.options.gain * this.mix.gain;
@@ -1402,7 +1521,7 @@ Track.prototype.gain = function(val){
 
         this.mix.log('[Mixer] "'+this.name+'" setting gain to '+this.options.gain, 2)
 
-        this.trigger('gain',this.options.gain, self);
+        this.trigger( 'gain',this.options.gain, this );
 
     }
 
@@ -1488,7 +1607,7 @@ Track.prototype.unmute = function( duration ){
 
 
 Track.prototype.currentTime = function( setTo ){
-    if(!this.ready) return;
+    if(!this.status.ready) return;
 
     if( typeof setTo === 'number' ){
 
@@ -1498,7 +1617,7 @@ Track.prototype.currentTime = function( setTo ){
 
         } else {
 
-            if( this.playing ){
+            if( this.status.playing ){
                 this.pause( setTo );
                 this.play();
             } else {
@@ -1508,7 +1627,7 @@ Track.prototype.currentTime = function( setTo ){
         }
     }
     
-    if(!this.playing) return this.options.cachedTime || 0;
+    if(!this.status.playing) return this.options.cachedTime || 0;
 
     if(Detect.webAudio) return this.source.context.currentTime - this.options.startTime || 0;
     // if(Detect.webAudio) return this.source.context.currentTime;
@@ -1517,7 +1636,7 @@ Track.prototype.currentTime = function( setTo ){
 
 
 Track.prototype.formattedTime = function(){
-    if(!this.ready) return;
+    if(!this.status.ready) return;
 
     var duration = this.duration(),
         currentTime = this.currentTime();
@@ -1533,7 +1652,7 @@ Track.prototype.formattedTime = function(){
 }
 
 Track.prototype.duration = function(){
-    if(!this.ready) return;
+    if(!this.status.ready) return;
 
     if(Detect.webAudio) return this.source.buffer.duration || 0;
     else                return this.element.duration || 0;
