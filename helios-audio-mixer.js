@@ -1460,7 +1460,7 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
     self.mix.log('[Mixer] "'+self.name+'" tweening pan2d',2)
 
-    new TWEEN.Tween({ currentAngle: self.options.pan })
+    return new TWEEN.Tween({ currentAngle: self.options.pan })
         .to( { currentAngle: angle_deg }, tweenDuration )
         .easing(TWEEN.Easing.Sinusoidal.InOut)
         .onUpdate(function(){
@@ -1470,9 +1470,6 @@ Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
             if(typeof callback === 'function') callback();
         })
         .start();
-
-    return true;
-
 }
 
 
@@ -1551,7 +1548,7 @@ Track.prototype.tweenGain = function(val, tweenDuration, callback){
 
     self.mix.log('[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+val, 1)
 
-    new TWEEN.Tween({ currentGain: self.options.gain })
+    return new TWEEN.Tween({ currentGain: self.options.gain })
         .to( { currentGain: val }, tweenDuration )
         .easing(TWEEN.Easing.Sinusoidal.InOut)
         .onUpdate(function(){
