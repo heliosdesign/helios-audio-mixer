@@ -907,7 +907,8 @@ Track.prototype.useHTML5elementSource = function(){
     self.options.source = self.element.src
 
     self.source = self.mix.context.createMediaElementSource( self.element );
-    console.log(self.source)
+
+    self.element.load()
 
     self.status.loaded = true
 
@@ -918,8 +919,6 @@ Track.prototype.useHTML5elementSource = function(){
 }
 
 Track.prototype.webAudioSource = function(){
-
-    console.log(this)
 
     var self = this;
     if( ! self.options.source ) return;
@@ -1117,7 +1116,7 @@ Track.prototype.play = function(){
 
 function play_createNodes( self ){
 
-    console.log('Creating nodes for track "' + self.name + '"')
+    self.mix.log('Creating nodes for track "' + self.name + '"', 2)
 
     // Create Nodes
     // ~~~~~~~~~~~~
