@@ -36,7 +36,11 @@ Javascript audio multi-track mixer library. Optimally uses the web audio API ([c
 ```
 var Mixer = new heliosAudioMixer();
 
-Mixer.createTrack('track1', { source: 'audio/file' });
+// A) buffer source mode
+Mixer.createTrack('track1', { source: 'path/to/audio/file' }); // note no file extension
+
+// OR B) pre-existing media element source mode
+Mixer.createTrack('track1', { source: document.querySelector('#mediaElement') });
 
 Mixer.getTrack('track1').gain(0.5);
 
@@ -163,7 +167,7 @@ Detect = {
 
 name | default | notes
 ---------|---------|---------
-source       | `null`     | path to audio source (without file extension)
+source       | ``     | Path to audio source file (without file extension), OR media element to use as source
 nodes        | `[]`      | array of strings: names of desired additional audio nodes
 gain         | `0`        | initial/current gain (0-1)
 pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
