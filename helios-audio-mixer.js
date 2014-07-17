@@ -770,7 +770,8 @@ var Track = function(name, opts, mix){
         playing: false
     }
 
-    this.events  = {};   
+    this.events  = {};
+    this.tweens  = {};
     this.nodes   = null;   // holds the web audio nodes (gain and pan are defaults, all other optional)
 
     this.mix     = mix;  // reference to parent
@@ -1528,39 +1529,27 @@ Track.prototype.gain = function(val){
 
 
 
-Track.prototype.tweenGain = function(val, tweenDuration, callback){
-
-    if(!Detect.tween) {
-        this.gain(val);
-
-        if(callback)
-            if(typeof callback === 'function') 
-                callback();
-
-        return;
-    }
-
-    if(typeof val !== 'number' || typeof tweenDuration !== 'number') {
-        return;
-    }
-
+Track.prototype.tweenGain = function(_val, _tweenDuration, _callback){
+    if( typeof _val !== 'number' || typeof _tweenDuration !== 'number') return;
     var self = this;
+    self.mix.log('[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+_val, 1)
 
-    self.mix.log('[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+val, 1)
+    if( self.tweens.gain ) self.tweens.gain.stop() // replace existing gain tween
 
-    return new TWEEN.Tween({ currentGain: self.options.gain })
-        .to( { currentGain: val }, tweenDuration )
+    self.tweens.gain = new TWEEN.Tween({ currentGain: self.options.gain })
+        .to( { currentGain: _val }, _tweenDuration )
         .easing(TWEEN.Easing.Sinusoidal.InOut)
         .onUpdate(function(){
             self.gain(this.currentGain)
         })
         .onComplete(function(){
-
-            if(callback)
-                if(typeof callback === 'function') 
-                    callback();
+            if(_callback)
+                if(typeof _callback === 'function') 
+                    _callback();
         })
         .start();
+
+    return self
 };
 
 
