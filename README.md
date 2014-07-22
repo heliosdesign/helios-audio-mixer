@@ -42,11 +42,13 @@ Mixer.createTrack('track1', { source: 'path/to/audio/file' }); // note no file e
 // OR B) pre-existing media element source mode
 Mixer.createTrack('track1', { source: document.querySelector('#mediaElement') });
 
-Mixer.getTrack('track1').gain(0.5);
+Mixer.getTrack('track1').gain(0.5).pan(180); // setters are chainable!
 
 Mixer.getTrack('track1').tweenGain(0, 1000, function(){
 	Mixer.getTrack('track1').stop();
 });
+
+
 
 ```
 
@@ -94,13 +96,20 @@ Used internally for falling back and playing the right type of audio file. Acces
 Detect = {
 	webAudio:    true | false
 	nodes:     { gain, gainNode, panner, convolver, delay, delayNode, compressor }
-	audioType:  '.m4a' | '.ogg' | '.mp3'
+//	audioType:  '.m4a' | '.ogg' | '.mp3' // deprecated
+	audioTypes: '{ m4a, mp4, ogg }'
 	videoType:  '.webm' | '.mp4' | '.ogv'
 	tween:       true | false
 }
 ```
 
 ### Mixer Methods
+
+##### Constructor Options
+
+`new heliosAudioMixer( options{} )`
+
+`audioTypes: [ 'm4a', 'mp3', 'ogg' ]` List file types in order of preference. The first type available in the current browser will be used.
 
 ##### Events
 
@@ -158,9 +167,9 @@ Detect = {
 
 ##### Time
 
-- `currentTime()` returns current time in seconds
-- `formattedTime()` returns ie "00:23/00:45"
-- `duration()` returns track duration in seconds
+- `currentTime( setTo )` get/set current time in seconds
+- `formattedTime( includeDuration )` returns ie "00:23" or "00:23/00:45"
+- `duration()` get track duration in seconds
 
 
 ### Track Options

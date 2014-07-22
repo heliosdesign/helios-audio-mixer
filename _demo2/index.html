@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Howler Test</title>
+
+	<style>
+		* {
+			-webkit-box-sizing: border-box;
+			   -moz-box-sizing: border-box;
+			        box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		#status {
+			width: 100%;
+			padding: 1em;
+			background: #eee;
+			margin: 0;
+		}
+
+		.orchestra {
+			display: inline-block;
+			width: 23%;
+			vertical-align: top;
+			padding: 0.5em;
+			margin: 1%;
+			border: 1px solid #ddd;
+			cursor: pointer;
+		}
+
+			.orchestra:hover { 
+				border-color: black !important;
+			}
+			.orchestra.active { 
+				border-color: #555; 
+				background: #eee;
+			}
+
+
+		h2 {
+			margin: 0;
+			font-size: 1em;
+
+		}
+
+		p {
+			margin: 0;
+		}
+
+		h2, p {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="status">
+
+		<div class="controls">
+			<div id="play"></div>
+			<div id="pause"></div>
+		</div>
+
+		<div id="masterTime">
+			0
+		</div>
+
+	</div>
+	
+	<div id="orchestra"></div>
+
+	
+	<script type="text/javascript" src="js/jquery.js"></script>
+	<script type="text/javascript" src="js/frameRunner.js"></script>
+	<script type="text/javascript" src="js/tween.min.js"></script>
+	<script type="text/javascript" src="../helios-audio-mixer.js"></script>
+
+	<script>
+
+		var mix = new heliosAudioMixer({ fileTypes: ['.mp3'] });
+
+		var masterTime = 0
+		,	startTime
+		,	pauseTime
+		,	dom_masterTime = document.querySelector('#masterTime')
+		,	dom_times = {}
+
+		function updateMasterTime(){
+
+			if( mix.tracks.length > 0 )
+				masterTime = ((new Date()).getTime() - startTime) / 1000
+			else 
+				pauseAll()
+
+			for (var i = 0; i < mix.tracks.length; i++) {
+				dom_times[ mix.tracks[i].name ].innerText = mix.tracks[i].currentTime() || 0
+			};
+
+			dom_masterTime.innerText = masterTime
+		}
+
+		frameRunner.start();
+		frameRunner.add('tween', 'everyFrame', TWEEN.update)
+
+		$.getJSON('metadata.json', build);	
+
+		function build( json ){
+			var orchestra = json.children
+
+			var dom = document.querySelector('#orchestra')
+
+			for (var i = 0; i < orchestra.length; i++) {
+				if( ! orchestra[i].fileid ) continue
+
+				mix.createTrack( 'id_' + orchestra[i].fileid, {
+					source: 'audio/' + orchestra[i].fileid,
+					autoplay: false
+				})
+			.on('play', function(){
+				this.currentTime( masterTime )
+			})
+
+				var node = document.createElement('div')
+				node.id = 'id_' + orchestra[i].fileid
+				node.classList.add('orchestra')
+
+				node.innerHTML = 
+					'<h2>' + orchestra[i].name + '</h2>' +
+					'<p>' + orchestra[i].instrument + '</p>' +
+					'<p class="time">0</p>'
+
+				dom.appendChild(node)
+
+				dom_times[ 'id_' + orchestra[i].fileid ] = node.children[2]
+
+				node.addEventListener('click',click,false)
+			};
+
+			console.log(mix.tracks)
+
+
+			// start playing track #1 and tracking master time
+			mix.getTrack('id_00002').on('load',function(){
+				click( { target: document.querySelector('#id_00002') } )
+			})
+
+			mix.getTrack('id_00002').on('play',function(){
+				this.off('play').on('play', function(){
+					this.currentTime( masterTime )
+				})
+
+				startTime = (new Date()).getTime()
+				frameRunner.add('masterTime','everyFrame', updateMasterTime)
+			})
+		}
+
+
+		function click(e){
+
+			// get target id
+			var id = e.target.id
+			if( e.target.tagName != 'DIV' ) id = e.target.parentElement.id
+		
+			var el = document.querySelector('#'+id)
+			var sound_id = id.substr('3,5')
+
+
+			if( el.classList.contains('active') ){
+				el.classList.remove('active')
+				mix.getTrack(sound_id).pause()
+			} else {
+				el.classList.add('active')
+				mix.getTrack(sound_id).play()
+			}
+
+			
+						
+
+		}
+
+		function addTrack( id ){
+
+		}
+
+		function removeTrack( id ){
+
+		}
+
+		function playAll(){}
+		function pauseAll(){
+			console.log('PAUSE ALL')
+		}
+
+
+	</script>
+</body>
+</html>

@@ -200,16 +200,6 @@
 
 		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
 
-		var updateTime = function(){
-			var drone = Mixer.getTrack('drone')
-			if( drone ){
-				document.getElementById('track1time').innerHTML = drone.formattedTime();
-				document.getElementById('track1playhead').style.left = ( drone.currentTime() / drone.duration() ) * 100 + 'px';
-			}
-		}
-
-		frameRunner.add('updateTime','everyFrame',updateTime)
-
 
 		// ********************************************************
 		// Setup and Events
@@ -236,19 +226,45 @@
 
 		function createDrone(){
 			
-			Mixer.createTrack('drone', { 
+			var drone = Mixer.createTrack('drone', { 
 				source: 'audio/Drone_1_norm', 
 				gain: 1.0 
 			})
 
-			Mixer.getTrack('drone').on('pan',function(){
+			drone.on('pan',function(){
 				updatePanDisplay('drone',track1panCanvas)
-				document.getElementById('track1pan').value = Mixer.getTrack('drone').options.pan
+				document.getElementById('track1pan').value = drone.options.pan
 			})
 
-			Mixer.getTrack('drone').on('gain',function(){
-				document.getElementById('track1gain').value = Mixer.getTrack('drone').options.gain*100
+			drone.on('gain',function(){
+				document.getElementById('track1gain').value = drone.options.gain*100
 			})
+
+			var timeEl = document.getElementById('track1time')
+			,	playheadEl = document.getElementById('track1playhead')
+
+			drone.on('play',function(){
+				frameRunner.add('drone_timeUpdate','everyFrame', function(){
+					updateTime( drone, timeEl, playheadEl )
+				})
+			})
+
+			drone.on('pause',function(){
+				frameRunner.remove('drone_timeUpdate','everyFrame')
+			})
+
+
+
+			var updateTime = function( track, timeEl, playheadEl ){
+				if( !track ) return
+				timeEl.innerHTML = drone.formattedTime();
+				playheadEl.style.left = ( drone.currentTime() / drone.duration() ) * 100 + 'px';
+			}
+
+			frameRunner.add('updateTime','everyFrame',updateTime)
+
+
+
 
 		}
 
