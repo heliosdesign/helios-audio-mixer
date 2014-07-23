@@ -31,7 +31,7 @@
 </head>
 <body>
 
-	<div class="row">
+	<!-- <div class="row">
 
 		<div class="controls">
 			<div id="play"></div>
@@ -42,7 +42,7 @@
 			0
 		</div>
 
-	</div>
+	</div> -->
 	
 	<div class="row">
 		<select name="tracks" id="select-tracks">
@@ -73,7 +73,7 @@
 	<script>
 
 		var mix = new heliosiOSAudioMixer({
-			element : { video: document.querySelector('#videlement') }
+			videoElement: document.querySelector('#videlement')
 		});
 
 		var track = 'drone'
@@ -90,19 +90,19 @@
 			switch(track) {
 				case 'drone':
 					mix.createTrack('drone', {
-						source: '../_demo/audio/Drone_1_norm'
+						source: '../demo/audio/Drone_1_norm'
 					})
 					break;
 
 				case 'buzz':
 					mix.createTrack('buzz', {
-						source: '../_demo/audio/Fluorescencent_Tone'
+						source: '../demo/audio/Fluorescencent_Tone'
 					})
 					break;
 
 				case 'helicopter':
 					mix.createTrack('helicopter', {
-						source: '../_demo/audio/Helicopter_Interior'
+						source: '../demo/audio/Helicopter_Interior'
 					})
 					break;
 

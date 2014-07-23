@@ -21,7 +21,7 @@
             console.log(this)
         };
 
-        var defaults = {
+        this.options = {
             element: {
                 audio: undefined,
                 video: undefined
@@ -31,7 +31,6 @@
                 video: '.mp4'
             }
         };
-        this.options = this.extend.call(this, defaults, opts || {});
 
         this.events  = {} // mix.on() support
         this.tweens  = {} // 
@@ -47,11 +46,17 @@
         // Media Elements
         // ********************************************************
 
+        if( opts.audioElement )
+            this.options.element.audio = opts.audioElement
+        
+        if( opts.videoElement )
+            this.options.element.video = opts.videoElement
+
         if( typeof this.options.audioElement === 'undefined' )
             this.options.element.audio = document.createElement('audio')
 
-        if( typeof this.options.videoElement === 'undefined' )
-            this.options.element.video = document.createElement('video')
+        // if( typeof this.options.videoElement === 'undefined' )
+        //     this.options.element.video = document.createElement('video')
 
         return this
 
@@ -148,6 +153,8 @@
         // ~~~~~~~~~~~~~~~~
 
         this.element = this.options.element[ newTrack.type ]
+
+        console.log(this.element)
 
         // add new events
         for (var i = eventTypes.length-1; i >= 0; i--) {
