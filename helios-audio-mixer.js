@@ -20,22 +20,6 @@ var Detect = {
     // General web audio support
     webAudio : !!(window.webkitAudioContext || window.AudioContext),
 
-    // // Web Audio Components
-    // nodes : (function(){
-
-    //     var context = new AudioContext();
-
-    //     return {
-    //         'gain'      : !!(typeof context.createGain               === 'function'),
-    //         'gainNode'  : !!(typeof context.createGainNode           === 'function'),
-    //         'panner'    : !!(typeof context.createPanner             === 'function'),
-    //         'convolver' : !!(typeof context.createConvolver          === 'function'),
-    //         'delay'     : !!(typeof context.createDelay              === 'function'),
-    //         'delayNode' : !!(typeof context.createDelayNode          === 'function'),
-    //         'compressor': !!(typeof context.createDynamicsCompressor === 'function')
-    //     }
-    // })(),
-
     // THE ALL-IN-ONE ALMOST-ALPHABETICAL GUIDE TO DETECTING EVERYTHING
     // http://diveintohtml5.info/everything.html
 
@@ -105,7 +89,9 @@ var Detect = {
         };
     })(),
 
-    tween : !!TWEEN // is tween.js present?
+    tween : (function(){
+        return ( typeof TWEEN === 'undefined' ) ? false : true
+    })() // is tween.js present?
 
 };
 
@@ -290,19 +276,12 @@ var Mix = function(opts){
 
     }
 
+    return this
+
 };
 
 Mix.prototype = new BaseClass(); // inherit utility methods
 
-// Mix.prototype.log = function(msg, lvl){
-//     if(lvl <= this.debug) console.log(msg);
-//     else console.warn( this.debug )
-// }
-
-// Mix.prototype.setLogLvl = function(lvl){
-//     this.debug = lvl;
-//     this.log('[Mixer] Set log level: ' + this.debug, 1)
-// }
 
 
 /**************************************************************************
@@ -316,12 +295,13 @@ Mix.prototype.createTrack = function(name, opts){
     var self = this;
     var track;
 
+    if( !name )
+        throw new Error('Can’t create track with no name')
+
     if(Detect.webAudio === true) {
 
-        if(this.lookup[name]) {
-            console.warn('[Mixer] A track called "%s" already exists', name);
-            return;
-        }
+        if(this.lookup[name])
+            throw new Error('A track called "' +name+ '" already exists')
 
         track = new Track(name, opts, self);
 
@@ -674,14 +654,14 @@ var Track = function(name, opts, mix){
 
         autoplay: true,    // play immediately on load
 
-        onendtimer: null,  // web audio api in chrome doesn't support onend event yet (WTF)
-
         muted: false,
+
         dummy: false // making it possible to chain bad getTrack() calls
     };
 
     // override option defaults
     this.options = this.extend.call(this, this.defaults, opts || {});
+
 
     this.name = name;
 
@@ -698,6 +678,8 @@ var Track = function(name, opts, mix){
     this.tweens  = {};
     this.nodes   = null;   // holds the web audio nodes (gain and pan are defaults, all other optional)
 
+    this.onendtimer = null,  // web audio api in chrome doesn't support onend event yet (WTF)
+
     this.element = null; // html5 <audio> or <video> element
     this.source  = null; //  web audio source:
 
@@ -713,6 +695,7 @@ var Track = function(name, opts, mix){
         self.options.muted = true;
 
     // append extension only if it’s a file path
+    this.sourceMode = null
     if( typeof this.options.source === 'string' ){
         this.options.source += this.mix.options.fileTypes[0];
         this.sourceMode = 'buffer'
@@ -1183,7 +1166,7 @@ function play_bufferSource( self ){
         // fake ended event
         var timer_duration = ( self.source.buffer.duration - startFrom );
 
-        self.options.onendtimer = setTimeout(function() {
+        self.onendtimer = setTimeout(function() {
             if(!self.options.looping) self.stop();
             self.trigger('ended', self);
         }, timer_duration * 1000);
@@ -1262,7 +1245,7 @@ Track.prototype.pause = function( at ){
     
     self.status.playing = false;
 
-    if(self.options.onendtimer) clearTimeout(self.options.onendtimer);
+    if(self.onendtimer) clearTimeout(self.onendtimer);
 
     if( Detect.webAudio === true ) {
 
@@ -1717,6 +1700,11 @@ Group.prototype.tweenGain = function(setTo, duration, callback){
     }
     this.trigger('tweenGain');
 };
+
+
+
+
+
 
 
 

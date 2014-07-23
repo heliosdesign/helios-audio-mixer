@@ -13,9 +13,18 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "demo",
+    "demo*",
+    "test*",
     "source",
     "gulpfile.js",
     "package.json"
-  ]
+  ],
+  "devDependencies": {
+    "mocha": "~1.20.1",
+    "chai": "~1.9.1",
+    "tweenjs": "*",
+    "helios-frame-runner": "*",
+    "bowser": "~0.7.1",
+    "jquery": "~2.1.1"
+  }
 }
