@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Helios Audio Mixer iOS Demo</title>
+
+	<style>
+		* {
+			-webkit-box-sizing: border-box;
+			   -moz-box-sizing: border-box;
+			        box-sizing: border-box;
+			margin: 0;
+			padding: 0;
+		}
+
+		.row {
+			display: block;
+			padding: 0.5em;
+			margin: 0.5em;
+			background: #eee;
+		}
+
+		.button {
+			border: 1px solid black;
+			padding: 0.5em;
+			display: inline-block;
+			cursor: pointer;
+		}
+
+	</style>
+</head>
+<body>
+
+	<div class="row">
+
+		<div class="controls">
+			<div id="play"></div>
+			<div id="pause"></div>
+		</div>
+
+		<div id="masterTime">
+			0
+		</div>
+
+	</div>
+	
+	<div class="row">
+		<select name="tracks" id="select-tracks">
+			<option value="drone">Drone</option>
+			<option value="buzz">Buzz</option>
+			<option value="helicopter">Helicopter</option>
+			<option value="cctv">CCTV (video)</option>
+		</select>
+
+		<div class="button" id="createTrack">Create</div>
+		<div class="button" id="load">Load</div>
+	</div>
+
+	<div class="row">
+		<div class="button" id="playMix">Play</div>
+		<div class="button" id="pauseMix">Pause</div>
+	</div>
+
+	<div class="row">
+		<video id="videlement"></video>
+	</div>
+
+	
+	<script src="../bower_components/jquery/dist/jquery.js"></script>
+	<script src="../bower_components/helios-frame-runner/helios-frame-runner.js"></script>
+	<script src="../helios-ios-audio-mixer.js"></script>
+
+	<script>
+
+		var mix = new heliosiOSAudioMixer({
+			element : { video: document.querySelector('#videlement') }
+		});
+
+		var track = 'drone'
+
+		$('#select-tracks').on('change',function(e){
+			track = $('#select-tracks').children(':selected').attr('value')
+			console.log('track: %s', track)
+		})
+
+		$('#createTrack').on('click',function(){
+
+			console.log('creating track: %s', track)
+
+			switch(track) {
+				case 'drone':
+					mix.createTrack('drone', {
+						source: '../_demo/audio/Drone_1_norm'
+					})
+					break;
+
+				case 'buzz':
+					mix.createTrack('buzz', {
+						source: '../_demo/audio/Fluorescencent_Tone'
+					})
+					break;
+
+				case 'helicopter':
+					mix.createTrack('helicopter', {
+						source: '../_demo/audio/Helicopter_Interior'
+					})
+					break;
+
+				case 'cctv':
+					mix.createTrack('cctv', {
+						source: './video/ControlRoom_CCTV_1',
+						type: 'video'
+					})
+			}
+		})
+
+		
+		$('#load').on('click',function(){ 
+			mix.load(track) 
+		})
+
+		$('#playMix').on('click',function(){ 
+			if( !mix.element ) return
+			console.log('play')
+			mix.element.play() 
+		})
+
+		$('#pauseMix').on('click',function(){ 
+			if( !mix.element ) return
+			console.log('pause')
+			mix.element.pause() 
+		})
+
+		
+		
+
+
+	</script>
+</body>
+</html>
