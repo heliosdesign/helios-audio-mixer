@@ -13,12 +13,28 @@
 			padding: 0;
 		}
 
+		h1, h2, h3, h4, h5, h6, p, ul, li { margin-bottom: 0.5em; }
+
+		body {
+			font-family: sans-serif;
+			font-size: 14px;
+		}
+
+		.col {
+			display: inline-block;
+			vertical-align: top;
+			width: 50%;
+			padding: 0.5em;
+		}
+
 		.row {
 			display: block;
 			padding: 0.5em;
 			margin: 0.5em;
 			background: #eee;
 		}
+
+		select { margin: 0.5em; }
 
 		.button {
 			border: 1px solid black;
@@ -27,114 +43,114 @@
 			cursor: pointer;
 		}
 
+		video {
+			width: 100%;
+			height: auto;
+			background: #ddd;
+		}
+
+		ul {
+			list-style-type: none;
+		}
+
+		.container {
+			background: #ddd;
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
+
+		.inner { margin: 0 1em;}
+
 	</style>
 </head>
-<body>
+<body  id="knockout">
 
-	<!-- <div class="row">
+	<div class="col">
+		
+		<div class="row">
 
-		<div class="controls">
-			<div id="play"></div>
-			<div id="pause"></div>
+			<h3>Track Controls</h3>
+
+			<select name="" id=""
+			 data-bind="options: availableTracks,
+			 			value:   selectedTrack">
+			</select>
+
+			<div class="button" data-bind="click: control.createTrack">Create</div>
+			<div class="button" data-bind="click: control.load">Load</div>
 		</div>
 
-		<div id="masterTime">
-			0
+		<div class="row">
+			<h3>Playback Controls</h3>
+			<div class="button" data-bind="click: control.play">Play</div>
+			<div class="button" data-bind="click: control.pause">Pause</div>
+			<div class="button" data-bind="click: control.mute">Mute</div>
+			<div class="button" data-bind="click: control.unload">Unload</div>
 		</div>
 
-	</div> -->
+		<div class="row">
+			<h3>Video</h3>
+			<video id="videlement"></video>
+		</div>
+
+	</div><div class="col">
+		
+		<div class="row">
+			<h3>State</h3>
+
+			<ul id="state-list">
+				<li>Paused: <span data-bind="text: paused"></span></li>
+				<li>Muted: <span data-bind="text: muted"></span></li>
+				<li>Element: <span data-bind="text: element"></span></li>
+				<li>Time: <span data-bind="text: time"></span></li>
+			</ul>
+
+			<h3>Current Track</h3>
+			
+
+		</div>
+
+		<div class="row">
+			<h3>Events</h3>
+
+			<div class="container" style="height: 10em">
+				<ul data-bind="foreach: events">
+					<span data-bind="text: type"></span><br>
+				</ul>	
+			</div>
+			
+		</div>
+
+		<div class="row">
+			<h3>Tracks</h3>
+
+			<ul data-bind="foreach: tracks">
+				<li>
+					<h3 data-bind="text: name"></h3>
+
+					<div class="inner">
+						<strong>source:</strong>   <span data-bind="text: source"></span><br>
+						<strong>type:</strong>     <span data-bind="text: type"></span><br>
+						<strong>autoplay:</strong> <span data-bind="text: autoplay"></span><br>
+						<strong>autobuffer:</strong>  <span data-bind="text: autobuffer"></span><br>
+						<strong>loop:</strong>  <span data-bind="text: loop"></span><br>
+						<strong>start:</strong>  <span data-bind="text: start"></span><br>
+					</div>
+				</li>
+			</ul>
+		</div>
+
+	</div>
+
 	
-	<div class="row">
-		<select name="tracks" id="select-tracks">
-			<option value="drone">Drone</option>
-			<option value="buzz">Buzz</option>
-			<option value="helicopter">Helicopter</option>
-			<option value="cctv">CCTV (video)</option>
-		</select>
-
-		<div class="button" id="createTrack">Create</div>
-		<div class="button" id="load">Load</div>
-	</div>
-
-	<div class="row">
-		<div class="button" id="playMix">Play</div>
-		<div class="button" id="pauseMix">Pause</div>
-	</div>
-
-	<div class="row">
-		<video id="videlement"></video>
-	</div>
 
 	
+	<script src="../bower_components/knockout/dist/knockout.debug.js"></script>
 	<script src="../bower_components/jquery/dist/jquery.js"></script>
 	<script src="../bower_components/helios-frame-runner/helios-frame-runner.js"></script>
 	<script src="../helios-ios-audio-mixer.js"></script>
 
-	<script>
+	<script src="script.js"></script>
 
-		var mix = new heliosiOSAudioMixer({
-			videoElement: document.querySelector('#videlement')
-		});
-
-		var track = 'drone'
-
-		$('#select-tracks').on('change',function(e){
-			track = $('#select-tracks').children(':selected').attr('value')
-			console.log('track: %s', track)
-		})
-
-		$('#createTrack').on('click',function(){
-
-			console.log('creating track: %s', track)
-
-			switch(track) {
-				case 'drone':
-					mix.createTrack('drone', {
-						source: '../demo/audio/Drone_1_norm'
-					})
-					break;
-
-				case 'buzz':
-					mix.createTrack('buzz', {
-						source: '../demo/audio/Fluorescencent_Tone'
-					})
-					break;
-
-				case 'helicopter':
-					mix.createTrack('helicopter', {
-						source: '../demo/audio/Helicopter_Interior'
-					})
-					break;
-
-				case 'cctv':
-					mix.createTrack('cctv', {
-						source: './video/ControlRoom_CCTV_1',
-						type: 'video'
-					})
-			}
-		})
-
-		
-		$('#load').on('click',function(){ 
-			mix.load(track) 
-		})
-
-		$('#playMix').on('click',function(){ 
-			if( !mix.element ) return
-			console.log('play')
-			mix.element.play() 
-		})
-
-		$('#pauseMix').on('click',function(){ 
-			if( !mix.element ) return
-			console.log('pause')
-			mix.element.pause() 
-		})
-
-		
-		
-
-
-	</script>
 </body>
 </html>

@@ -32,31 +32,56 @@
             }
         };
 
-        this.events  = {} // mix.on() support
-        this.tweens  = {} // 
+        // supported event types
+        this.eventTypes = [
+            'loadstart',
+            'progress',
+            'suspend',
+            'abort',
+            'error',
+            'emptied',
+            'stalled',
+
+            'loadedmetadata',
+            'loadeddata',
+            'canplay',
+            'canplaythrough',
+
+            'playing',
+            'waiting',
+
+            'play',
+            'pause',
+            'timeupdate',
+
+            'seeking',
+            'seeked',
+            'ended',
+
+            'ratechange',
+            'durationchange',
+
+            'resize',
+            'volumechange'
+        ]
 
         this.tracks  = {}   // archived track options
 
         this.currentTrack = null // options of the currently active track
         this.element = null // reference to active element
 
-        this.playing = false // 
-        this.muted   = false // 
-
         // Media Elements
         // ********************************************************
 
         if( opts.audioElement )
             this.options.element.audio = opts.audioElement
-        
         if( opts.videoElement )
             this.options.element.video = opts.videoElement
 
         if( typeof this.options.audioElement === 'undefined' )
             this.options.element.audio = document.createElement('audio')
-
-        // if( typeof this.options.videoElement === 'undefined' )
-        //     this.options.element.video = document.createElement('video')
+        if( typeof this.options.videoElement === 'undefined' )
+            this.options.element.video = document.createElement('video')
 
         return this
 
@@ -115,11 +140,27 @@
     }
 
 
-    /*
-        Switch
-        id: ''
-        target: 'audio', 'video'
-    */
+    // Clear current track
+
+    Mix.prototype.unload = function(){
+
+        if( this.currentTrack ){
+            // remove old events
+            for (var i = this.eventTypes.length-1; i >= 0; i--) {
+                var e = this.eventTypes[i]
+
+                if( this.currentTrack.events[ e ] )
+                    this.element.removeEventListener( e, this.currentTrack.events[ e ] )
+            };
+
+            this.element.src = ''
+        }
+
+        return this
+    }
+
+
+    // Load new track
 
     Mix.prototype.load = function( id ){
 
@@ -129,39 +170,22 @@
         if( ! this.tracks[id] )
             throw new Error('Can’t load track "'+id+'", not yet created')
 
-        var newTrack = this.tracks[id]
-        ,   oldTrack = this.currentTrack
-        ,   eventTypes = [ 'canplaythrough', 'play', 'pause', 'seeked', 'error' ]
-
-
         // clear old track
-        // ~~~~~~~~~~~~~~~
-
-        if( oldTrack ){
-            // remove old events
-            for (var i = eventTypes.length-1; i >= 0; i--) {
-                var e = eventTypes[i]
-
-                if( oldTrack.events[ e ] )
-                    this.element.removeEventListener( e, oldTrack.events[ e ] )
-            };
-
-            this.element.src = ''    
-        }
+        this.unload()
+        
 
         // set up new track
-        // ~~~~~~~~~~~~~~~~
+
+        var newTrack = this.tracks[id]
 
         this.element = this.options.element[ newTrack.type ]
 
-        console.log(this.element)
-
         // add new events
-        for (var i = eventTypes.length-1; i >= 0; i--) {
-            var e = eventTypes[i]
+        for (var i = this.eventTypes.length-1; i >= 0; i--) {
+            var e = this.eventTypes[i]
 
             if( newTrack.events[ e ] )
-                this.element.addEventListener( e, oldTrack.events[ e ], false )
+                this.element.addEventListener( e, newTrack.events[ e ], false )
         };
 
         this.element.autoplay   = newTrack.autoplay
@@ -170,6 +194,8 @@
 
         this.element.src = newTrack.source
         this.currentTrack = newTrack
+
+        return this
 
     }
 

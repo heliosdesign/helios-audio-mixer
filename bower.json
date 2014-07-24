@@ -25,6 +25,7 @@
     "tweenjs": "*",
     "helios-frame-runner": "*",
     "bowser": "~0.7.1",
-    "jquery": "~2.1.1"
+    "jquery": "~2.1.1",
+    "knockout": "~3.1.0"
   }
 }
