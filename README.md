@@ -48,9 +48,9 @@ Mixer.getTrack('track1').tweenGain(0, 1000, function(){
 	Mixer.getTrack('track1').stop();
 });
 
-
-
 ```
+
+Remember to add `TWEEN.update()` to your requestAnimationFrame function.
 
 
 #### Groups
@@ -97,8 +97,8 @@ Detect = {
 	webAudio:    true | false
 	nodes:     { gain, gainNode, panner, convolver, delay, delayNode, compressor }
 //	audioType:  '.m4a' | '.ogg' | '.mp3' // deprecated
-	audioTypes: '{ m4a, mp4, ogg }'
-	videoType:  '.webm' | '.mp4' | '.ogv'
+	audioTypes: [ 'mp3', 'm4a', 'ogg' ] // in order of preference
+	videoType:  [ '.webm', '.mp4', '.ogv' ]
 	tween:       true | false
 }
 ```
@@ -120,9 +120,7 @@ Detect = {
 
 - `createTrack(name, opts)` see below for `opts`
 - `removeTrack(name)`
-- `removeTracks(group/*)`
 - `getTrack(name)`
-- `getTracks(group/*)`
 
 ##### Globals
 
@@ -130,7 +128,7 @@ Detect = {
 - `play()`
 - `mute()`
 - `unmute()`
-- `setGain(0-1)`
+- `gain(0-1)`
 
 ##### Utilities
 

@@ -227,7 +227,8 @@
 		function createDrone(){
 			
 			var drone = Mixer.createTrack('drone', { 
-				source: 'audio/Drone_1_norm', 
+				source: 'audio/Drone_1_norm',
+				sourceMode: 'element',
 				gain: 1.0 
 			})
 
@@ -275,7 +276,6 @@
 			Mixer.createTrack('fluorescent', { 
 				// source: 'audio/Fluorescencent_Tone', 
 				source: document.querySelector('#audioElement'), 
-				group: 'testgroup',
 				autoplay: true,
 				gain: 1,
 				pan: 'left'
@@ -297,7 +297,6 @@
 		function createHelicopter(){
 			Mixer.createTrack('helicopter', { 
 				source: 'audio/Helicopter_Interior', 
-				group: 'testgroup',
 				gain: 0.5, 
 				pan: 0,
 				nodes: [ 'compressor' ]
