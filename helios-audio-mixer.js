@@ -14,33 +14,27 @@
 
 var Detect = {
 
-    audioElement : !!document.createElement('audio').canPlayType,
-    videoElement : !!document.createElement('video').canPlayType,
-
-    // General web audio support
+    // Web audio API support
     webAudio : !!(window.webkitAudioContext || window.AudioContext),
 
-    // THE ALL-IN-ONE ALMOST-ALPHABETICAL GUIDE TO DETECTING EVERYTHING
-    // http://diveintohtml5.info/everything.html
+    // audioType : (function(){
 
-    audioType : (function(){
+    //     var el = document.createElement('audio'),
+    //         extension = false;
 
-        var el = document.createElement('audio'),
-            extension = false;
+    //     if( !!(el.canPlayType && el.canPlayType('audio/mp4; codecs="mp4a.40.2"').replace(/no/, '')) ) {
+    //         extension = '.m4a';
+    //     } else if( !!(el.canPlayType && el.canPlayType('audio/mpeg;').replace(/no/, ''))  ) {
+    //         extension = '.mp3';
+    //     } else if( !!(el.canPlayType && el.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, '')) ) {
+    //         extension = '.ogg';
+    //     } else {
+    //         extension = false;
+    //     }
 
-        if( !!(el.canPlayType && el.canPlayType('audio/mp4; codecs="mp4a.40.2"').replace(/no/, '')) ) {
-            extension = '.m4a';
-        } else if( !!(el.canPlayType && el.canPlayType('audio/mpeg;').replace(/no/, ''))  ) {
-            extension = '.mp3';
-        } else if( !!(el.canPlayType && el.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, '')) ) {
-            extension = '.ogg';
-        } else {
-            extension = false;
-        }
-
-        el = null;
-        return extension;
-    })(),
+    //     el = null;
+    //     return extension;
+    // })(),
 
     // Which audio types can the browser actually play?
     audioTypes : (function(){
@@ -1213,45 +1207,32 @@ Track.prototype.stop = function(){
     if( !this.status.ready || !this.status.playing || this.dummy ) return;
 
     var self = this;
- 
-    var doIt = function(){
 
-        if(!self.status.playing) return;
-        self.status.playing = false;
-        self.options.cachedTime = self.options.startTime = 0;
+    if(!self.status.playing) return
 
-        if( Detect.webAudio === true ) {
+    self.options.cachedTime = self.options.startTime = 0
 
-            if( self.options.sourceMode === 'buffer' ){
+    if( Detect.webAudio === true && self.options.sourceMode === 'buffer' ) {
 
-                // prefer stop(), fallback to deprecated noteOff()
-                if(typeof self.source.stop === 'function')
-                    self.source.stop(0);
-                else if(typeof self.source.noteOff === 'function')
-                    self.source.noteOff(0);
+        // prefer stop(), fallback to deprecated noteOff()
+        if(typeof self.source.stop === 'function')
+            self.source.stop(0);
+        else if(typeof self.source.noteOff === 'function')
+            self.source.noteOff(0);
 
-            } else if( self.options.sourceMode === 'element' ){
-                
-                self.element.pause()
-                self.element.currentTime = 0;
-            }
+    } else {
 
-        } else {
+        self.options.autoplay = false;
 
-            self.options.autoplay = false;
+        self.element.pause();
+        self.element.currentTime = 0;
+    }
 
-            self.element.pause();
-            self.element.currentTime = 0;
-        }
+    self.mix.log('[Mixer] Stopping track "'+self.name, 2);
+    self.status.playing = false
+    self.trigger('stop', self);
 
-        self.mix.log('[Mixer] Stopping track "'+self.name, 2);
-        self.trigger('stop', self);
-
-        self.options.gain = self.options.gainCache;
-    };
-
-    if(Detect.tween) this.tweenGain(0, 100, function(){ doIt() } );
-    else doIt();
+    self.options.gain = self.options.gainCache;
 
     return self
     
@@ -1455,11 +1436,7 @@ Track.prototype.currentTime = function( setTo ){
 
     if( typeof setTo === 'number' ){
 
-        if( !Detect.webAudio ){
-
-            this.element.currentTime = setTo;
-
-        } else {
+        if( Detect.webAudio && this.options.sourceMode === 'buffer' ){
 
             if( this.status.playing ){
                 this.pause( setTo );
@@ -1467,7 +1444,10 @@ Track.prototype.currentTime = function( setTo ){
             } else {
                 this.options.cachedTime = setTo;  
             }
-            
+
+        } else {
+
+            this.element.currentTime = setTo;
         }
 
         return this
@@ -1475,9 +1455,10 @@ Track.prototype.currentTime = function( setTo ){
     
     if(!this.status.playing) return this.options.cachedTime || 0;
 
-    if(Detect.webAudio) return this.source.context.currentTime - this.options.startTime || 0;
-    // if(Detect.webAudio) return this.source.context.currentTime;
-    else                return this.element.currentTime || 0;
+    if(Detect.webAudio && this.options.sourceMode === 'buffer') 
+        return this.source.context.currentTime - this.options.startTime || 0;
+    else
+        return this.element.currentTime || 0;
 }
 
 
@@ -1511,17 +1492,6 @@ Track.prototype.duration = function(){
     else
         return this.element.duration || 0;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

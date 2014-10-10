@@ -52,97 +52,90 @@ Mixer.getTrack('track1').tweenGain(0, 1000, function(){
 
 Remember to add `TWEEN.update()` to your requestAnimationFrame function.
 
+#### Source Types
 
-#### Groups
-
-Work with groups of tracks using `getTracks()`.
+Tracks use buffer source by default. Use HTML5 element source for a track by setting the `sourceMode` option (an out-of-DOM `<audio>` element will be created), or setting the `source` option to an existing HTML5 media element instead of a string.
 
 ```
-Mixer.createTrack('meow', {
-	source:   'audio/meow',
-	group:    'cats',
-	autoplay:  false
+
+Mixer.createTrack('elementSourceTrack', {
+	source: 'path/to/audio/file',
+	sourceMode: 'element'
 })
 
-Mixer.createTrack('hiss', {
-	source:   'audio/hiss',
-	group:    'cats',
-	autoplay:  false		
+Mixer.createTrack('inDOMelementSourceTrack', {
+	source: document.queryselector('audio#elementSourceTrack')
 })
-
-Mixer.createTrack('hown', {
-	source:   'audio/howl',
-	group:    'dogs',
-	autoplay:  true
-})
-
-function cats(){
-	Mixer.getTracks('dogs').tweenGain(0, 1000, function(){
-		Mixer.getTracks('dogs').pause();
-		Mixer.getTracks('cats').play();		
-	})
-}
 
 ```
 
 
 ## Reference
 
-### Detect Object
+### Feature Detection
 
-Used internally for falling back and playing the right type of audio file. Access/override/whatever through `Mixer.detect`.
+Access/override/whatever through `Mixer.detect`.
 
 ```
 Detect = {
 	webAudio:    true | false
-	nodes:     { gain, gainNode, panner, convolver, delay, delayNode, compressor }
-//	audioType:  '.m4a' | '.ogg' | '.mp3' // deprecated
 	audioTypes: [ 'mp3', 'm4a', 'ogg' ] // in order of preference
-	videoType:  [ '.webm', '.mp4', '.ogv' ]
-	tween:       true | false
+	videoType:  { '.webm' | '.mp4' | '.ogv' },
+	bowser:     bowser.js | fallback // browser detection
+	tween:      true | false
 }
 ```
 
-### Mixer Methods
-
-##### Constructor Options
+### Mixer Options
 
 `new heliosAudioMixer( options{} )`
 
-`audioTypes: [ 'm4a', 'mp3', 'ogg' ]` List file types in order of preference. The first type available in the current browser will be used.
+name | default | notes
+---------|---------|---------
+audioTypes | `[ 'mp3', 'm4a', 'ogg' ]` | List file types in order of preference. The first type available in the current browser will be used.
+html5 | `false` | Force HTML5 mode.
 
-##### Events
 
-- `on('event',function)` events: see below
-- `off('event')`
+### Mixer Methods
 
 ##### Track Management
 
-- `createTrack(name, opts)` see below for `opts`
+- `createTrack(name, opts)` _see track options below_
 - `removeTrack(name)`
 - `getTrack(name)`
+- `Mix.getTrack('name').method()` access a single track, chainable
 
-##### Globals
+##### Global Mix Control
 
 - `pause()`
 - `play()`
 - `mute()`
 - `unmute()`
-- `gain(0-1)`
+- `gain( 0-1 )`
 
 ##### Utilities
 
-- `updateTween()` **IMPORTANT:** call this (or `TWEEN.update()`) using rAF for tweens to work
 - `setLogLvl()` 0 none, 1 minimal, 2 all (spammy)
 
-### Track/Group Methods
+### Track Options
 
-`Mix.getTrack('name').method()` ← access a single track
-`Mix.getTracks('group').method()` ← access a group
+name | default | notes
+---------|---------|---------
+source       | ``     | Path to audio source file (without file extension), OR media element to use as source
+gain         | `0`        | initial/current gain (0-1)
+pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
+nodes        | `[]`      | array of strings: names of desired additional audio nodes. Pan and Gain are defaults.
+start        | `0`        | start time in seconds
+currentTime  | `0`        | current time (cached for resuming from pause)
+looping      | `false`    | 
+autoplay     | `true`     | play immediately on load
+muted        | `false`    | 
+
+### Track Methods
 
 ##### Events
 
-- `on('event',function)`
+- `on('event',function)` _see event list below_
 - `off('event')`
 
 ##### Control
@@ -153,36 +146,25 @@ Detect = {
 
 ##### Pan
 
-- `pan(angle)` stereo pan: angle can be a number in degrees (0° front, counts clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
+- `pan(angle)` get/set stereo pan: angle can be a number in degrees (0° front, clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
 - `tweenPan(angle, duration, callback)`
 
 ##### Gain
 
-- `gain(setTo)` range 0-1
+- `gain(setTo)` get/set gain, range 0-1
 - `tweenGain(setTo, duration, callback)`
 - `mute()`
 - `unmute()`
 
+If you call `gain()` while a track is muted, the value will be cached and applied upon unmuting.
+
 ##### Time
 
 - `currentTime( setTo )` get/set current time in seconds
-- `formattedTime( includeDuration )` returns ie "00:23" or "00:23/00:45"
 - `duration()` get track duration in seconds
+- `formattedTime( includeDuration )` returns ie "00:23" or "00:23/00:45"
 
 
-### Track Options
-
-name | default | notes
----------|---------|---------
-source       | ``     | Path to audio source file (without file extension), OR media element to use as source
-nodes        | `[]`      | array of strings: names of desired additional audio nodes
-gain         | `0`        | initial/current gain (0-1)
-pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
-start        | `0`        | start time in seconds
-currentTime  | `0`        | current time (cached for resuming from pause)
-looping      | `false`    | 
-autoplay     | `true`     | play immediately on load
-muted        | `false`    | 
 
 #### Track Events
 
