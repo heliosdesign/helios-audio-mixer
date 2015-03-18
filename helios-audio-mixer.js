@@ -72,10 +72,10 @@ var Detect = {
 		if( typeof bowser !== 'undefined' ) return bowser;
 
 		return {
-			firefox: navigator.userAgent.match(/Firefox/g) ? true : false,
-			android: navigator.userAgent.match(/Android/g) ? true : false,
-			msie:    navigator.userAgent.match(/MSIE/g) ? true : false,
-			ios:     navigator.userAgent.match(/(iPad|iPhone|iPod)/g) ? true : false,
+			firefox: !!navigator.userAgent.match(/Firefox/g),
+			android: !!navigator.userAgent.match(/Android/g),
+			msie:    !!navigator.userAgent.match(/MSIE/g),
+			ios:     !!navigator.userAgent.match(/(iPad|iPhone|iPod)/g),
 
 			version: false
 		};
@@ -282,12 +282,15 @@ Mix.prototype.createTrack = function(name, opts){
 	var track;
 
 	if( !name )
-		throw new Error('Can’t create track with no name')
+		self.log('[Mixer] Can’t create track with no name')
 
 	if(Detect.webAudio === true) {
 
-		if(this.lookup[name])
-			throw new Error('A track called "' +name+ '" already exists')
+		if(this.lookup[name]){
+			self.log('[Mixer] a track named “'+self.name+'” already exists')
+			return
+		}
+			
 
 		track = new Track(name, opts, self);
 
@@ -534,30 +537,28 @@ var Track = function(name, opts, mix){
 	// default options
 	this.defaults = {
 
-		source: false,        // either a) path to audio source (without file extension)
-							  //     or b) html5 <audio> or <video> element
-
 		sourceMode: 'buffer', // buffer or element
 
-		nodes: [],         // array of strings: names of desired additional audio nodes
+		source: false,   // either a) path to audio source (without file extension)
+							       //     or b) html5 <audio> or <video> element
 
-		gain:        1,    // initial/current gain (0-1)
-		gainCache:   1,    // for resuming from mute
+		nodes:      [],  // array of strings: names of desired additional audio nodes
 
-		pan:         0,    // circular horizontal pan
+		gain:        1,  // initial/current gain (0-1)
+		gainCache:   1,  // for resuming from mute
 
-		panX:        0,    // real 3d pan
-		panY:        0,    // 
-		panZ:        0,    // 
+		pan:         0,  // circular horizontal pan
 
-		start:       0,    // start time in seconds
-		cachedTime:  0,    // local current time (cached for resuming from pause)
-		startTime:   0,    // time started (cached for accurately reporting currentTime)
+		panX:        0,  // real 3d pan
+		panY:        0,  // 
+		panZ:        0,  // 
 
-		looping:  false,   //
+		start:       0,  // start time in seconds
+		cachedTime:  0,  // local current time (cached for resuming from pause)
+		startTime:   0,  // time started (cached for accurately reporting currentTime)
 
-		autoplay: true,    // play immediately on load
-
+		looping:  false, //
+		autoplay: true,  // play immediately on load
 		muted: false,
 
 		dummy: false // making it possible to chain bad getTrack() calls
@@ -691,6 +692,10 @@ var Track = function(name, opts, mix){
 
 // inherit proto methods ( on, off, etc )
 Track.prototype = new BaseClass();
+
+
+
+
 
 
 
