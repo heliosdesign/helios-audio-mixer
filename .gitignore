@@ -1,0 +1,8 @@
+.*
+node_modules/
+demo/audio
+*demo*/audio
+*test*/audio
+bower_components/
+/_*
+
