@@ -376,7 +376,7 @@ Mix.prototype.pause = function(){
 	this.log(1, '[Mixer] Pausing '+this.tracks.length+' track(s) ||')
 
 	for ( var i = 0; i < this.tracks.length; i++ )
-		if ( this.tracks[i].ready ) this.tracks[i].pause();
+		this.tracks[i].pause()
 };
 
 Mix.prototype.play = function(){
@@ -384,7 +384,7 @@ Mix.prototype.play = function(){
 	this.log(1, '[Mixer] Playing '+this.tracks.length+' track(s) >')
 
 	for ( var i = 0; i < this.tracks.length; i++ )
-		if ( this.tracks[i].ready ) this.tracks[i].play();
+		this.tracks[i].play()
 };
 
 Mix.prototype.stop = function(){
@@ -392,7 +392,7 @@ Mix.prototype.stop = function(){
 	this.log(1, '[Mixer] Stopping '+this.tracks.length+' track(s) .')
 
 	for ( var i = 0; i < this.tracks.length; i++ )
-		if ( this.tracks[i].ready ) this.tracks[i].stop();
+		 this.tracks[i].stop()
 };
 
 
@@ -718,6 +718,8 @@ Track.prototype.useHTML5elementSource = function(){
 
 	self.element.addEventListener('canplaythrough', ready)
 
+	self.element.addEventListener('error', function(){ self.trigger('loadError') })
+
 	self.element.load()
 
 	return self
@@ -743,10 +745,9 @@ Track.prototype.webAudioSource = function(){
 
 		self.status.loaded = true;
 
-		if(self.options.autoplay) self.play();
-
 		self.trigger('load', self);
 
+		if(self.options.autoplay) self.play();
 	}
 
 	request.onerror = function(){
@@ -921,8 +922,7 @@ Track.prototype.play = function(){
 
 	else if( Detect.webAudio && self.options.sourceMode === 'element' )
 		play_elementSource( self )
-
-	self.trigger('play',self)
+	
 
 	return self
 };
@@ -997,7 +997,7 @@ function play_elementSource( self ){
 	self.element.currentTime = startFrom;
 	self.element.play()
 
-	// self.trigger('play', self);
+	self.trigger('play', self)
 
 }
 
@@ -1005,6 +1005,8 @@ function play_elementSource( self ){
 // ********************************************************
 
 function play_bufferSource( self ){
+
+	self.status.ready = false
 
 	// Construct Audio Buffer
 	// ~~~~~~~~~~~~~~~~~~~~~~
@@ -1049,8 +1051,6 @@ function play_bufferSource( self ){
 		if( typeof self.source.start === 'function' ) self.source.start( 0, startFrom );
 		else                                          self.source.noteOn( startFrom );
 
-		// self.trigger('play', self);
-
 		// fake ended event
 		var timer_duration = ( self.source.buffer.duration - startFrom );
 
@@ -1058,6 +1058,8 @@ function play_bufferSource( self ){
 			if(!self.options.looping) self.stop();
 			self.trigger('ended', self);
 		}, timer_duration * 1000);
+
+		self.trigger('play', self);
 
 	}
 
@@ -1080,6 +1082,7 @@ function play_bufferSource( self ){
 	else if( typeof self.mix.context.createGain === 'function' ){
 
 		self.mix.context.decodeAudioData( self.options.audioData, function onSuccess(decodedBuffer) {
+			if(self.status.ready) return
 			self.mix.log(2, 'web audio file decoded')
 
 			self.source        = self.mix.context.createBufferSource();
@@ -1106,7 +1109,7 @@ function play_singleElement( self ){
 
 	self.status.ready  = true;
 	self.element.play();
-	// self.trigger('play', self);
+	self.trigger('play', self);
 }
 
 
@@ -1405,6 +1408,8 @@ Track.prototype.currentTime = function( setTo ){
 	if( !this.status.ready || this.dummy ) return;
 
 	if( typeof setTo === 'number' ){
+
+		this.mix.log(2, '[Mixer] setting track "'+this.name+'" to time', setTo)
 
 		if( Detect.webAudio && this.options.sourceMode === 'buffer' ){
 
