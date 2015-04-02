@@ -172,6 +172,7 @@ name | when
 :-- | :--
 `remove` | removeTrack()
 `load` | audio track is ready to play
+`loadError` | source file couldn’t be loaded
 `play` | 
 `pause` | 
 `stop` | 
