@@ -1,12 +1,14 @@
+/* global bowser, TWEEN */
+
 'use strict';
 
 var heliosAudioMixer = (function(){
 
-	// ######  ###### ###### ######  ##### ###### 
-	// ##   ## ##       ##   ##     ##       ##   
-	// ##   ## #####    ##   #####  ##       ##   
-	// ##   ## ##       ##   ##     ##       ##   
-	// ######  ######   ##   ######  #####   ##   
+	// ######  ###### ###### ######  ##### ######
+	// ##   ## ##       ##   ##     ##       ##
+	// ##   ## #####    ##   #####  ##       ##
+	// ##   ## ##       ##   ##     ##       ##
+	// ######  ######   ##   ######  #####   ##
 	// Feature Detection
 
 	var Detect = {
@@ -21,7 +23,7 @@ var heliosAudioMixer = (function(){
 			return {
 				'.m4a': !!(el.canPlayType && el.canPlayType('audio/mp4; codecs="mp4a.40.2"').replace(/no/, '')),
 				'.mp3': !!(el.canPlayType && el.canPlayType('audio/mpeg;').replace(/no/, '')),
-				'.ogg': !!(el.canPlayType && el.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, ''))    
+				'.ogg': !!(el.canPlayType && el.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, ''))
 			}
 		})(),
 
@@ -60,11 +62,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ######   #####   ####  ###### 
-	// ##   ## ##   ## ##     ##     
-	// ######  #######  ####  #####  
-	// ##   ## ##   ##     ## ##     
-	// ######  ##   ## #####  ###### 
+	// ######   #####   ####  ######
+	// ##   ## ##   ## ##     ##
+	// ######  #######  ####  #####
+	// ##   ## ##   ##     ## ##
+	// ######  ##   ## #####  ######
 
 	// shared functionality: event system, extend
 
@@ -93,28 +95,28 @@ var heliosAudioMixer = (function(){
 		var args = Array.prototype.slice.call(arguments, 1);
 
 		for (var i = 0, l = this.events[type].length; i < l;  i++)
-				if ( typeof this.events[type][i] == 'function' ) 
+				if ( typeof this.events[type][i] === 'function' )
 					this.events[type][i].apply(this, args);
 
 	};
 
 	BaseClass.prototype.extend = function(){
-		var output = {}, 
+		var output = {},
 			args = arguments,
 			l = args.length;
 
-		for ( var i = 0; i < l; i++ )       
+		for ( var i = 0; i < l; i++ )
 			for ( var key in args[i] )
 				if ( args[i].hasOwnProperty(key) )
 					output[key] = args[i][key];
 		return output;
 	};
 
-	// ######   #####   ####  ###### 
-	// ##   ## ##   ## ##     ##     
-	// ######  #######  ####  #####  
-	// ##   ## ##   ##     ## ##     
-	// ######  ##   ## #####  ###### 
+	// ######   #####   ####  ######
+	// ##   ## ##   ## ##     ##
+	// ######  #######  ####  #####
+	// ##   ## ##   ##     ## ##
+	// ######  ##   ## #####  ######
 
 	// // shared functionality: event system, extend
 	// var Event = {
@@ -139,18 +141,18 @@ var heliosAudioMixer = (function(){
 	// 		var args = Array.prototype.slice.call(arguments, 1);
 
 	// 		for (var i = 0, l = this.events[type].length; i < l;  i++)
-	// 				if ( typeof this.events[type][i] == 'function' ) 
+	// 				if ( typeof this.events[type][i] == 'function' )
 	// 					this.events[type][i].apply(this, args);
 
 	// 	}
 	// }
 
 	// var extend = function(){
-	// 	var output = {}, 
+	// 	var output = {},
 	// 		args = arguments,
 	// 		l = args.length;
 
-	// 	for ( var i = 0; i < l; i++ )       
+	// 	for ( var i = 0; i < l; i++ )
 	// 		for ( var key in args[i] )
 	// 			if ( args[i].hasOwnProperty(key) )
 	// 				output[key] = args[i][key];
@@ -181,11 +183,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ###  ### #### ##   ## 
-	// ########  ##   ## ##  
-	// ## ## ##  ##    ###   
-	// ##    ##  ##   ## ##  
-	// ##    ## #### ##   ## 
+	// ###  ### #### ##   ##
+	// ########  ##   ## ##
+	// ## ## ##  ##    ###
+	// ##    ##  ##   ## ##
+	// ##    ## #### ##   ##
 
 	var Mix = function(opts){
 
@@ -228,9 +230,9 @@ var heliosAudioMixer = (function(){
 		// Web Audio support overrides
 		// ********************************************************
 
-		if( 
+		if(
 			( Detect.browser.name === 'Firefox' && Detect.version && Detect.version < 25 ) || // Firefox < 25
-			( Detect.browser.ios === true && Detect.browser.version != 6 ) ||                 // ios 7
+			( Detect.browser.ios === true && Detect.browser.version !== 6 ) ||                 // ios 7
 			this.options.html5
 		){
 			Detect.webAudio = false;
@@ -242,8 +244,8 @@ var heliosAudioMixer = (function(){
 
 		for (var i = this.options.fileTypes.length-1; i >= 0; i--) {
 			if( ! Detect.audioTypes[ this.options.fileTypes[i] ] )
-				this.options.fileTypes.splice(i,1); 
-		};
+				this.options.fileTypes.splice(i,1);
+		}
 
 		if( this.options.fileTypes.length <= 0 ) {
 			console.warn('[Mixer] Can’t initialize: none of the specified audio types can play in this browser.')
@@ -273,12 +275,12 @@ var heliosAudioMixer = (function(){
 
 	};
 
-	
+
 	Mix.prototype = new BaseClass()
 
 
 	/**************************************************************************
-		
+
 		Track Management
 
 	**************************************************************************/
@@ -297,7 +299,7 @@ var heliosAudioMixer = (function(){
 				self.log(0, '[Mixer] a track named “'+self.name+'” already exists')
 				return
 			}
-				
+
 
 			track = new Track(name, opts, self);
 
@@ -329,7 +331,7 @@ var heliosAudioMixer = (function(){
 		}
 
 		return track;
-		
+
 	};
 
 
@@ -352,12 +354,12 @@ var heliosAudioMixer = (function(){
 				if( ! track ) return; // sanity check, things can happen in 100ms
 				track.pause();
 
-				var rest, 
-					arr   = self.tracks, 
+				var rest,
+					arr   = self.tracks,
 					total = arr.length;
 
 				for ( var i = 0; i < total; i++ ){
-					if ( arr[i] && arr[i].name == name ) {
+					if ( arr[i] && arr[i].name === name ) {
 						rest = arr.slice(i + 1 || total);
 						arr.length = i < 0 ? total + i : i;
 						arr.push.apply( arr, rest );
@@ -386,7 +388,7 @@ var heliosAudioMixer = (function(){
 			track.loaded = false;
 
 		}
-		
+
 	};
 
 
@@ -399,7 +401,7 @@ var heliosAudioMixer = (function(){
 
 
 	/**************************************************************************
-		
+
 		Global Mix Control
 
 	**************************************************************************/
@@ -432,31 +434,16 @@ var heliosAudioMixer = (function(){
 
 
 	Mix.prototype.mute = function(){
-
-		if(this.muted === true) {
-			this.unmute();
-			return;
-		}
-
 		this.log(1, '[Mixer] Muting '+this.tracks.length+' tracks')
-
-		this.muted   = true;
-
 		for ( var i = 0; i < this.tracks.length; i++ )
 			this.tracks[i].mute();
-
 	};
 
 
 	Mix.prototype.unmute = function(){
-
 		this.log(1, '[Mixer] Unmuting '+this.tracks.length+' tracks')
-
-		this.muted = false;
-
 		for ( var i = 0; i < this.tracks.length; i++ )
 			this.tracks[i].unmute();
-
 	};
 
 
@@ -479,7 +466,7 @@ var heliosAudioMixer = (function(){
 
 		console.warn('Mix.setGain has been deprecated; use Mix.gain()')
 		this.gain(masterGain)
-		
+
 	};
 
 
@@ -487,7 +474,7 @@ var heliosAudioMixer = (function(){
 
 
 	/**************************************************************************
-		
+
 		Utilities
 
 	**************************************************************************/
@@ -532,11 +519,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ###### #####   #####   ##### ##  ## 
-	//   ##   ##  ## ##   ## ##     ## ##  
-	//   ##   #####  ####### ##     ####   
-	//   ##   ##  ## ##   ## ##     ## ##  
-	//   ##   ##  ## ##   ##  ##### ##  ## 
+	// ###### #####   #####   ##### ##  ##
+	//   ##   ##  ## ##   ## ##     ## ##
+	//   ##   #####  ####### ##     ####
+	//   ##   ##  ## ##   ## ##     ## ##
+	//   ##   ##  ## ##   ##  ##### ##  ##
 
 
 	var Track = function(name, opts, mix){
@@ -557,13 +544,13 @@ var heliosAudioMixer = (function(){
 			nodes:      [],  // array of strings: names of desired additional audio nodes
 
 			gain:        1,  // initial/current gain (0-1)
-			gainCache:   1,  // for resuming from mute
+			gainCache:   false,  // for resuming from mute
 
 			pan:         0,  // circular horizontal pan
 
 			panX:        0,  // real 3d pan
-			panY:        0,  // 
-			panZ:        0,  // 
+			panY:        0,  //
+			panZ:        0,  //
 
 			start:       0,  // start time in seconds
 			cachedTime:  0,  // local current time (cached for resuming from pause)
@@ -579,6 +566,9 @@ var heliosAudioMixer = (function(){
 		// override option defaults
 		this.options = this.extend.call(this, this.defaults, opts || {});
 
+		if(this.options.gainCache === false)
+			this.options.gainCache = this.options.gain
+
 
 		this.name = name;
 
@@ -593,14 +583,14 @@ var heliosAudioMixer = (function(){
 
 		this.events  = {};
 		this.tweens  = {};
-		this.nodes   = null;   // holds the web audio nodes (gain and pan are defaults, all other optional)
+		this.nodes   = undefined;   // holds the web audio nodes (gain and pan are defaults, all other optional)
 
-		this.onendtimer = null,  // web audio api in chrome doesn't support onend event yet (WTF)
+		this.onendtimer = undefined,  // web audio api in chrome doesn't support onend event yet (WTF)
 
-		this.element = null; // html5 <audio> or <video> element
-		this.source  = null; //  web audio source:
+		this.element = undefined; // html5 <audio> or <video> element
+		this.source  = undefined; //  web audio source:
 
-		if( this.options.dummy ){ 
+		if( this.options.dummy ){
 			this.mix.log(0, '[Mixer] Couldn’t find track "' + this.options.dummy + '"')
 			return
 		}
@@ -608,9 +598,9 @@ var heliosAudioMixer = (function(){
 		var self = this;
 
 		if( self.mix.muted === true )
-			self.options.muted = true;
+			self.options.muted = true
 
-		
+
 		if( typeof this.options.source === 'string' ){
 			// append extension only if it’s a file path
 			this.options.source += this.mix.options.fileTypes[0];
@@ -619,7 +609,7 @@ var heliosAudioMixer = (function(){
 			this.options.sourceMode = 'element'
 		}
 
-		this.mix.log(2, '[Mixer] createTrack "'+this.name+'" with options:', this.options);
+		this.mix.log(1, '[Mixer] createTrack "'+this.name+'", mode: "'+this.options.sourceMode+'"');
 
 
 
@@ -671,7 +661,7 @@ var heliosAudioMixer = (function(){
 				self.status.ready = true;
 				self.trigger('load', self);
 
-				if( ! self.options.autoplay) 
+				if( ! self.options.autoplay)
 					self.pause();
 			}
 
@@ -687,7 +677,7 @@ var heliosAudioMixer = (function(){
 					self.mix.log(2, 'Track '+self.name+' looping')
 
 					self.element.currentTime = 0;
-					self.element.play();  
+					self.element.play();
 
 				} else {
 
@@ -698,7 +688,7 @@ var heliosAudioMixer = (function(){
 			}, false);
 
 			this.createHTML5elementSource( this.options.source );
-		}                
+		}
 	};
 
 
@@ -708,11 +698,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ##    ######   #####  ######  
-	// ##   ##    ## ##   ## ##   ## 
-	// ##   ##    ## ####### ##   ## 
-	// ##   ##    ## ##   ## ##   ## 
-	// ##### ######  ##   ## ######  
+	// ##    ######   #####  ######
+	// ##   ##    ## ##   ## ##   ##
+	// ##   ##    ## ####### ##   ##
+	// ##   ##    ## ##   ## ##   ##
+	// ##### ######  ##   ## ######
 
 	// Create out-of-DOM html5 <audio> element as source
 	Track.prototype.createHTML5elementSource = function(){
@@ -790,7 +780,7 @@ var heliosAudioMixer = (function(){
 		}
 
 		request.send();
-	   
+
 	}
 
 
@@ -801,13 +791,13 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ###  ##  ######  ######  ######  ####  
-	// #### ## ##    ## ##   ## ##     ##     
-	// ## #### ##    ## ##   ## #####   ####  
-	// ##  ### ##    ## ##   ## ##         ## 
-	// ##   ##  ######  ######  ###### #####  
+	// ###  ##  ######  ######  ######  ####
+	// #### ## ##    ## ##   ## ##     ##
+	// ## #### ##    ## ##   ## #####   ####
+	// ##  ### ##    ## ##   ## ##         ##
+	// ##   ##  ######  ######  ###### #####
 
-	 
+
 	// AudioNode Creation
 	// -> this function can be chained
 
@@ -824,7 +814,7 @@ var heliosAudioMixer = (function(){
 
 
 		// Gain ********************************************************
-		// http://www.w3.org/TR/webaudio/#GainNode 
+		// http://www.w3.org/TR/webaudio/#GainNode
 
 		if(nodeType === 'gain') {
 
@@ -840,7 +830,7 @@ var heliosAudioMixer = (function(){
 			self.nodes.lastnode = self.nodes.gain;
 
 		}
-		
+
 		// Panner ********************************************************
 		// http://www.w3.org/TR/webaudio/#PannerNode
 
@@ -865,7 +855,7 @@ var heliosAudioMixer = (function(){
 			self.nodes.lastnode.connect(self.nodes.panner);
 			self.nodes.lastnode = self.nodes.panner;
 
-		} 
+		}
 
 		// Convolver (Reverb etc) **********************************************
 		// http://www.w3.org/TR/webaudio/#ConvolverNode
@@ -896,7 +886,7 @@ var heliosAudioMixer = (function(){
 			self.nodes.lastnode.connect(self.nodes.compressor);
 			self.nodes.lastnode = self.nodes.compressor;
 
-		} 
+		}
 
 		// Delay ********************************************************
 		// http://www.w3.org/TR/webaudio/#DelayNode
@@ -928,13 +918,13 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ######  ##     ##### ##    ## 
-	// ##   ## ##    ##   ## ##  ##  
-	// ######  ##    #######  ####   
-	// ##      ##    ##   ##   ##    
-	// ##      ##### ##   ##   ##    
+	// ######  ##     ##### ##    ##
+	// ##   ## ##    ##   ## ##  ##
+	// ######  ##    #######  ####
+	// ##      ##    ##   ##   ##
+	// ##      ##### ##   ##   ##
 
-							 
+
 	Track.prototype.play = function(){
 
 		var self = this;
@@ -956,7 +946,7 @@ var heliosAudioMixer = (function(){
 
 		else if( Detect.webAudio && self.options.sourceMode === 'element' )
 			play_elementSource( self )
-		
+
 
 		return self
 	};
@@ -1001,7 +991,7 @@ var heliosAudioMixer = (function(){
 				self.trigger('ended', self)
 			}, false)
 		}
-			
+
 
 		// Apply Options
 		// ~~~~~~~~~~~~~~
@@ -1012,10 +1002,7 @@ var heliosAudioMixer = (function(){
 		if(self.options.looping) self.source.loop = true;
 		else                     self.source.loop = false;
 
-		if(self.options.muted) self.options.gain = 0;
-
-		self.gain(self.options.gain);
-		self.options.gainCache = self.gain();
+		self.gain( self.options.muted ? 0 : self.options.gain )
 
 		self.pan( self.options.pan );
 
@@ -1048,7 +1035,7 @@ var heliosAudioMixer = (function(){
 		// (we have to re-construct the buffer every time we begin play)
 
 		self.source = null
-		self.options.sourceBuffer = null    
+		self.options.sourceBuffer = null
 
 		// *sigh* async makes for such messy code
 
@@ -1065,10 +1052,7 @@ var heliosAudioMixer = (function(){
 			if(self.options.looping) self.source.loop = true;
 			else                     self.source.loop = false;
 
-			if(self.options.muted) self.options.gain = 0;
-
-			self.gain(self.options.gain);
-			self.options.gainCache = self.gain();
+			self.gain( self.options.muted ? 0 : self.options.gain )
 
 			self.pan( self.options.pan );
 
@@ -1136,10 +1120,7 @@ var heliosAudioMixer = (function(){
 
 		self.mix.log(1, '[Mixer] Playing track "'+self.name+'" >')
 
-		if(self.options.muted) self.options.gain = 0;
-
-		self.gain(self.options.gain);
-		self.options.gainCache = self.gain();
+		self.gain( self.options.muted ? 0 : self.options.gain )
 
 		self.status.ready  = true;
 		self.element.play();
@@ -1151,11 +1132,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ######   #####  ##   ##  ####  ###### 
-	// ##   ## ##   ## ##   ## ##     ##     
-	// ######  ####### ##   ##  ####  #####  
-	// ##      ##   ## ##   ##     ## ##     
-	// ##      ##   ##  #####  #####  ###### 
+	// ######   #####  ##   ##  ####  ######
+	// ##   ## ##   ## ##   ## ##     ##
+	// ######  ####### ##   ##  ####  #####
+	// ##      ##   ## ##   ##     ## ##
+	// ##      ##   ##  #####  #####  ######
 
 
 	Track.prototype.pause = function( at ){
@@ -1166,8 +1147,8 @@ var heliosAudioMixer = (function(){
 
 		// cache time to resume from later
 		if( typeof at === 'number' ) self.options.cachedTime = at;
-		else                         self.options.cachedTime = self.currentTime(); 
-		
+		else                         self.options.cachedTime = self.currentTime();
+
 		self.status.playing = false;
 
 		if(self.onendtimer) clearTimeout(self.onendtimer);
@@ -1194,7 +1175,7 @@ var heliosAudioMixer = (function(){
 
 		self.mix.log(2, '[Mixer] Pausing track "'+self.name+'" at '+self.options.cachedTime)
 		self.trigger('pause', self);
-		
+
 		return self
 	};
 
@@ -1203,11 +1184,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	//  #### ###### ######  ######  
-	// ##      ##  ##    ## ##   ## 
-	//  ####   ##  ##    ## ######  
-	//     ##  ##  ##    ## ##      
-	// #####   ##   ######  ##      
+	//  #### ###### ######  ######
+	// ##      ##  ##    ## ##   ##
+	//  ####   ##  ##    ## ######
+	//     ##  ##  ##    ## ##
+	// #####   ##   ######  ##
 
 
 	Track.prototype.stop = function(){
@@ -1243,7 +1224,7 @@ var heliosAudioMixer = (function(){
 		self.options.gain = self.options.gainCache;
 
 		return self
-		
+
 	}
 
 
@@ -1253,12 +1234,12 @@ var heliosAudioMixer = (function(){
 
 
 
-	// ######   #####  ###  ## 
-	// ##   ## ##   ## #### ## 
-	// ######  ####### ## #### 
-	// ##      ##   ## ##  ### 
-	// ##      ##   ## ##   ## 
-							  
+	// ######   #####  ###  ##
+	// ##   ## ##   ## #### ##
+	// ######  ####### ## ####
+	// ##      ##   ## ##  ###
+	// ##      ##   ## ##   ##
+
 	// proper 3d stereo panning
 	Track.prototype.pan = function(angle_deg){
 
@@ -1270,7 +1251,7 @@ var heliosAudioMixer = (function(){
 			else if( angle_deg === 'left'  ) angle_deg = 270;
 			else if( angle_deg === 'right' ) angle_deg =  90;
 		}
-	  
+
 		if(typeof angle_deg === 'number') {
 
 			this.options.pan = angle_deg % 360;
@@ -1285,7 +1266,7 @@ var heliosAudioMixer = (function(){
 
 			this.trigger( 'pan', this.options.pan, this )
 
-			return self // all setters should be chainable
+			return this // all setters should be chainable
 		}
 
 		return this.options.pan
@@ -1321,18 +1302,19 @@ var heliosAudioMixer = (function(){
 
 
 
-	//  #####   #####  #### ###  ## 
-	// ##      ##   ##  ##  #### ## 
-	// ##  ### #######  ##  ## #### 
-	// ##   ## ##   ##  ##  ##  ### 
-	//  #####  ##   ## #### ##   ## 
+	//  #####   #####  #### ###  ##
+	// ##      ##   ##  ##  #### ##
+	// ##  ### #######  ##  ## ####
+	// ##   ## ##   ##  ##  ##  ###
+	//  #####  ##   ## #### ##   ##
 
-	// cache current gain for restoring later   
+	// cache current gain for restoring later
 	Track.prototype.gainCache = function(setTo){
 		if( this.dummy ) return
 
 		if( typeof setTo === 'number' ){
 			this.options.gainCache = setTo;
+			console.log('setting gain cache for %s to %i', this.name, setTo)
 			return this
 		} else {
 			return this.options.gainCache
@@ -1348,9 +1330,7 @@ var heliosAudioMixer = (function(){
 
 		if(typeof val === 'number') {
 
-			this.options.gain = constrain(val,0,1);
-
-			if( this.options.muted ) this.options.gain = 0;
+			this.options.gain = ( this.options.muted ) ? 0 : constrain(val,0,1);
 
 			if(this.status.playing && this.nodes.gain){
 
@@ -1358,7 +1338,7 @@ var heliosAudioMixer = (function(){
 					this.element.volume = this.options.gain * this.mix.gain;
 				} else {
 					this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
-				}       
+				}
 			}
 
 			this.mix.log(2, '[Mixer] "'+this.name+'" setting gain to '+this.options.gain)
@@ -1391,7 +1371,7 @@ var heliosAudioMixer = (function(){
 			})
 			.onComplete(function(){
 				if(_callback)
-					if(typeof _callback === 'function') 
+					if(typeof _callback === 'function')
 						_callback();
 			})
 			.start();
@@ -1404,11 +1384,12 @@ var heliosAudioMixer = (function(){
 		if( this.dummy ) return
 
 		this.gainCache( this.options.gain );
+		console.log(this.options.gainCache)
 
-		if( duration ) {
+		if( this.playing && duration ) {
 			this.tweenGain(0, 500, function(){
 				this.options.muted = true;
-			});    
+			});
 		} else {
 			this.gain(0);
 			this.options.muted = true;
@@ -1421,9 +1402,10 @@ var heliosAudioMixer = (function(){
 		if( this.dummy ) return
 		this.options.muted = false;
 
-		if( duration ){
+		if( this.playing && duration ){
 			this.tweenGain(this.options.gainCache, 500);
 		} else {
+			console.log(this.options.gainCache)
 			this.gain(this.options.gainCache)
 		}
 
@@ -1432,11 +1414,11 @@ var heliosAudioMixer = (function(){
 
 
 
-	//  ##### ##   ## #####  ###### ###  ## ###### ###### #### ###  ### ###### 
-	// ##     ##   ## ##  ## ##     #### ##   ##     ##    ##  ######## ##     
-	// ##     ##   ## #####  #####  ## ####   ##     ##    ##  ## ## ## #####  
-	// ##     ##   ## ##  ## ##     ##  ###   ##     ##    ##  ##    ## ##     
-	//  #####  #####  ##  ## ###### ##   ##   ##     ##   #### ##    ## ###### 
+	//  ##### ##   ## #####  ###### ###  ## ###### ###### #### ###  ### ######
+	// ##     ##   ## ##  ## ##     #### ##   ##     ##    ##  ######## ##
+	// ##     ##   ## #####  #####  ## ####   ##     ##    ##  ## ## ## #####
+	// ##     ##   ## ##  ## ##     ##  ###   ##     ##    ##  ##    ## ##
+	//  #####  #####  ##  ## ###### ##   ##   ##     ##   #### ##    ## ######
 
 	Track.prototype.currentTime = function( setTo ){
 		if( !this.status.ready || this.dummy ) return;
@@ -1451,7 +1433,7 @@ var heliosAudioMixer = (function(){
 					this.pause( setTo );
 					this.play();
 				} else {
-					this.options.cachedTime = setTo;  
+					this.options.cachedTime = setTo;
 				}
 
 			} else {
@@ -1461,10 +1443,10 @@ var heliosAudioMixer = (function(){
 
 			return this
 		}
-		
+
 		if(!this.status.playing) return this.options.cachedTime || 0;
 
-		if(Detect.webAudio && this.options.sourceMode === 'buffer') 
+		if(Detect.webAudio && this.options.sourceMode === 'buffer')
 			return this.source.context.currentTime - this.options.startTime || 0;
 		else
 			return this.element.currentTime || 0;
@@ -1473,7 +1455,7 @@ var heliosAudioMixer = (function(){
 
 
 	/**************************************************************************
-		
+
 		Getters Only
 
 	**************************************************************************/
@@ -1501,7 +1483,7 @@ var heliosAudioMixer = (function(){
 		else
 			return this.element.duration || 0;
 	}
-	
+
 	return Mix
 
 }())
