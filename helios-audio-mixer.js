@@ -434,6 +434,8 @@ var heliosAudioMixer = (function(){
 
 
 	Mix.prototype.mute = function(){
+		if(this.muted) return
+		this.muted = true
 		this.log(1, '[Mixer] Muting '+this.tracks.length+' tracks')
 		for ( var i = 0; i < this.tracks.length; i++ )
 			this.tracks[i].mute();
@@ -441,6 +443,8 @@ var heliosAudioMixer = (function(){
 
 
 	Mix.prototype.unmute = function(){
+		if(!this.muted) return
+		this.muted = false
 		this.log(1, '[Mixer] Unmuting '+this.tracks.length+' tracks')
 		for ( var i = 0; i < this.tracks.length; i++ )
 			this.tracks[i].unmute();
@@ -994,9 +998,10 @@ var heliosAudioMixer = (function(){
 		if(self.options.looping) self.source.loop = true;
 		else                     self.source.loop = false;
 
-		self.gain( self.options.muted ? 0 : self.options.gain )
+		console.log(self.options.gain, self.options.gainCache)
 
-		self.pan( self.options.pan );
+		self.gain(self.options.gain)
+		self.pan( self.options.pan )
 
 		// Start Time
 
@@ -1044,8 +1049,8 @@ var heliosAudioMixer = (function(){
 			if(self.options.looping) self.source.loop = true;
 			else                     self.source.loop = false;
 
-			self.gain( self.options.muted ? 0 : self.options.gain )
-
+			// self.gain( self.options.muted ? 0 : self.options.gain )
+			self.gain(self.options.gain)
 			self.pan( self.options.pan );
 
 
@@ -1112,7 +1117,7 @@ var heliosAudioMixer = (function(){
 
 		self.mix.log(1, '[Mixer] Playing track "'+self.name+'" >')
 
-		self.gain( self.options.muted ? 0 : self.options.gain )
+		self.gain(self.options.gain)
 
 		self.status.ready  = true;
 		self.element.play();

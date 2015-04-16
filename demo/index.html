@@ -162,7 +162,7 @@
 	<button onclick="Mixer.play()">Play All &gt;</button>
 	<button onclick="Mixer.stop()">Stop All</button>
 
-	<button onclick="Mixer.mute()">Toggle Mute</button>
+	<button onclick="mute()">Toggle Mute</button>
 	
 	<input name="mastergain" id="mastergain" type="range" min="0" max="100" value="100">
 
@@ -200,6 +200,14 @@
 
 		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
 
+
+		function mute(){
+			console.log('mute')
+			if(Mixer.muted)
+				Mixer.unmute()
+			else
+				Mixer.mute()
+		}
 
 		// ********************************************************
 		// Setup and Events
