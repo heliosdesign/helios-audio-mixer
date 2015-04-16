@@ -1304,7 +1304,6 @@ var heliosAudioMixer = (function(){
 	Track.prototype.gainCache = function(setTo){
 		if( typeof setTo === 'number' ){
 			this.options.gainCache = setTo;
-			console.log('setting gain cache for %s to %i', this.name, setTo)
 			return this
 		} else {
 			return this.options.gainCache
@@ -1375,7 +1374,6 @@ var heliosAudioMixer = (function(){
 
 
 	Track.prototype.mute = function(){
-		console.log(this.options.gainCache)
 		this.gainCache( this.options.gain )
 		this.gain(0)
 		this.options.muted = true
@@ -1384,7 +1382,6 @@ var heliosAudioMixer = (function(){
 	};
 
 	Track.prototype.unmute = function( ){
-		console.log('unmute!', this.options.gainCache)
 		this.options.muted = false;
 		this.gain(this.options.gainCache)
 		return this
