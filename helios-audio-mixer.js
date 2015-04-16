@@ -147,17 +147,17 @@ var heliosAudioMixer = (function(){
 	// 	}
 	// }
 
-	// var extend = function(){
-	// 	var output = {},
-	// 		args = arguments,
-	// 		l = args.length;
+	var extend = function(){
+		var output = {},
+			args = arguments,
+			l = args.length;
 
-	// 	for ( var i = 0; i < l; i++ )
-	// 		for ( var key in args[i] )
-	// 			if ( args[i].hasOwnProperty(key) )
-	// 				output[key] = args[i][key];
-	// 	return output;
-	// };
+		for ( var i = 0; i < l; i++ )
+			for ( var key in args[i] )
+				if ( args[i].hasOwnProperty(key) )
+					output[key] = args[i][key];
+		return output;
+	};
 
 
 
@@ -199,7 +199,7 @@ var heliosAudioMixer = (function(){
 			if(lvl <= this.debug){
 				var str = ''
 				for (var i = 1; i < arguments.length; i++)
-				  str += ' ' + arguments[i]
+				  str += arguments[i] + ' '
 				console.log(str)
 			}
 		}
@@ -213,7 +213,7 @@ var heliosAudioMixer = (function(){
 			fileTypes: [ '.mp3', '.m4a', '.ogg' ],
 			html5: false,
 		}
-		this.options = this.extend(defaults, opts || {})
+		this.options = extend(defaults, opts || {})
 
 
 		this.tracks  = [];    // tracks as numbered array
@@ -341,7 +341,7 @@ var heliosAudioMixer = (function(){
 			track = self.lookup[name];
 
 		if(!track) {
-			console.warn('[Mixer] can’t remove "%s", it doesn’t exist', name);
+			self.log(1, '[Mixer] can’t remove "'+name+'", it doesn’t exist');
 			return;
 		}
 
@@ -393,7 +393,7 @@ var heliosAudioMixer = (function(){
 
 
 	Mix.prototype.getTrack = function(name){
-		return this.lookup[name] || new Track(false, { dummy: name }, this);
+		return this.lookup[name] || false;
 	};
 
 
@@ -558,9 +558,7 @@ var heliosAudioMixer = (function(){
 
 			looping:  false, //
 			autoplay: true,  // play immediately on load
-			muted: false,
-
-			dummy: false // making it possible to chain bad getTrack() calls
+			muted: false
 		};
 
 		// override option defaults
@@ -590,11 +588,6 @@ var heliosAudioMixer = (function(){
 		this.element = undefined; // html5 <audio> or <video> element
 		this.source  = undefined; //  web audio source:
 
-		if( this.options.dummy ){
-			this.mix.log(0, '[Mixer] Couldn’t find track "' + this.options.dummy + '"')
-			return
-		}
-
 		var self = this;
 
 		if( self.mix.muted === true )
@@ -609,7 +602,7 @@ var heliosAudioMixer = (function(){
 			this.options.sourceMode = 'element'
 		}
 
-		this.mix.log(1, '[Mixer] createTrack "'+this.name+'", mode: "'+this.options.sourceMode+'"');
+		this.mix.log(1, '[Mixer] createTrack "'+this.name+'", mode: "'+this.options.sourceMode+'", autoplay: '+this.options.autoplay);
 
 
 
@@ -659,10 +652,11 @@ var heliosAudioMixer = (function(){
 
 				self.status.loaded = true;
 				self.status.ready = true;
-				self.trigger('load', self);
 
 				if( ! self.options.autoplay)
 					self.pause();
+
+				self.trigger('load', self);
 			}
 
 			// canplaythrough listener
@@ -708,7 +702,7 @@ var heliosAudioMixer = (function(){
 	Track.prototype.createHTML5elementSource = function(){
 
 		var self = this;
-		if( ! self.options.source || self.dummy ) return;
+		if( ! self.options.source ) return;
 
 		self.mix.log(2, '[Mixer] Track "'+this.name+'" creating HTML5 element source: "'+self.options.source + self.mix.options.fileTypes[0] +'"');
 		self.status.ready = false
@@ -725,7 +719,7 @@ var heliosAudioMixer = (function(){
 	Track.prototype.useHTML5elementSource = function(){
 
 		var self = this;
-		if( ! self.options.source || self.dummy ) return;
+		if( ! self.options.source ) return;
 
 		self.mix.log(2, '[Mixer] Track "' + this.name + '" use HTML5 element source: "' + self.options.source + '"')
 
@@ -736,8 +730,8 @@ var heliosAudioMixer = (function(){
 
 		var ready = function(){
 			self.status.loaded = true
-			self.trigger('load', self);
 			if( self.options.autoplay ) self.play();
+			self.trigger('load', self);
 		}
 
 		self.element.addEventListener('canplaythrough', ready)
@@ -752,7 +746,7 @@ var heliosAudioMixer = (function(){
 	Track.prototype.webAudioSource = function(){
 
 		var self = this;
-		if( ! self.options.source || self.dummy ) return;
+		if( ! self.options.source ) return;
 
 		this.mix.log(2, '[Mixer] Track "' + this.name + '" webAudio source: "' + self.options.source + '"')
 
@@ -769,9 +763,9 @@ var heliosAudioMixer = (function(){
 
 			self.status.loaded = true;
 
-			self.trigger('load', self);
-
 			if(self.options.autoplay) self.play();
+			
+			self.trigger('load', self);
 		}
 
 		request.onerror = function(){
@@ -804,7 +798,6 @@ var heliosAudioMixer = (function(){
 	Track.prototype.addNode = function(nodeType){
 
 		var self = this;
-		if( self.dummy ) return
 
 		// if this is the first time we’re calling addNode,
 		// we should connect directly to the source
@@ -928,7 +921,6 @@ var heliosAudioMixer = (function(){
 	Track.prototype.play = function(){
 
 		var self = this;
-		if( self.dummy ) return
 
 		if( !self.status.loaded ){
 			this.mix.log(1, 'Can’t play track "' + self.name + '", not loaded')
@@ -1141,7 +1133,7 @@ var heliosAudioMixer = (function(){
 
 	Track.prototype.pause = function( at ){
 
-		if( !this.status.ready || !this.status.playing || this.dummy ) return;
+		if( !this.status.ready || !this.status.playing ) return;
 
 		var self = this;
 
@@ -1193,7 +1185,7 @@ var heliosAudioMixer = (function(){
 
 	Track.prototype.stop = function(){
 
-		if( !this.status.ready || !this.status.playing || this.dummy ) return;
+		if( !this.status.ready || !this.status.playing ) return;
 
 		var self = this;
 
@@ -1243,7 +1235,7 @@ var heliosAudioMixer = (function(){
 	// proper 3d stereo panning
 	Track.prototype.pan = function(angle_deg){
 
-		if( ! Detect.webAudio ||  ! this.status.ready || this.dummy ) return
+		if( ! Detect.webAudio ||  ! this.status.ready ) return
 
 		if(typeof angle_deg === 'string') {
 			if     ( angle_deg === 'front' ) angle_deg =   0;
@@ -1274,7 +1266,7 @@ var heliosAudioMixer = (function(){
 
 	Track.prototype.tweenPan = function(angle_deg, tweenDuration, callback){
 
-		if( ! Detect.tween ||  ! Detect.webAudio || ! this.status.ready || this.dummy ) return;
+		if( ! Detect.tween ||  ! Detect.webAudio || ! this.status.ready ) return;
 
 		if(typeof angle_deg !== 'number' || typeof tweenDuration !== 'number') return;
 
@@ -1310,8 +1302,6 @@ var heliosAudioMixer = (function(){
 
 	// cache current gain for restoring later
 	Track.prototype.gainCache = function(setTo){
-		if( this.dummy ) return
-
 		if( typeof setTo === 'number' ){
 			this.options.gainCache = setTo;
 			console.log('setting gain cache for %s to %i', this.name, setTo)
@@ -1326,38 +1316,42 @@ var heliosAudioMixer = (function(){
 
 	// gain range 0-1
 	Track.prototype.gain = function(val){
-		if( this.dummy ) return
-
 		if(typeof val === 'number') {
 
-			this.options.gain = ( this.options.muted ) ? 0 : constrain(val,0,1);
+			val = constrain(val,0,1) // normalize value
+
+			if( this.options.muted ){
+				this.gainCache(val) // cache the value
+				this.options.gain = 0
+			} else {
+				this.options.gain = val
+			}
 
 			if(this.status.playing && this.nodes.gain){
 
-				if(!Detect.webAudio){
-					this.element.volume = this.options.gain * this.mix.gain;
-				} else {
-					this.nodes.gain.gain.value = this.options.gain * this.mix.gain;
-				}
+				if(!Detect.webAudio)
+					this.element.volume = this.options.gain * this.mix.gain
+				else
+					this.nodes.gain.gain.value = this.options.gain * this.mix.gain
 			}
 
 			this.mix.log(2, '[Mixer] "'+this.name+'" setting gain to '+this.options.gain)
 
-			this.trigger( 'gain',this.options.gain, this );
+			this.trigger( 'gain', this.options.gain, this )
 
 			return this // setters should be chainable
 
 		}
 
-		return this.options.gain;
+		return this.options.gain
 
-	};
+	}
 
 
 
 
 	Track.prototype.tweenGain = function(_val, _tweenDuration, _callback){
-		if( typeof _val !== 'number' || typeof _tweenDuration !== 'number' || this.dummy ) return;
+		if( typeof _val !== 'number' || typeof _tweenDuration !== 'number' ) return;
 		var self = this;
 		self.mix.log(2, '[Mixer] "'+self.name+'" tweening gain '+self.options.gain+' -> '+_val)
 
@@ -1380,35 +1374,19 @@ var heliosAudioMixer = (function(){
 	};
 
 
-	Track.prototype.mute = function( duration ){
-		if( this.dummy ) return
-
-		this.gainCache( this.options.gain );
+	Track.prototype.mute = function(){
 		console.log(this.options.gainCache)
-
-		if( this.playing && duration ) {
-			this.tweenGain(0, 500, function(){
-				this.options.muted = true;
-			});
-		} else {
-			this.gain(0);
-			this.options.muted = true;
-		}
+		this.gainCache( this.options.gain )
+		this.gain(0)
+		this.options.muted = true
 
 		return this
 	};
 
-	Track.prototype.unmute = function( duration ){
-		if( this.dummy ) return
+	Track.prototype.unmute = function( ){
+		console.log('unmute!', this.options.gainCache)
 		this.options.muted = false;
-
-		if( this.playing && duration ){
-			this.tweenGain(this.options.gainCache, 500);
-		} else {
-			console.log(this.options.gainCache)
-			this.gain(this.options.gainCache)
-		}
-
+		this.gain(this.options.gainCache)
 		return this
 	};
 
@@ -1421,7 +1399,7 @@ var heliosAudioMixer = (function(){
 	//  #####  #####  ##  ## ###### ##   ##   ##     ##   #### ##    ## ######
 
 	Track.prototype.currentTime = function( setTo ){
-		if( !this.status.ready || this.dummy ) return;
+		if( !this.status.ready ) return;
 
 		if( typeof setTo === 'number' ){
 
@@ -1467,7 +1445,7 @@ var heliosAudioMixer = (function(){
 	}
 
 	Track.prototype.formattedTime = function( includeDuration){
-		if( !this.status.ready || this.dummy ) return;
+		if( !this.status.ready ) return;
 
 		if( includeDuration )
 			return timeFormat( this.currentTime() ) + '/' + timeFormat( this.duration() );
@@ -1476,7 +1454,7 @@ var heliosAudioMixer = (function(){
 	}
 
 	Track.prototype.duration = function(){
-		if( !this.status.ready || this.dummy ) return;
+		if( !this.status.ready ) return;
 
 		if(Detect.webAudio && this.options.sourceMode === 'buffer')
 			return this.source.buffer.duration || 0;
