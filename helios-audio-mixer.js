@@ -587,7 +587,7 @@ var heliosAudioMixer = (function() {
 
       if(this.options.sourceMode === 'buffer') {
 
-        this.webAudioSource()
+        this.loadBufferSource()
 
       } else if(this.options.sourceMode === 'element') {
 
@@ -674,10 +674,10 @@ var heliosAudioMixer = (function() {
     _this.mix.log(2, '[Mixer] Track "' + this.name + '" creating HTML5 element source: "' + _this.options.source + _this.mix.options.fileTypes[0]  + '"');
     _this.status.ready = false
 
-    var source = _this.options.source
+    var src = _this.options.source
 
     _this.options.source = document.createElement('audio')
-    _this.options.source.src = source
+    _this.options.source.src = src
 
     _this.useHTML5elementSource()
   }
@@ -702,7 +702,6 @@ var heliosAudioMixer = (function() {
     }
 
     _this.element.addEventListener('canplaythrough', ready)
-
     _this.element.addEventListener('error', function() { _this.trigger('loadError') })
 
     _this.element.load()
@@ -710,7 +709,7 @@ var heliosAudioMixer = (function() {
     return _this
   }
 
-  Track.prototype.webAudioSource = function() {
+  Track.prototype.loadBufferSource = function(forcePlay) {
 
     var _this = this;
     if(!_this.options.source) return;
@@ -723,16 +722,16 @@ var heliosAudioMixer = (function() {
 
     // asynchronous callback
     request.onload = function() {
-
       _this.mix.log(2, '[Mixer] "' + _this.name + '" loaded "' + _this.options.source + '"');
-
       _this.options.audioData = request.response; // cache the audio data
-
       _this.status.loaded = true;
-
-      if(_this.options.autoplay) _this.play();
-
       _this.trigger('load', _this);
+      console.log('LOAD')
+      if(forcePlay){
+        _this.play(true)
+      } else {
+        if(_this.options.autoplay) _this.play();
+      }
     }
 
     request.onerror = function() {
@@ -741,7 +740,6 @@ var heliosAudioMixer = (function() {
     }
 
     request.send();
-
   }
 
 
@@ -878,7 +876,7 @@ var heliosAudioMixer = (function() {
   // ##      ##    ##   ##   ##
   // ##      ##### ##   ##   ##
 
-  Track.prototype.play = function() {
+  Track.prototype.play = function(bufferSourceLoaded) {
 
     var _this = this;
 
@@ -893,8 +891,15 @@ var heliosAudioMixer = (function() {
     if(!Detect.webAudio)
       playSingleElement(_this)
 
-    else if(Detect.webAudio && _this.options.sourceMode === 'buffer')
-      playBufferSource(_this)
+    else if(Detect.webAudio && _this.options.sourceMode === 'buffer'){
+      // need to re-xhr the audio file so we loop back to load
+      if(bufferSourceLoaded)
+        playBufferSource(_this)
+      else {
+        _this.status.playing = false;
+        _this.loadBufferSource(true) // loop back to load
+      }
+    }
 
     else if(Detect.webAudio && _this.options.sourceMode === 'element')
       playElementSource(_this)
@@ -937,13 +942,6 @@ var heliosAudioMixer = (function() {
 
       // we also only want one event listener
       _this.element.addEventListener('ended', function() {
-        if(!_this.options.looping) {
-          _this.stop()
-        } else {
-          _this.stop();
-          _this.play()
-        }
-
         _this.trigger('ended', _this)
       }, false)
     }
@@ -955,8 +953,8 @@ var heliosAudioMixer = (function() {
     _this.status.ready = true;
     _this.trigger('ready', _this);
 
-    if(_this.options.looping) _this.source.loop = true;
-    else                     _this.source.loop = false;
+    if(_this.options.looping) _this.element.loop = true;
+    else                      _this.element.loop = false;
 
     console.log(_this.options.gain, _this.options.gainCache)
 
@@ -982,6 +980,24 @@ var heliosAudioMixer = (function() {
 
   // ********************************************************
 
+  function setEndTimer(){
+    var _this = this
+    var startFrom = _this.options.cachedTime || 0
+    var timerDuration = (_this.source.buffer.duration - startFrom)
+
+    _this.onendtimer = setTimeout(function() {
+      _this.stop()
+      _this.trigger('ended', _this)
+      console.log('ended')
+
+      if(_this.options.looping){
+        _this.play()
+        setEndTimer.call(_this)
+      }
+
+    }, timerDuration * 1000)
+  }
+
   function playBufferSource(_this) {
 
     _this.status.ready = false
@@ -1006,8 +1022,14 @@ var heliosAudioMixer = (function() {
       _this.status.ready = true;
       _this.trigger('ready', _this);
 
-      if(_this.options.looping) _this.source.loop = true;
-      else                     _this.source.loop = false;
+      if(_this.options.looping){
+        _this.source.loop = true
+        _this.source.loopStart = 0
+        _this.source.loopEnd = _this.source.buffer.duration
+        console.log(_this.source)
+      } else {
+        _this.source.loop = false;
+      }
 
       // _this.gain(_this.options.muted ? 0: _this.options.gain)
       _this.gain(_this.options.gain)
@@ -1024,17 +1046,14 @@ var heliosAudioMixer = (function() {
 
       // prefer start() but fall back to deprecated noteOn()
       if(typeof _this.source.start === 'function') _this.source.start(0, startFrom);
-      else                                          _this.source.noteOn(startFrom);
+      else                                         _this.source.noteOn(startFrom);
 
       // fake ended event
-      var timerDuration = (_this.source.buffer.duration - startFrom);
+      _this.onendtimer = false
+      setEndTimer.call(_this)
 
-      _this.onendtimer = setTimeout(function() {
-        if(!_this.options.looping) _this.stop();
-        _this.trigger('ended', _this);
-      }, timerDuration * 1000);
 
-      _this.trigger('play', _this);
+      _this.trigger('play', _this)
 
     }
 
@@ -1042,7 +1061,7 @@ var heliosAudioMixer = (function() {
     // Create source
     // ~~~~~~~~~~~~~
 
-    // Non-standard Webkit implementation
+    // Non-standard Webkit implementation (Safari, old Chrome)
     if(typeof _this.mix.context.createGainNode === 'function') {
 
       // Web Audio buffer source
@@ -1053,12 +1072,13 @@ var heliosAudioMixer = (function() {
       finish()
     }
 
-    // W3C standard implementation (Firefox)
+    // W3C standard implementation (Firefox, recent Chrome)
     else if(typeof _this.mix.context.createGain === 'function') {
+
+      console.log(_this.options.audioData)
 
       _this.mix.context.decodeAudioData(_this.options.audioData, function onSuccess(decodedBuffer) {
         if(_this.status.ready) return
-        _this.mix.log(2, 'web audio file decoded')
 
         _this.source        = _this.mix.context.createBufferSource();
         _this.sourceBuffer  = decodedBuffer;
@@ -1144,6 +1164,8 @@ var heliosAudioMixer = (function() {
     var _this = this;
 
     if(!_this.status.playing) return
+
+    if(_this.onendtimer) clearTimeout(_this.onendtimer)
 
     _this.options.cachedTime = _this.options.startTime = 0
 

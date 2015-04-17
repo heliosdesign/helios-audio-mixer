@@ -235,9 +235,15 @@
 		function createDrone(){
 			
 			var drone = Mixer.createTrack('drone', { 
-				source: './audio/Drone_1_norm',
+				source: './audio/SilverBottle',
 				sourceMode: 'buffer',
-				gain: 1.0 
+				gain: 1.0,
+				looping: true,
+				autoplay: true
+			})
+
+			drone.on('ended', function(){
+				console.log('drone ended event')	
 			})
 
 			drone.on('pan',function(){
