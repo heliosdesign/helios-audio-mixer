@@ -1268,7 +1268,7 @@ var heliosAudioMixer = (function() {
         this.options.gain = val
       }
 
-      if(this.status.playing && this.nodes.gain) {
+      if(this.status.playing && this.nodes && this.nodes.gain) {
 
         if(!Detect.webAudio)
           this.element.volume = this.options.gain * this.mix.gain
@@ -1398,4 +1398,4 @@ var heliosAudioMixer = (function() {
 
   return Mix
 
-}())
+}());
