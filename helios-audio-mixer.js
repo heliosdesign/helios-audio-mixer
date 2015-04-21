@@ -993,12 +993,18 @@ var heliosAudioMixer = (function() {
     var timerDuration = (_this.source.buffer.duration - startFrom)
 
     _this.onendtimer = setTimeout(function() {
-      // _this.stop()
       _this.trigger('ended', _this)
 
       if(_this.options.looping){
-        // _this.play()
-        setEndTimer.call(_this)
+
+        if(bowser && bowser.chrome && Math.floor(bowser.version) >= 42){
+          // HACK chrome 42+ looping fix
+          _this.stop()
+          _this.play()
+        } else {
+          setEndTimer.call(_this)
+        }
+
       }
 
     }, timerDuration * 1000)
