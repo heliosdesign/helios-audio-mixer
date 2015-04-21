@@ -919,12 +919,19 @@ var heliosAudioMixer = (function() {
     _this.nodes = {}
 
     // 1. Create standard nodes (gain and pan)
-    _this.addNode('panner').addNode('gain');
+    // _this.addNode('panner').addNode('gain');
+
+    // _this.addNode('gain')
 
     // 2. Create additional nodes
-    for (var i = 0; i < _this.options.nodes.length; i++) {
-      _this.addNode( _this.options.nodes[i] );
+    if(_this.options.nodes.length){
+      for (var i = 0; i < _this.options.nodes.length; i++) {
+        _this.addNode( _this.options.nodes[i] );
+      }  
+    } else {
+      _this.nodes.lastnode = _this.source
     }
+    
 
     // 3. Connect the last node in the chain to the destination
     _this.nodes.lastnode.connect(_this.mix.context.destination);
@@ -986,12 +993,11 @@ var heliosAudioMixer = (function() {
     var timerDuration = (_this.source.buffer.duration - startFrom)
 
     _this.onendtimer = setTimeout(function() {
-      _this.stop()
+      // _this.stop()
       _this.trigger('ended', _this)
-      console.log('ended')
 
       if(_this.options.looping){
-        _this.play()
+        // _this.play()
         setEndTimer.call(_this)
       }
 
@@ -1008,7 +1014,6 @@ var heliosAudioMixer = (function() {
     // (we have to re-construct the buffer every time we begin play)
 
     _this.source = null
-    _this.options.sourceBuffer = null
 
     // *sigh* async makes for such messy code
 
@@ -1024,9 +1029,9 @@ var heliosAudioMixer = (function() {
 
       if(_this.options.looping){
         _this.source.loop = true
-        _this.source.loopStart = 0
-        _this.source.loopEnd = _this.source.buffer.duration
-        console.log(_this.source)
+        // _this.source.loopStart = 0
+        // _this.source.loopEnd = _this.source.buffer.duration
+        // console.log(_this.source)
       } else {
         _this.source.loop = false;
       }
@@ -1066,8 +1071,8 @@ var heliosAudioMixer = (function() {
 
       // Web Audio buffer source
       _this.source = _this.mix.context.createBufferSource();
-      _this.sourceBuffer  = _this.mix.context.createBuffer(_this.options.audioData, true);
-      _this.source.buffer = _this.sourceBuffer;
+      var sourceBuffer  = _this.mix.context.createBuffer(_this.options.audioData, true);
+      _this.source.buffer = sourceBuffer;
 
       finish()
     }
@@ -1081,8 +1086,8 @@ var heliosAudioMixer = (function() {
         if(_this.status.ready) return
 
         _this.source        = _this.mix.context.createBufferSource();
-        _this.sourceBuffer  = decodedBuffer;
-        _this.source.buffer = _this.sourceBuffer;
+        var sourceBuffer    = decodedBuffer;
+        _this.source.buffer = sourceBuffer;
 
         finish()
       })
@@ -1205,7 +1210,7 @@ var heliosAudioMixer = (function() {
   // proper 3d stereo panning
   Track.prototype.pan = function(angleDeg) {
 
-    if( !Detect.webAudio || !this.status.ready ) return
+    if( !Detect.webAudio || !this.status.ready || !this.nodes.panner ) return
 
     if(typeof angleDeg === 'string') {
       if(     angleDeg === 'front') angleDeg =   0;
@@ -1236,7 +1241,7 @@ var heliosAudioMixer = (function() {
 
   Track.prototype.tweenPan = function(angleDeg, tweenDuration, callback) {
 
-    if( !Detect.tween || !Detect.webAudio || !this.status.ready ) return;
+    if( !Detect.tween || !Detect.webAudio || !this.status.ready || this.nodes.panner ) return;
 
     if( typeof angleDeg !== 'number' || typeof tweenDuration !== 'number' ) return;
 
@@ -1294,7 +1299,7 @@ var heliosAudioMixer = (function() {
 
         if(!Detect.webAudio)
           this.element.volume = this.options.gain * this.mix.gain
-        else
+        else if(this.nodes.gain)
           this.nodes.gain.gain.value = this.options.gain * this.mix.gain
       }
 
