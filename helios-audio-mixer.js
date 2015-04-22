@@ -196,7 +196,7 @@ var heliosAudioMixer = (function() {
 
     if(
       (Detect.browser.name === 'Firefox' && Detect.version && Detect.version < 25) || // Firefox < 25
-      (Detect.browser.ios === true && Detect.browser.version !== 6) ||                 // ios 7
+      (Detect.browser.ios === true && Detect.browser.version === 7) ||                 // ios 7
       this.options.html5
    ) {
       Detect.webAudio = false;
