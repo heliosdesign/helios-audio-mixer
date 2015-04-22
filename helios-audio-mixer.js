@@ -438,6 +438,15 @@ var heliosAudioMixer = (function() {
 
 
 
+  Mix.prototype.report = function(){
+    var log = ""
+    for (var i = 0; i < this.tracks.length; i++) {
+      log += this.tracks[i].gain() + '\t' + this.tracks[i].name + '\n'
+    }
+    console.log(log)
+  }
+
+
 
 
 
@@ -743,14 +752,42 @@ var heliosAudioMixer = (function() {
 
     var _this = this;
 
-    // if this is the first time we’re calling addNode,
-    // we should connect directly to the source
+    // if this is the first time we’re calling addNode, connect directly to the source
     if(!_this.nodes.lastnode) _this.nodes.lastnode = _this.source;
+
+    this.mix.log(2, ' +  addNode ' + nodeType);
+
+    // Analyser and Processor ********************************************************
+
+    if(nodeType === 'analyse') {
+
+      // create a script processor with bufferSize of 2048
+      _this.nodes.processor = _this.mix.context.createScriptProcessor(2048, 1, 1)
+
+      // create an analyser
+      _this.nodes.analyser = _this.mix.context.createAnalyser()
+      _this.nodes.analyser.smoothingTimeConstant = 0.5
+      _this.nodes.analyser.fftSize = 32
+
+      _this.nodes.processor.connect(_this.mix.context.destination) // processor -> destination
+      _this.nodes.analyser.connect(_this.nodes.processor)          // analyser -> processor
+
+      // define a Uint8Array to receive the analyser’s data
+      _this.options.bufferLength = new Uint8Array(_this.nodes.analyser.frequencyBinCount)
+      var analyserData = new Uint8Array(_this.options.bufferLength)
+
+      _this.nodes.lastnode.connect(_this.nodes.analyser)
+
+      _this.nodes.processor.onaudioprocess = function(){
+        _this.nodes.analyser.getByteTimeDomainData(analyserData)
+        _this.trigger('analyse', analyserData)
+      }
+    }   
 
     // Gain ********************************************************
     // http://www.w3.org/TR/webaudio/#GainNode
 
-    if(nodeType === 'gain') {
+    else if(nodeType === 'gain') {
 
       if(_this.mix.context.createGainNode)
         _this.nodes.gain = _this.mix.context.createGainNode();
@@ -839,8 +876,6 @@ var heliosAudioMixer = (function() {
 
     }
 
-    this.mix.log(2, ' +  addNode ' + nodeType);
-
     // it’s chainable
     return _this;
   }
@@ -896,7 +931,6 @@ var heliosAudioMixer = (function() {
 
     // 1. Create standard nodes (gain and pan)
     _this.addNode('panner').addNode('gain')
-    _this.addNode('gain')
 
     // 2. Create additional nodes
     if(_this.options.nodes.length){

@@ -6,16 +6,17 @@ Javascript audio multi-track mixer library. Optimally uses the web audio API ([c
 
 #### Contents
 
-- Dependencies
-- How To Use
+- [Dependencies](#dependencies)
+- [How To Use](#how-to-use)
 	- Basic
 	- Groups
-- Reference
+- [Reference](#reference)
 	- Mixer Methods
 	- Track/Group Methods
 	- Track Options
+	- Nodes
 	- Track Events
-- HTML5 Mode
+- [HTML5 Mode](#html5-mode)
 
 
 ### Dependencies
@@ -124,7 +125,7 @@ name | default | notes
 source       | ``     | Path to audio source file (without file extension), OR media element to use as source
 gain         | `0`        | initial/current gain (0-1)
 pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
-nodes        | `[]`      | array of strings: names of desired additional audio nodes. Pan and Gain are defaults.
+nodes        | `[]`      | array of strings: names of desired additional audio nodes. `pan` and `gain` are included by default.
 start        | `0`        | start time in seconds
 currentTime  | `0`        | current time (cached for resuming from pause)
 looping      | `false`    | 
@@ -166,6 +167,7 @@ If you call `gain()` while a track is muted, the value will be cached and applie
 
 
 
+
 #### Track Events
 
 name | when
@@ -179,12 +181,31 @@ name | when
 `ended` | track reaches the end
 `pan` | pan is changed
 `gain` | gain is changed
+`analyse` | audio analysis data is updated
 
 ```
 mix.getTrack('name').on('eventType',function(){
 	// do!
 });
 mix.getTrack('name').off('eventType');
+```
+
+#### Analysis
+
+FFT using the [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode).
+
+```
+var track = Mixer.createTrack('analysisTrack',{
+  source: 'file',
+  nodes: 'analyse'
+})
+
+var analysisData
+
+track.on('analyse', function(_analysisData){
+    analysisData = _analysisData
+    console.log(analysisData)
+})
 ```
 
 ## HTML5 Mode
