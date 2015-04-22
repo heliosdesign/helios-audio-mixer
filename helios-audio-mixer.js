@@ -547,7 +547,7 @@ var heliosAudioMixer = (function() {
     this.source  = undefined; //  web audio source:
 
 
-    if(typeof this.options.source === 'string') {
+    if(typeof this.options.source === 'string' && this.options.source.indexOf('blob:') !== 0) {
       // append extension only if it’s a file path
       this.options.source  += this.mix.options.fileTypes[0];
     } else if(typeof this.options.source === 'object') {
