@@ -175,7 +175,8 @@ var heliosAudioMixer = (function() {
 
     var defaults = {
       fileTypes: [ '.mp3', '.m4a', '.ogg' ],
-      html5: false
+      html5: false,
+      gain: 1, // master gain for entire mix
     }
     this.options = extend(defaults, opts || {})
 
@@ -184,7 +185,6 @@ var heliosAudioMixer = (function() {
     this.lookup  = {};    // tracks as lookup table: lookup['trackname']
 
     this.muted   = false; // master mute status
-    this.gain    = 1;     // master gain for entire mix
 
     this.context = null;  // AudioContext object (if webAudio is available)
 
@@ -301,7 +301,7 @@ var heliosAudioMixer = (function() {
 
   Mix.prototype.removeTrack = function(name) {
 
-    var _this  = this
+    var _this = this
     var track = _this.lookup[name]
 
     if(!track) {
@@ -311,36 +311,26 @@ var heliosAudioMixer = (function() {
 
     if(Detect.webAudio === true) {
 
-      // Fade the track out if we can,
-      // to avoid nasty crackling
+      track.pause();
 
-      var doIt = function() {
-        if(!track) return; // sanity check, things can happen in 100ms
-        track.pause();
+      var rest
+      var arr   = _this.tracks
+      var total = arr.length
 
-        var rest
-        var arr   = _this.tracks
-        var total = arr.length
-
-        for (var i = 0; i < total; i++) {
-          if(arr[i] && arr[i].name === name) {
-            rest = arr.slice(i + 1 || total);
-            arr.length = (i < 0) ? (total + i) : (i);
-            arr.push.apply(arr, rest);
-          }
+      for (var i = 0; i < total; i++) {
+        if(arr[i] && arr[i].name === name) {
+          rest = arr.slice(i + 1 || total);
+          arr.length = (i < 0) ? (total + i) : (i);
+          arr.push.apply(arr, rest);
         }
+      }
 
-        track.trigger('remove', _this);
+      track.trigger('remove', _this);
+      track.events = [];
 
-        track.events = [];
-
-        track = null;
-        delete _this.lookup[name];
-        _this.log(1, '[Mixer] Removed track "' + name + '"');
-      };
-
-      if(Detect.tween) track.tweenGain(0, 100, doIt);
-      else doIt();
+      track = null;
+      delete _this.lookup[name];
+      _this.log(1, '[Mixer] Removed track "' + name + '"');
 
     } else {
 
@@ -418,7 +408,7 @@ var heliosAudioMixer = (function() {
 
   Mix.prototype.gain = function(masterGain) {
     if(typeof masterGain !== 'undefined') {
-      this.gain = masterGain;
+      this.options.gain = masterGain;
 
       // this seems silly, but tracks multiply their gain by the master's
       // so if we change the master gain and call track.gain() we will
@@ -427,16 +417,8 @@ var heliosAudioMixer = (function() {
         this.tracks[i].gain(this.tracks[i].gain());
     }
 
-    return this.gain;
+    return this.options.gain;
   }
-
-  Mix.prototype.setGain = function(masterGain) {
-
-    console.warn('Mix.setGain has been deprecated; use Mix.gain()')
-    this.gain(masterGain)
-
-  };
-
 
 
 
@@ -919,9 +901,8 @@ var heliosAudioMixer = (function() {
     _this.nodes = {}
 
     // 1. Create standard nodes (gain and pan)
-    // _this.addNode('panner').addNode('gain');
-
-    // _this.addNode('gain')
+    _this.addNode('panner').addNode('gain')
+    _this.addNode('gain')
 
     // 2. Create additional nodes
     if(_this.options.nodes.length){
@@ -1301,12 +1282,16 @@ var heliosAudioMixer = (function() {
         this.options.gain = val
       }
 
-      if(this.status.playing && this.nodes && this.nodes.gain) {
+      // if(Detect.webAudio && this.options.sourceMode === 'buffer') {
+
+
+      if(this.status.playing) {
 
         if(!Detect.webAudio)
-          this.element.volume = this.options.gain * this.mix.gain
-        else if(this.nodes.gain)
-          this.nodes.gain.gain.value = this.options.gain * this.mix.gain
+          this.element.volume = this.options.gain * this.mix.options.gain
+        else if( this.nodes && this.nodes.gain )
+          this.nodes.gain.gain.value = this.options.gain * this.mix.options.gain
+          
       }
 
       this.mix.log(2, '[Mixer] "' + this.name + '" setting gain to ' + this.options.gain)

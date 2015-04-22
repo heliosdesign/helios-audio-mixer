@@ -167,9 +167,6 @@
 	<input name="mastergain" id="mastergain" type="range" min="0" max="100" value="100">
 
 
-
-	<audio id="audioElement" src="audio/Fluorescencent_Tone.mp3"> </audio>
-
 	<script src="js/bowser.min.js"></script>
 	<script src="js/tween.min.js"></script>
 	<script src="js/frameRunner.js"></script>
@@ -288,8 +285,8 @@
 		function createFluorescent(){
 
 			Mixer.createTrack('fluorescent', { 
-				// source: 'audio/Fluorescencent_Tone', 
-				source: document.querySelector('#audioElement'), 
+				source: 'audio/Fluorescencent_Tone',
+				sourceMode: 'element',
 				autoplay: true,
 				gain: 1,
 				pan: 'left'
@@ -351,7 +348,7 @@
 		},false)
 
 		document.getElementById('mastergain').addEventListener('change',function(e){
-			Mixer.setGain(e.target.value/100)
+			Mixer.gain(e.target.value/100)
 		},false)
 
 
