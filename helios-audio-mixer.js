@@ -486,7 +486,7 @@ var heliosAudioMixer = (function() {
     // default options
     this.defaults = {
 
-      sourceMode: 'buffer', // buffer or element
+      sourceMode: 'buffer', // buffer or (media) element
 
       source: false,   // either path to audio source (without file extension) or b) html5 <audio> or <video> element
 
@@ -507,7 +507,7 @@ var heliosAudioMixer = (function() {
 
       looping:  false, //
       autoplay: true,  // play immediately on load
-      muted: false
+      muted:    (mix.muted) ? true : false
     };
 
     // override option defaults
@@ -536,11 +536,6 @@ var heliosAudioMixer = (function() {
 
     this.element = undefined; // html5 <audio> or <video> element
     this.source  = undefined; //  web audio source:
-
-    var _this = this;
-
-    if(_this.mix.muted === true)
-      _this.options.muted = true
 
 
     if(typeof this.options.source === 'string') {
@@ -587,26 +582,28 @@ var heliosAudioMixer = (function() {
       this.mix.log(1, '[Mixer] creating html5 element for track ' + name);
 
       // Look for pre-created audio element and failing that create one
-      _this.element = document.querySelector('audio#' + name);
+      this.element = document.querySelector('audio#' + name);
 
-      if(!_this.element) {
+      if(!this.element) {
         var el = document.createElement('audio');
         el.id = name;
         document.body.appendChild(el);
-        _this.element = document.querySelector('audio#' + name);
+        this.element = document.querySelector('audio#' + name);
       }
 
       var canplay = function() {
-        if(_this.status.loaded) return;
+        if(this.status.loaded) return;
 
-        _this.status.loaded = true;
-        _this.status.ready = true;
+        this.status.loaded = true;
+        this.status.ready = true;
 
-        if(!_this.options.autoplay)
-          _this.pause();
+        if(!this.options.autoplay)
+          this.pause();
 
-        _this.trigger('load', _this);
+        this.trigger('load', this);
       }
+
+      var _this = this
 
       // canplaythrough listener
       _this.element.addEventListener('canplaythrough', canplay, false);
@@ -749,9 +746,6 @@ var heliosAudioMixer = (function() {
     // if this is the first time we’re calling addNode,
     // we should connect directly to the source
     if(!_this.nodes.lastnode) _this.nodes.lastnode = _this.source;
-
-    // if(!Detect.nodes[nodeType]) return _this; // if this node type is not supported
-
 
     // Gain ********************************************************
     // http://www.w3.org/TR/webaudio/#GainNode
@@ -909,10 +903,7 @@ var heliosAudioMixer = (function() {
       for (var i = 0; i < _this.options.nodes.length; i++) {
         _this.addNode( _this.options.nodes[i] );
       }  
-    } else {
-      _this.nodes.lastnode = _this.source
     }
-    
 
     // 3. Connect the last node in the chain to the destination
     _this.nodes.lastnode.connect(_this.mix.context.destination);
@@ -943,8 +934,6 @@ var heliosAudioMixer = (function() {
 
     if(_this.options.looping) _this.element.loop = true;
     else                      _this.element.loop = false;
-
-    console.log(_this.options.gain, _this.options.gainCache)
 
     _this.gain(_this.options.gain)
     _this.pan(_this.options.pan)
@@ -1003,29 +992,17 @@ var heliosAudioMixer = (function() {
     _this.source = null
 
     // *sigh* async makes for such messy code
-
     var finish = function() {
 
       playCreateNodes(_this)
 
-      // Apply Options
-      // ~~~~~~~~~~~~~~
-
       _this.status.ready = true;
       _this.trigger('ready', _this);
 
-      if(_this.options.looping){
-        _this.source.loop = true
-        // _this.source.loopStart = 0
-        // _this.source.loopEnd = _this.source.buffer.duration
-        // console.log(_this.source)
-      } else {
-        _this.source.loop = false;
-      }
-
-      // _this.gain(_this.options.muted ? 0: _this.options.gain)
+      // Apply Options
+      _this.source.loop = (_this.options.looping) ? true : false
       _this.gain(_this.options.gain)
-      _this.pan(_this.options.pan);
+      _this.pan(_this.options.pan)
 
 
       // Play
