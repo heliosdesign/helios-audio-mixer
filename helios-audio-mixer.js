@@ -681,7 +681,13 @@ var heliosAudioMixer = (function() {
     _this.element = _this.options.source
     _this.options.source = _this.element.src
 
-    _this.source = _this.mix.context.createMediaElementSource(_this.element);
+    /**
+     * Add options if they're set.
+     */
+    if (_this.options.looping) { _this.element.loop = true; }
+    if (_this.options.muted) { _this.element.muted = true; }
+
+    // _this.source = _this.mix.context.createMediaElementSource(_this.element);
 
     var ready = function() {
       _this.status.loaded = true
