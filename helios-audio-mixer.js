@@ -686,8 +686,9 @@ var heliosAudioMixer = (function() {
      */
     if (_this.options.looping) { _this.element.loop = true; }
     if (_this.options.muted) { _this.element.muted = true; }
-
-    // _this.source = _this.mix.context.createMediaElementSource(_this.element);
+    
+    if(_this.mix.context)
+      _this.source = _this.mix.context.createMediaElementSource(_this.element);
 
     var ready = function() {
       _this.status.loaded = true
