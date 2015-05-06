@@ -441,7 +441,7 @@ var heliosAudioMixer = (function() {
   Mix.prototype.report = function(){
     var log = ""
     for (var i = 0; i < this.tracks.length; i++) {
-      log += this.tracks[i].gain() + '\t' + this.tracks[i].name + '\n'
+      log += this.tracks[i].gain() + '\t' + this.tracks[i].currentTime() + '\t' + this.tracks[i].name + '\n'
     }
     console.log(log)
   }
@@ -714,7 +714,6 @@ var heliosAudioMixer = (function() {
       _this.options.audioData = request.response; // cache the audio data
       _this.status.loaded = true;
       _this.trigger('load', _this);
-      console.log('LOAD')
       if(forcePlay){
         _this.play(true)
       } else {
@@ -1064,21 +1063,8 @@ var heliosAudioMixer = (function() {
     // Create source
     // ~~~~~~~~~~~~~
 
-    // Non-standard Webkit implementation (Safari, old Chrome)
-    if(typeof _this.mix.context.createGainNode === 'function') {
-
-      // Web Audio buffer source
-      _this.source = _this.mix.context.createBufferSource();
-      var sourceBuffer  = _this.mix.context.createBuffer(_this.options.audioData, true);
-      _this.source.buffer = sourceBuffer;
-
-      finish()
-    }
-
     // W3C standard implementation (Firefox, recent Chrome)
-    else if(typeof _this.mix.context.createGain === 'function') {
-
-      console.log(_this.options.audioData)
+    if(typeof _this.mix.context.createGain === 'function') {
 
       _this.mix.context.decodeAudioData(_this.options.audioData, function onSuccess(decodedBuffer) {
         if(_this.status.ready) return
@@ -1089,6 +1075,16 @@ var heliosAudioMixer = (function() {
 
         finish()
       })
+    }
+
+    // Non-standard Webkit implementation (Safari, old Chrome)
+    else if(typeof _this.mix.context.createGainNode === 'function') {
+
+      _this.source = _this.mix.context.createBufferSource();
+      var sourceBuffer  = _this.mix.context.createBuffer(_this.options.audioData, true);
+      _this.source.buffer = sourceBuffer;
+
+      finish()
     }
   }
 
