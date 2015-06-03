@@ -656,6 +656,7 @@ var heliosAudioMixer = (function() {
     var src = _this.options.source
 
     _this.options.source = document.createElement('audio')
+    _this.options.source.crossOrigin = ''
     _this.options.source.src = src
 
     _this.useHTML5elementSource()
@@ -670,6 +671,7 @@ var heliosAudioMixer = (function() {
     _this.mix.log(2, '[Mixer] Track "' + this.name + '" use HTML5 element source: "' + _this.options.source + '"')
 
     _this.element = _this.options.source
+    _this.options.source.crossOrigin = ''
     _this.options.source = _this.element.src
 
     /**
