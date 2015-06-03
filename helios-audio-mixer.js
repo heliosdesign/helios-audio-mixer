@@ -15,7 +15,7 @@ var heliosAudioMixer = (function() {
   var Detect = {
 
     // Web audio API support
-    webAudio: !!(window.webkitAudioContext || window.AudioContext),
+    webAudio: !!(window.AudioContext || window.webkitAudioContext),
 
     // Which audio types can the browser actually play?
     audioTypes: (function() {
@@ -216,24 +216,15 @@ var heliosAudioMixer = (function() {
       return;
     }
 
-    this.log(1, '[Mixer] can play:', this.options.fileTypes)
-
 
     // Initialize
     // ********************************************************
 
     if(Detect.webAudio === true) {
-
-      this.log(1, '[Mixer] Web Audio Mode');
-
-      if(typeof AudioContext === 'function') this.context = new window.AudioContext();
-      else                                      this.context = new window.webkitAudioContext();
-
-    } else {
-
-      this.log(1, '[Mixer] HTML5 Mode');
-
+      this.context = (typeof AudioContext === 'function' ? new window.AudioContext() : new window.webkitAudioContext() )
     }
+
+    this.log(1, '[Mixer] initialized,', (Detect.webAudio ? 'Web Audio Mode,' : 'HTML5 Mode,'), 'can play:', this.options.fileTypes)
 
     return this
 
