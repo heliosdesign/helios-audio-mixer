@@ -290,9 +290,17 @@ var heliosAudioMixer = (function() {
   };
 
 
-  Mix.prototype.removeTrack = function(name) {
+  Mix.prototype.removeTrack = function(_input) {
 
     var _this = this
+
+    var track, name
+
+    if(typeof _input === 'string')
+      name = _input 
+    else if(typeof _input === 'object' && _input.name)
+      name = _input.name
+
     var track = _this.lookup[name]
 
     if(!track) {
@@ -1233,30 +1241,31 @@ var heliosAudioMixer = (function() {
     return this.options.pan
   }
 
-  Track.prototype.tweenPan = function(angleDeg, tweenDuration, callback) {
-
-    if( !Detect.tween || !Detect.webAudio || !this.status.ready || this.nodes.panner ) return;
-
-    if( typeof angleDeg !== 'number' || typeof tweenDuration !== 'number' ) return;
-
+  Track.prototype.tweenPan = function(angleDeg, tweenDuration) {
     var _this = this;
 
-    _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening pan2d')
+    return new Promise(function(resolve, reject){
+      if( !Detect.tween || !Detect.webAudio || !_this.status.ready || !_this.nodes.panner ) reject(Error('nope nope nope'))
+      if( typeof angleDeg !== 'number' || typeof tweenDuration !== 'number' ) reject(Error('Not a valid tween duration.'))
 
-    if(_this.tweens.pan) _this.tweens.pan.stop()
+      _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening pan2d')
 
-    _this.tweens.pan = new TWEEN.Tween({ currentAngle: _this.options.pan })
-      .to({ currentAngle: angleDeg }, tweenDuration)
-      .easing(TWEEN.Easing.Sinusoidal.InOut)
-      .onUpdate(function() {
-        _this.pan(this.currentAngle)
-      })
-      .onComplete(function() {
-        if(typeof callback === 'function') callback();
-      })
-      .start();
+      if(_this.tweens.pan) _this.tweens.pan.stop()
 
-    return _this
+      _this.tweens.pan = new TWEEN.Tween({ currentAngle: _this.options.pan })
+        .to({ currentAngle: angleDeg }, tweenDuration)
+        .easing(TWEEN.Easing.Sinusoidal.InOut)
+        .onUpdate(function() {
+          _this.pan(this.currentAngle)
+        })
+        .onComplete(function() {
+          resolve(_this)
+        })
+        .start()
+
+      return _this
+
+    })
   }
 
 
@@ -1289,9 +1298,6 @@ var heliosAudioMixer = (function() {
         this.options.gain = val
       }
 
-      // if(Detect.webAudio && this.options.sourceMode === 'buffer') {
-
-
       if(this.status.playing) {
 
         if(!Detect.webAudio)
@@ -1314,28 +1320,26 @@ var heliosAudioMixer = (function() {
 
   }
 
-  Track.prototype.tweenGain = function(_val, _tweenDuration, _callback) {
-    if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') return;
+  Track.prototype.tweenGain = function(_val, _tweenDuration) {
     var _this = this;
-    _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening gain ' + _this.options.gain + ' -> ' + _val)
+    return new Promise(function(resolve, reject){
+      if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') reject(Error('Invalid value for duration.'))
+      _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening gain ' + _this.options.gain + ' -> ' + _val)
 
-    // replace existing gain tween
-    if(_this.tweens.gain) _this.tweens.gain.stop()
+      // replace existing gain tween
+      if(_this.tweens.gain) _this.tweens.gain.stop()
 
-    _this.tweens.gain = new TWEEN.Tween({ currentGain: _this.options.gain })
-      .to({ currentGain: _val }, _tweenDuration)
-      .easing(TWEEN.Easing.Sinusoidal.InOut)
-      .onUpdate(function() {
-        _this.gain(this.currentGain)
-      })
-      .onComplete(function() {
-        if(_callback)
-          if(typeof _callback === 'function')
-            _callback();
-      })
-      .start();
-
-    return _this
+      _this.tweens.gain = new TWEEN.Tween({ currentGain: _this.options.gain })
+        .to({ currentGain: _val }, _tweenDuration)
+        .easing(TWEEN.Easing.Sinusoidal.InOut)
+        .onUpdate(function() {
+          _this.gain(this.currentGain)
+        })
+        .onComplete(function() {
+          resolve(_this)
+        })
+        .start()
+    })
   }
 
   Track.prototype.mute = function() {
