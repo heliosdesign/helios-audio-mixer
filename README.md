@@ -2,7 +2,7 @@
 
 # Web Audio Mixer
 
-Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5. Load and manipulate sets of audio files.
+Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5.
 
 #### Contents
 
@@ -107,10 +107,10 @@ html5 | `false` | Force HTML5 mode.
 
 ##### Track Management
 
-- `mix.createTrack(name, opts)` _see track options below_
-- `mix.removeTrack(name)`
-- `mix.getTrack(name)` _returns track object_
-- `mix.getTrack('name').method()` access a single track, chainable
+- `mix.createTrack( 'name', opts{} )` _see track options below_
+- `mix.removeTrack( 'name' || track object )`
+- `mix.getTrack( 'name' )` _returns track object_
+- `mix.getTrack( 'name' ).method()` access a single track, chainable
 
 ##### Global Mix Control
 
@@ -126,7 +126,7 @@ html5 | `false` | Force HTML5 mode.
 
 ## Track Options
 
-`mix.createTrack(<'name'>, options{} )`
+`mix.createTrack( 'name', options{} )`
 
 name | default | notes
 ---------|---------|---------
@@ -144,7 +144,7 @@ muted        | `false`    |
 
 #### Events
 
-##### `track.on('event', <function>)`
+##### `track.on('event', function )`
 
 See event list below.
 
@@ -171,11 +171,15 @@ Returns a Promise, which passes the track object: `.then(function(track){})`.
 
 #### Gain
 
-##### `track.gain(setTo)` getter/setter, range 0-1
+##### `track.gain(setTo)`
+
+Getter/setter for gain, range 0-1.
 
 If you call `gain()` while a track is muted, the value will be cached and applied upon unmuting.
 
-##### `track.tweenGain(setTo, duration)` returns a Promise
+##### `track.tweenGain(setTo, duration)`
+
+Returns a Promise, like `tweenPan()`.
 
 ##### `track.mute()`
 
@@ -195,6 +199,7 @@ Get track duration in seconds.
 
 ##### `formattedTime( includeDuration )`
 
+Transforms:  
 `23` &rarr; `"00:23"` or `"00:23/00:45"`  
 `90` &rarr; `"01:30"` or `"01:30/2:00"`
 
@@ -217,9 +222,7 @@ name | when
 `analyse` | audio analysis data is updated
 
 ```
-mix.getTrack('name').on('eventType',function(){
-	// do!
-});
+mix.getTrack('name').on('eventType',function(){});
 mix.getTrack('name').off('eventType');
 ```
 

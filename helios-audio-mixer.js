@@ -78,6 +78,17 @@ var heliosAudioMixer = (function() {
     return this
   };
 
+  BaseClass.prototype.one = function(type, callback) {
+    var _this = this
+    this.events[type] = this.events[type] || [];
+    this.events[type].push(function(){
+      _this.off(type)
+      callback()
+    });
+
+    return this
+  };
+
   BaseClass.prototype.off = function(type) {
     if(type === '*')
       this.events = {};
