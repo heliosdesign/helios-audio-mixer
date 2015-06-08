@@ -1,8 +1,6 @@
-### 0.1
+### 0.1.1
 
 2015.6.8
-
-- started using semver
 
 - all async methods now use promises not callbacks (`tweenPan`, `tweenGain`)
 
@@ -13,3 +11,6 @@
 
 - `removeTrack()` now takes a track or a track name as an argument
 
+### 0.1.0
+
+- first tagged release
