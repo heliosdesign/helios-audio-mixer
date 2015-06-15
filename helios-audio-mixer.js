@@ -308,7 +308,7 @@ var heliosAudioMixer = (function() {
     var track, name
 
     if(typeof _input === 'string')
-      name = _input 
+      name = _input
     else if(typeof _input === 'object' && _input.name)
       name = _input.name
 
@@ -338,6 +338,10 @@ var heliosAudioMixer = (function() {
       track.trigger('remove', _this);
       track.events = [];
 
+      // stop memory leaks!
+      if(track.options.sourceMode === 'element' && track.element)
+        track.element.src = '';
+
       track = null;
       delete _this.lookup[name];
       _this.log(1, '[Mixer] Removed track "' + name + '"');
@@ -346,7 +350,8 @@ var heliosAudioMixer = (function() {
 
       track.pause();
 
-      track.element.src = track.source = null;
+      track.element.src = '';
+      track.source = '';
 
       track.ready = false;
       track.loaded = false;
@@ -698,7 +703,7 @@ var heliosAudioMixer = (function() {
      */
     if (_this.options.looping) { _this.element.loop = true; }
     if (_this.options.muted) { _this.element.muted = true; }
-    
+
     if(_this.mix.context)
       _this.source = _this.mix.context.createMediaElementSource(_this.element);
 
@@ -800,7 +805,7 @@ var heliosAudioMixer = (function() {
         _this.nodes.analyser.getByteTimeDomainData(analyserData)
         _this.trigger('analyse', analyserData)
       }
-    }   
+    }
 
     // Gain ********************************************************
     // http://www.w3.org/TR/webaudio/#GainNode
@@ -954,7 +959,7 @@ var heliosAudioMixer = (function() {
     if(_this.options.nodes.length){
       for (var i = 0; i < _this.options.nodes.length; i++) {
         _this.addNode( _this.options.nodes[i] );
-      }  
+      }
     }
 
     // 3. Connect the last node in the chain to the destination
@@ -1315,7 +1320,7 @@ var heliosAudioMixer = (function() {
           this.element.volume = this.options.gain * this.mix.options.gain
         else if( this.nodes && this.nodes.gain )
           this.nodes.gain.gain.value = this.options.gain * this.mix.options.gain
-          
+
       }
 
       this.mix.log(2, '[Mixer] "' + this.name + '" setting gain to ' + this.options.gain)
