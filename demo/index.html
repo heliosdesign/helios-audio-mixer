@@ -7,7 +7,7 @@
 	<style>
 		* { font-family: sans-serif; }
 
-		h4 { 
+		h4 {
 			display: inline-block;
 			width: 5em;
 			margin: 0;
@@ -28,38 +28,111 @@
 			height: 100%;
 			background: black;
 		}
+
+		td {
+			/* border-left: 1px solid #ddd; */
+			/* border-right: 1px solid #ddd; */
+			border-top: none;
+			border-bottom: none;
+			padding: 0.5em;
+			border-collapse: separate;
+		}
+
+		button {
+			display: inline-block;
+			padding: 0.4em 0.6em;
+			background: none;
+			border: 1px solid black;
+			border-radius: 2px;
+		}
+		button:hover {
+			background: black;
+			color: white;
+			cursor: pointer;
+		}
+		button.active {
+			background: grey;
+			color: white;
+		}
+
+		select { width: 100%; }
 	</style>
 </head>
 <body>
 
 
-	<h1>Helios Audio Mixer Test Page</h1>
+	<h2>Helios Audio Mixer Test Page</h2>
 
 	Web Audio: <span id="webaudio"></span> <br>
-	Audio type: <span id="audioType"></span>
+	<!-- Audio type: <span id="audioType"></span> -->
 
-
-	<br><br><br>
+	<br>
 
 
 	<table>
 
 		<tr>
-			
+
 			<td><h4>Create</h4></td>
 
-			<td> <button onclick="createDrone()"> Drone </button> </td>
-			<td> <button onclick="createFluorescent()"> Fluorescent (media element source) </button> </td>
-			<td> <button onclick="createHelicopter()"> Helicopter (callback + compressor) </button> </td>
+			<td>
+				<button onclick="createTrack1()"> create </button>
+				<button onclick="Mixer.removeTrack('track1')">remove</button>
+			</td>
+			<td>
+				<button onclick="createFluorescent()"> create</button>
+				<button onclick="Mixer.removeTrack('track2')">remove</button>
+			</td>
+			<td>
+				<button onclick="createtrack3()"> create</button>
+				<button onclick="Mixer.removeTrack('track3')">remove</button>
+			</td>
 
 		</tr><tr>
 
-			<td> <h4>Remove</h4></td>
+		<td><h4>Source</h4></td>
 
-			<td> <button onclick="Mixer.removeTrack('drone')">Drone</button> </td>
-			<td> <button onclick="Mixer.removeTrack('fluorescent')">Fluorescent</button> </td>
-			<td> <button onclick="Mixer.removeTrack('helicopter')">Helicopter</button> </td>
-		
+			<td>
+				<select name="track1-source" id="track1-source">
+					<option value="dm-tw-bass">dm-tw-bass</option>
+					<option value="Drone_1_norm">Drone_1_norm</option>
+				</select>
+			</td>
+			<td>
+				<select name="track2-source" id="track2-source">
+					<option value="dm-tw-buzzlo">dm-tw-buzzlo</option>
+					<option value="Helicopter_Interior">Helicopter_Interior</option>
+				</select>
+			</td>
+			<td>
+				<select name="track3-source" id="track3-source">
+					<option value="dm-tw-woosh">dm-tw-woosh</option>
+					<option value="SilverBottle">SilverBottle</option>
+				</select>
+			</td>
+		</tr><tr>
+
+		<td><h4>Source Mode</h4></td>
+
+			<td>
+				<select name="source-mode" id="track1-source-mode">
+					<option value="buffer">Buffer</option>
+					<option value="element">Element</option>
+				</select>
+			</td>
+			<td>
+				<select name="source-mode" id="track2-source-mode">
+					<option value="buffer">Buffer</option>
+					<option value="element">Element</option>
+				</select>
+			</td>
+			<td>
+				<select name="source-mode" id="track3-source-mode">
+					<option value="buffer">Buffer</option>
+					<option value="element">Element</option>
+				</select>
+			</td>
+
 		</tr><tr>
 
 			<td><h4>Gain</h4></td>
@@ -73,8 +146,8 @@
 			<td><h4>Tween Gain</h4></td>
 
 			<td>
-				<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(0,1000)">Drone Out</button><br>
-				<button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenGain(1,1000,function(){ console.log('Drone in callback')})">Drone In +callback</button>
+				<button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').tweenGain(0,1000)">Out</button>
+				<button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').tweenGain(1,1000,function(){ console.log('Drone in callback')})">In</button>
 			</td>
 
 		</tr><tr>
@@ -89,9 +162,9 @@
 
 			<td><h4>Tween Pan</h4> </td>
 
-			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').tweenPan(720, 6000)">Drone</button></td>
-			<!-- <td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button> </td> -->
-			<!-- <td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button> </td> -->
+			<td><button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').tweenPan(720, 6000)">Drone</button></td>
+			<!-- <td><button onclick="if(Mixer.getTrack('track2')) Mixer.getTrack('track2').play()">track2</button> </td> -->
+			<!-- <td><button onclick="if(Mixer.getTrack('track3')) Mixer.getTrack('track3').play()">track3</button> </td> -->
 
 		</tr><tr>
 
@@ -105,15 +178,15 @@
 
 			<td><h4>Progress</h4></td>
 
-			<td> 
+			<td>
 				<div class="slider" id="track1slider"> <div class="playhead" id="track1playhead"></div></div> <br>
 				<div id="track1time">00:00/00:00</div>
 			</td>
-			<td> 
+			<td>
 				<div class="slider" id="track2slider"> <div class="playhead" id="track2playhead"></div></div> <br>
 				<div id="track2time">00:00/00:00</div>
 			</td>
-			<td> 
+			<td>
 				<div class="slider" id="track3slider"> <div class="playhead" id="track3playhead"></div></div> <br>
 				<div id="track3time">00:00/00:00</div>
 			</td>
@@ -129,41 +202,41 @@
 
 			<td><h4>Play</h4> </td>
 
-			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').play()">Drone</button></td>
-			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').play()">Fluorescent</button></td>
-			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').play()">Helicopter</button></td>
+			<td><button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').play()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('track2')) Mixer.getTrack('track2').play()">track2</button></td>
+			<td><button onclick="if(Mixer.getTrack('track3')) Mixer.getTrack('track3').play()">track3</button></td>
 
 		</tr><tr>
 
 			<td><h4>Pause</h4> </td>
 
-			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pause()">Drone</button></td>
-			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pause()">Fluorescent</button></td>
-			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pause()">Helicopter</button></td>
+			<td><button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').pause()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('track2')) Mixer.getTrack('track2').pause()">track2</button></td>
+			<td><button onclick="if(Mixer.getTrack('track3')) Mixer.getTrack('track3').pause()">track3</button></td>
 
 		</tr><tr>
 
 			<td><h4>Stop</h4> </td>
 
-			<td><button onclick="if(Mixer.getTrack('drone')) Mixer.getTrack('drone').stop()">Drone</button></td>
-			<td><button onclick="if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').stop()">Fluorescent</button></td>
-			<td><button onclick="if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').stop()">Helicopter</button></td>
-	
+			<td><button onclick="if(Mixer.getTrack('track1')) Mixer.getTrack('track1').stop()">Drone</button></td>
+			<td><button onclick="if(Mixer.getTrack('track2')) Mixer.getTrack('track2').stop()">track2</button></td>
+			<td><button onclick="if(Mixer.getTrack('track3')) Mixer.getTrack('track3').stop()">track3</button></td>
+
 
 	</table>
 
-	
+
 	<br><br><br>
 
-	
+
 	<h4>Mixer</h4>
 
 	<button onclick="Mixer.pause()">Pause All ||</button>
 	<button onclick="Mixer.play()">Play All &gt;</button>
 	<button onclick="Mixer.stop()">Stop All</button>
 
-	<button onclick="mute()">Toggle Mute</button>
-	
+	<button id="mix-mute" onclick="mute()">Toggle Mute</button>
+
 	<input name="mastergain" id="mastergain" type="range" min="0" max="100" value="100">
 
 
@@ -174,16 +247,18 @@
 
 	<script>
 
-		var Mixer = new heliosAudioMixer;
+		var Mixer = new heliosAudioMixer();
 
 		if(window.location.hash === '#html5' || ! Mixer.detect.webAudio) {
 			console.log('HTML5 mode')
 			Mixer.detect.webAudio = false;
 
-			Mixer.createTrack('drone', {});
-			Mixer.createTrack('fluorescent', {});
-			Mixer.createTrack('helicopter', {});
+			Mixer.createTrack('track1', {});
+			Mixer.createTrack('track2', {});
+			Mixer.createTrack('track3', {});
 		}
+
+		mute()
 
 		Mixer.setLogLvl(2)
 
@@ -195,15 +270,18 @@
 		if(Mixer.detect.webAudio) document.getElementById('webaudio').innerHTML = "YES";
 		else 					  document.getElementById('webaudio').innerHTML = "NO";
 
-		document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
+		// document.getElementById('audioType').innerHTML = Mixer.detect.audioType;
 
 
 		function mute(){
 			console.log('mute')
-			if(Mixer.muted)
+			if(Mixer.muted){
 				Mixer.unmute()
-			else
+				document.getElementById('mix-mute').classList.remove('active')
+			} else{
 				Mixer.mute()
+				document.getElementById('mix-mute').classList.add('active')
+			}
 		}
 
 		// ********************************************************
@@ -228,42 +306,39 @@
 			ctx.fillRect(x-5,y-5,10,10)
 		}
 
+		function createTrack1(){
 
-		function createDrone(){
-			
-			var drone = Mixer.createTrack('drone', { 
-				// source: './audio/Drone_1_norm',
-				// source: './audio/SilverBottle',
-				source: 'http://205.186.156.50/dm_assets/audio/SilverBottle',
-				sourceMode: 'buffer',
+			var track1 = Mixer.createTrack('track1', {
+				source: 'audio/' + document.getElementById('track1-source').value,
+				sourceMode: document.getElementById('track1-source-mode').value,
 				gain: 1.0,
 				looping: true,
 				autoplay: true
 			})
 
-			drone.on('ended', function(){
-				console.log('drone ended event')	
+			track1.on('ended', function(){
+				console.log('track1 ended event')
 			})
 
-			drone.on('pan',function(){
-				updatePanDisplay('drone',track1panCanvas)
-				document.getElementById('track1pan').value = drone.options.pan
+			track1.on('pan',function(){
+				updatePanDisplay('track1',track1panCanvas)
+				document.getElementById('track1pan').value = track1.options.pan
 			})
 
-			drone.on('gain',function(){
-				document.getElementById('track1gain').value = drone.options.gain*100
+			track1.on('gain',function(){
+				document.getElementById('track1gain').value = track1.options.gain*100
 			})
 
 			var timeEl = document.getElementById('track1time')
 			,	playheadEl = document.getElementById('track1playhead')
 
-			drone.on('play',function(){
+			track1.on('play',function(){
 				frameRunner.add('drone_timeUpdate','everyFrame', function(){
-					updateTime( drone, timeEl, playheadEl )
+					updateTime( track1, timeEl, playheadEl )
 				})
 			})
 
-			drone.on('pause',function(){
+			track1.on('pause',function(){
 				frameRunner.remove('drone_timeUpdate','everyFrame')
 			})
 
@@ -271,8 +346,8 @@
 
 			var updateTime = function( track, timeEl, playheadEl ){
 				if( !track ) return
-				timeEl.innerHTML = drone.formattedTime();
-				playheadEl.style.left = ( drone.currentTime() / drone.duration() ) * 100 + 'px';
+				timeEl.innerHTML = track1.formattedTime();
+				playheadEl.style.left = ( track1.currentTime() / track1.duration() ) * 100 + 'px';
 			}
 
 			frameRunner.add('updateTime','everyFrame',updateTime)
@@ -286,46 +361,47 @@
 
 		function createFluorescent(){
 
-			Mixer.createTrack('fluorescent', { 
-				source: 'audio/Fluorescencent_Tone',
-				sourceMode: 'element',
+			Mixer.createTrack('track2', {
+				source: 'audio/' + document.getElementById('track2-source').value,
+				sourceMode: document.getElementById('track2-source-mode').value,
 				autoplay: true,
 				gain: 1,
 				pan: 'left'
 			})
 
-			Mixer.getTrack('fluorescent').on('pan',function(){
-				updatePanDisplay('fluorescent',track2panCanvas)
-				document.getElementById('track2pan').value = Mixer.getTrack('fluorescent').options.pan
+			Mixer.getTrack('track2').on('pan',function(){
+				updatePanDisplay('track2',track2panCanvas)
+				document.getElementById('track2pan').value = Mixer.getTrack('track2').options.pan
 			})
 
-			Mixer.getTrack('fluorescent').on('gain',function(){
-				document.getElementById('track2gain').value = Mixer.getTrack('fluorescent').options.gain*100
+			Mixer.getTrack('track2').on('gain',function(){
+				document.getElementById('track2gain').value = Mixer.getTrack('track2').options.gain*100
 			})
 
 		}
 
 
 
-		function createHelicopter(){
-			Mixer.createTrack('helicopter', { 
-				source: 'audio/Helicopter_Interior', 
-				gain: 0.5, 
+		function createtrack3(){
+			Mixer.createTrack('track3', {
+				source: 'audio/' + document.getElementById('track3-source').value,
+				sourceMode: document.getElementById('track3-source-mode').value,
+				gain: 0.5,
 				pan: 0,
-				nodes: [ 'compressor' ]
+				// nodes: [ 'compressor' ]
 			})
 
-			Mixer.getTrack('helicopter').on('load',function(){
+			Mixer.getTrack('track3').on('load',function(){
 				console.log('TRACK 3 LOADED CALLBACK')
 			})
 
-			Mixer.getTrack('helicopter').on('pan',function(){
-				updatePanDisplay('helicopter',track3panCanvas)
-				document.getElementById('track3pan').value = Mixer.getTrack('helicopter').options.pan
+			Mixer.getTrack('track3').on('pan',function(){
+				updatePanDisplay('track3',track3panCanvas)
+				document.getElementById('track3pan').value = Mixer.getTrack('track3').options.pan
 			})
 
-			Mixer.getTrack('helicopter').on('gain',function(){
-				document.getElementById('track3gain').value = Mixer.getTrack('helicopter').options.gain*100
+			Mixer.getTrack('track3').on('gain',function(){
+				document.getElementById('track3gain').value = Mixer.getTrack('track3').options.gain*100
 			})
 		}
 
@@ -338,15 +414,15 @@
 
 		document.getElementById('track1gain').addEventListener('change',function(e){
 			console.log('CHANGE')
-			if(Mixer.getTrack('drone')) Mixer.getTrack('drone').gain(e.target.value/100)
+			if(Mixer.getTrack('track1')) Mixer.getTrack('track1').gain(e.target.value/100)
 		},false)
 
 		document.getElementById('track2gain').addEventListener('change',function(e){
-			if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').gain(e.target.value/100)
+			if(Mixer.getTrack('track2')) Mixer.getTrack('track2').gain(e.target.value/100)
 		},false)
 
 		document.getElementById('track3gain').addEventListener('change',function(e){
-			if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').gain(e.target.value/100)
+			if(Mixer.getTrack('track3')) Mixer.getTrack('track3').gain(e.target.value/100)
 		},false)
 
 		document.getElementById('mastergain').addEventListener('change',function(e){
@@ -359,15 +435,15 @@
 		// Pan Sliders
 
 		document.getElementById('track1pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('drone')) Mixer.getTrack('drone').pan( e.target.valueAsNumber );
+			if(Mixer.getTrack('track1')) Mixer.getTrack('track1').pan( e.target.valueAsNumber );
 		},false)
 
 		document.getElementById('track2pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('fluorescent')) Mixer.getTrack('fluorescent').pan( e.target.valueAsNumber )
+			if(Mixer.getTrack('track2')) Mixer.getTrack('track2').pan( e.target.valueAsNumber )
 		},false)
 
 		document.getElementById('track3pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('helicopter')) Mixer.getTrack('helicopter').pan( e.target.valueAsNumber )
+			if(Mixer.getTrack('track3')) Mixer.getTrack('track3').pan( e.target.valueAsNumber )
 		},false)
 
 

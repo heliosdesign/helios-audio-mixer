@@ -1355,10 +1355,8 @@ var heliosAudioMixer = (function() {
     this.gainCache(this.options.gain)
     this.gain(0)
     this.options.muted = true
-
     if(this.options.sourceMode === 'element')
       this.element.muted = true
-
     return this
   }
 
