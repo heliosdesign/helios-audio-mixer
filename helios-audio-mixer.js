@@ -502,12 +502,6 @@ var heliosAudioMixer = (function() {
 
   var Track = function(name, opts, mix) {
 
-    // this.extend = extend
-    // this.on = Event.on
-    // this.off = Event.off
-    // this.trigger = Event.trigger
-
-    // default options
     this.defaults = {
 
       sourceMode: 'buffer', // buffer or (media) element
@@ -540,7 +534,6 @@ var heliosAudioMixer = (function() {
     if(this.options.gainCache === false)
       this.options.gainCache = this.options.gain
 
-
     this.name = name;
 
     // Status
@@ -556,11 +549,10 @@ var heliosAudioMixer = (function() {
     this.tweens  = {};
     this.nodes   = undefined;   // holds the web audio nodes (gain and pan are defaults, all other optional)
 
-    this.onendtimer = undefined;  // web audio api in chrome doesn't support onend event yet (WTF)
+    this.onendtimer = undefined;  // web audio api in chrome doesn't support onend event yet :(
 
     this.element = undefined; // html5 <audio> or <video> element
     this.source  = undefined; //  web audio source:
-
 
     if(typeof this.options.source === 'string' && this.options.source.indexOf('blob:') !== 0) {
       // append extension only if it’s a file path
@@ -701,8 +693,8 @@ var heliosAudioMixer = (function() {
     /**
      * Add options if they're set.
      */
-    if (_this.options.looping) { _this.element.loop = true; }
-    if (_this.options.muted) { _this.element.muted = true; }
+    if (_this.options.looping) { _this.element.loop  = true; }
+    if (_this.options.muted)   { _this.element.muted = true; }
 
     if(_this.mix.context)
       _this.source = _this.mix.context.createMediaElementSource(_this.element);
@@ -1324,6 +1316,7 @@ var heliosAudioMixer = (function() {
       }
 
       this.mix.log(2, '[Mixer] "' + this.name + '" setting gain to ' + this.options.gain)
+      console.log(this.options.gain, this.options.gainCache)
 
       this.trigger('gain', this.options.gain, this)
 
@@ -1363,11 +1356,16 @@ var heliosAudioMixer = (function() {
     this.gain(0)
     this.options.muted = true
 
+    if(this.options.sourceMode === 'element')
+      this.element.muted = true
+
     return this
   }
 
   Track.prototype.unmute = function() {
     this.options.muted = false;
+    if(this.options.sourceMode === 'element')
+      this.element.muted = false
     this.gain(this.options.gainCache)
     return this
   }
