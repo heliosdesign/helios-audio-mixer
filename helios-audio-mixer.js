@@ -1316,7 +1316,6 @@ var heliosAudioMixer = (function() {
       }
 
       this.mix.log(2, '[Mixer] "' + this.name + '" setting gain to ' + this.options.gain)
-      console.log(this.options.gain, this.options.gainCache)
 
       this.trigger('gain', this.options.gain, this)
 
