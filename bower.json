@@ -13,9 +13,9 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "demo*",
+    "demos*",
     "test*",
-    "source",
+    "src",
     "gulpfile.js",
     "package.json"
   ],
