@@ -359,7 +359,7 @@ var u = require('./utils')
 var detect = require('./detect')
 var debug = require('./debug');
 
-var Track = function(name, opts, mix) {
+var HTML5Track = function(name, opts, mix) {
 
   console.log('HTML5 TRACK');
 
@@ -426,10 +426,10 @@ var Track = function(name, opts, mix) {
   Event Functionality
 
 */
-Track.prototype.on = u.events.on;
-Track.prototype.one = u.events.one;
-Track.prototype.off = u.events.off;
-Track.prototype.trigger = u.events.trigger;
+HTML5Track.prototype.on = u.events.on;
+HTML5Track.prototype.one = u.events.one;
+HTML5Track.prototype.off = u.events.off;
+HTML5Track.prototype.trigger = u.events.trigger;
 
 
 
@@ -441,9 +441,8 @@ Track.prototype.trigger = u.events.trigger;
   Load
 
 */
-Track.prototype.useElement = function() {
+HTML5Track.prototype.useElement = function() {
   var track = this;
-  track.element.crossOrigin = '';
 
   // Add options if they're set.
   if (track.options.looping)  track.element.loop  = true;
@@ -473,7 +472,7 @@ Track.prototype.useElement = function() {
   Play
 
 */
-Track.prototype.play = function() {
+HTML5Track.prototype.play = function() {
 
   var track = this;
 
@@ -495,7 +494,7 @@ Track.prototype.play = function() {
 
 */
 
-Track.prototype.pause = function(at) {
+HTML5Track.prototype.pause = function(at) {
   var track = this;
   if(!track.status.ready || !track.status.playing) return;
 
@@ -513,7 +512,7 @@ Track.prototype.pause = function(at) {
 //     ##  ##  ##    ## ##
 // #####   ##   ######  ##
 
-Track.prototype.stop = function() {
+HTML5Track.prototype.stop = function() {
   var track = this;
 
   if(!track.status.ready || !track.status.playing) return;
@@ -535,8 +534,8 @@ Track.prototype.stop = function() {
 
 function dummy(){ return this }
 
-Track.prototype.pan = dummy
-Track.prototype.tweenPan = dummy
+HTML5Track.prototype.pan = dummy
+HTML5Track.prototype.tweenPan = dummy
 
 
 
@@ -547,7 +546,7 @@ Track.prototype.tweenPan = dummy
 //  #####  ##   ## #### ##   ##
 
 // Gain getter/setter
-Track.prototype.gain = function(val) {
+HTML5Track.prototype.gain = function(val) {
   var track = this;
 
   if(typeof val === 'number') {
@@ -565,7 +564,7 @@ Track.prototype.gain = function(val) {
   return track.element.volume
 }
 
-Track.prototype.tweenGain = function(_val, _tweenDuration) {
+HTML5Track.prototype.tweenGain = function(_val, _tweenDuration) {
   var track = this;
   return new Promise(function(resolve, reject){
     if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') reject(Error('Invalid value for duration.'))
@@ -588,12 +587,12 @@ Track.prototype.tweenGain = function(_val, _tweenDuration) {
   })
 }
 
-Track.prototype.mute = function() {
+HTML5Track.prototype.mute = function() {
   this.options.muted = true;
   return this;
 }
 
-Track.prototype.unmute = function() {
+HTML5Track.prototype.unmute = function() {
   this.element.muted = false;
   return this;
 }
@@ -611,7 +610,7 @@ Track.prototype.unmute = function() {
 */
 
 // set/get
-Track.prototype.currentTime = function(setTo) {
+HTML5Track.prototype.currentTime = function(setTo) {
   if(!this.status.ready) return;
   var track = this;
 
@@ -625,18 +624,18 @@ Track.prototype.currentTime = function(setTo) {
 }
 
 // 00:01/00:02
-Track.prototype.formattedTime = function(includeDuration) {
+HTML5Track.prototype.formattedTime = function(includeDuration) {
   if(includeDuration)
     return u.timeFormat(this.currentTime()) + '/' + u.timeFormat(this.duration());
   else
     return u.timeFormat(this.currentTime());
 }
 
-Track.prototype.duration = function() {
+HTML5Track.prototype.duration = function() {
   return this.element.duration || 0;
 }
 
-module.exports = Track;
+module.exports = HTML5Track;
 
 },{"./debug":2,"./detect":3,"./utils":7}],6:[function(require,module,exports){
 /*
