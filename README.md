@@ -53,7 +53,7 @@ Remember to call `TWEEN.update()` using `requestAnimationFrame`, or tweens won�
 
 ### Source Types
 
-Tracks use buffer source by default. Use HTML5 element source for a track by setting the `sourceMode` option (an out-of-DOM `<audio>` element will be created), or setting the `source` option to an existing HTML5 media element instead of a string. The main advantage of HTML5 element source is that audio files can be streamed.
+Tracks use buffer source by default. Use HTML5 element source for a track by setting the `sourceMode` option (an out-of-DOM `<audio>` element will be created), or setting the `source` option to an existing HTML5 media element instead of a string. The main advantage of HTML5 element source is that audio files can be streamed. The main disadvantage is that
 
 ```
 
@@ -78,12 +78,12 @@ Access/override/whatever through `Mixer.detect`.
 ```
 Detect = {
 	webAudio:    true | false
-	audioTypes: { 
-	  'mp3': true/false, 
-	  'm4a': true/false, 
+	audioTypes: {
+	  'mp3': true/false,
+	  'm4a': true/false,
 	  'ogg': true/false
 	}, // in order of preference
-	videoType:  { 
+	videoType:  {
 	  '.webm': true/false,
 	  '.mp4': true/false,
 	  '.ogv': true/false
@@ -136,9 +136,9 @@ pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
 nodes        | `[]`      | array of strings: names of desired additional audio nodes. `pan` and `gain` are included by default.
 start        | `0`        | start time in seconds
 currentTime  | `0`        | current time (cached for resuming from pause)
-looping      | `false`    | 
+looping      | `false`    |
 autoplay     | `true`     | play immediately on load
-muted        | `false`    | 
+muted        | `false`    |
 
 ## Track Methods
 
@@ -165,7 +165,7 @@ See event list below.
 Getter/setter for stereo pan: angle can be a number in degrees (0° front, clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
 
 
-##### `track.tweenPan(angle, duration)` 
+##### `track.tweenPan(angle, duration)`
 
 Returns a Promise, which passes the track object: `.then(function(track){})`.
 
@@ -199,8 +199,8 @@ Get track duration in seconds.
 
 ##### `formattedTime( includeDuration )`
 
-Transforms:  
-`23` &rarr; `"00:23"` or `"00:23/00:45"`  
+Transforms:
+`23` &rarr; `"00:23"` or `"00:23/00:45"`
 `90` &rarr; `"01:30"` or `"01:30/2:00"`
 
 
@@ -213,9 +213,9 @@ name | when
 `remove` | removeTrack()
 `load` | audio track is ready to play
 `loadError` | source file couldn’t be loaded
-`play` | 
-`pause` | 
-`stop` | 
+`play` |
+`pause` |
+`stop` |
 `ended` | track reaches the end
 `pan` | pan is changed
 `gain` | gain is changed
@@ -265,7 +265,7 @@ for(var i=0; i < Mixer.tracks.length; i++ ){
 }
 
 // If the track’s already been created, the mixer will swap its source
-Mixer.createTrack('track1', { 
+Mixer.createTrack('track1', {
 	source:   'file.mp3',
 	autoplay:  true
 });
@@ -277,7 +277,7 @@ iOS 6 supports the Web Audio API and it works pretty well. iOS 7 "supports" the 
 
 #### iOS 8
 
-iOS 8 actually 
+iOS 8 actually
 
 #### iOS Volume Control
 

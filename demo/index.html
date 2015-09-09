@@ -30,12 +30,18 @@
 		}
 
 		td {
-			/* border-left: 1px solid #ddd; */
-			/* border-right: 1px solid #ddd; */
-			border-top: none;
-			border-bottom: none;
+			border-width: 0;
 			padding: 0.5em;
 			border-collapse: separate;
+		}
+
+		tr.border-top td {
+			border-top: 1px solid #555;
+			padding-top: 1em;
+		}
+
+		.checkbox-label {
+			display: block;
 		}
 
 		button {
@@ -76,15 +82,15 @@
 			<td><h4>Create</h4></td>
 
 			<td>
-				<button onclick="createTrack1()"> create </button>
+				<button onclick="track1.create()"> create </button>
 				<button onclick="Mixer.removeTrack('track1')">remove</button>
 			</td>
 			<td>
-				<button onclick="createFluorescent()"> create</button>
+				<button onclick="track2.create()"> create</button>
 				<button onclick="Mixer.removeTrack('track2')">remove</button>
 			</td>
 			<td>
-				<button onclick="createtrack3()"> create</button>
+				<button onclick="track3.create()"> create</button>
 				<button onclick="Mixer.removeTrack('track3')">remove</button>
 			</td>
 
@@ -110,6 +116,7 @@
 					<option value="SilverBottle">SilverBottle</option>
 				</select>
 			</td>
+
 		</tr><tr>
 
 		<td><h4>Source Mode</h4></td>
@@ -135,11 +142,63 @@
 
 		</tr><tr>
 
+		<td><h4>Attributes</h4></td>
+
+			<td>
+				<label class="checkbox-label" for="track1-looping">
+					<input type="checkbox" id="track1-looping" name="track1-looping">
+					looping
+				</label>
+				<label class="checkbox-label" for="track1-muted">
+					<input type="checkbox" id="track1-muted" name="track1-muted">
+					muted
+				</label>
+				<label class="checkbox-label" for="track1-autoplay">
+					<input type="checkbox" id="track1-autoplay" name="track1-autoplay" checked>
+					autoplay
+				</label>
+
+			</td>
+			<td>
+				<label class="checkbox-label" for="track2-looping">
+					<input type="checkbox" id="track2-looping" name="track2-looping">
+					looping
+				</label>
+				<label class="checkbox-label" for="track2-muted">
+					<input type="checkbox" id="track2-muted" name="track2-muted">
+					muted
+				</label>
+				<label class="checkbox-label" for="track2-autoplay">
+					<input type="checkbox" id="track2-autoplay" name="track2-autoplay" checked>
+					autoplay
+				</label>
+
+
+			</td>
+			<td>
+				<label class="checkbox-label" for="track3-looping">
+					<input type="checkbox" id="track3-looping" name="track3-looping">
+					looping
+				</label>
+				<label class="checkbox-label" for="track3-muted">
+					<input type="checkbox" id="track3-muted" name="track3-muted">
+					muted
+				</label>
+				<label class="checkbox-label" for="track3-autoplay">
+					<input type="checkbox" id="track3-autoplay" name="track3-autoplay" checked>
+					autoplay
+				</label>
+
+
+			</td>
+
+		</tr><tr class="border-top">
+
 			<td><h4>Gain</h4></td>
 
 			<td><input name="track1gain" id="track1gain" type="range" min="0" max="100" value="100"></td>
-			<td><input name="track2gain" id="track2gain" type="range" min="0" max="100" value="10"></td>
-			<td><input name="track3gain" id="track3gain" type="range" min="0" max="100" value="50"></td>
+			<td><input name="track2gain" id="track2gain" type="range" min="0" max="100" value="100"></td>
+			<td><input name="track3gain" id="track3gain" type="range" min="0" max="100" value="100"></td>
 
 		</tr><tr>
 
@@ -258,7 +317,7 @@
 			Mixer.createTrack('track3', {});
 		}
 
-		mute()
+		// mute()
 
 		Mixer.setLogLvl(2)
 
@@ -284,14 +343,84 @@
 			}
 		}
 
+		/**************************************************************************
+
+			Demo Track
+
+		**************************************************************************/
+
+		var demoTrack = function(name){
+			var track
+			var panCanvas = document.getElementById(name+'panCanvas');
+
+			function create(){
+				var opts = {
+					source: 'audio/' + document.getElementById(name+'-source').value,
+					sourceMode: document.getElementById(name+'-source-mode').value,
+					gain: 1.0,
+					looping: document.getElementById(name+'-looping').checked,
+					muted: document.getElementById(name+'-muted').checked,
+					autoplay: document.getElementById(name+'-autoplay').checked,
+				}
+				track = Mixer.createTrack(name, opts)
+
+				track.on('ended', function(){
+					console.log(name+'ended event')
+				})
+
+				track.on('pan',function(){
+					updatePanDisplay(name, panCanvas)
+					document.getElementById(name+'pan').value = track.options.pan
+				})
+
+				track.on('gain',function(){
+					document.getElementById(name+'gain').value = track.options.gain*100
+				})
+
+				var timeEl = document.getElementById(name+'time')
+				var playheadEl = document.getElementById(name+'playhead')
+
+				track.on('play',function(){
+					frameRunner.add('drone_timeUpdate','everyFrame', function(){
+						updateTime( track, timeEl, playheadEl )
+					})
+				})
+
+				track.on('pause',function(){
+					frameRunner.remove('drone_timeUpdate','everyFrame')
+				})
+
+				var updateTime = function( track, timeEl, playheadEl ){
+					if( !track ) return
+					timeEl.innerHTML = track.formattedTime();
+					playheadEl.style.left = ( track.currentTime() / track.duration() ) * 100 + 'px';
+				}
+			}
+
+			document.getElementById(name+'gain').addEventListener('change',function(e){
+				if(Mixer.getTrack(name)) Mixer.getTrack(name).gain(e.target.value/100)
+			}, false)
+
+			document.getElementById(name+'pan').addEventListener('change',function(e){
+				if(Mixer.getTrack(name)) Mixer.getTrack(name).pan( e.target.valueAsNumber );
+			},false)
+
+			return {
+				create: create
+			}
+		}
+
+
+		var track1 = new demoTrack('track1')
+		var track2 = new demoTrack('track2')
+		var track3 = new demoTrack('track3')
+
+
+
 		// ********************************************************
 		// Setup and Events
 
-		var track1panCanvas = document.getElementById('track1panCanvas');
-		var track2panCanvas = document.getElementById('track2panCanvas');
-		var track3panCanvas = document.getElementById('track3panCanvas');
-
-		function updatePanDisplay(trackName,canvas){
+		function updatePanDisplay(trackName, canvas){
 			// Canvas
 			var x = 50 + (Mixer.getTrack(trackName).options.panX * 20);
 			var y = 50 + (-Mixer.getTrack(trackName).options.panY * 20);
@@ -306,144 +435,10 @@
 			ctx.fillRect(x-5,y-5,10,10)
 		}
 
-		function createTrack1(){
 
-			var track1 = Mixer.createTrack('track1', {
-				source: 'audio/' + document.getElementById('track1-source').value,
-				sourceMode: document.getElementById('track1-source-mode').value,
-				gain: 1.0,
-				looping: true,
-				autoplay: true
-			})
-
-			track1.on('ended', function(){
-				console.log('track1 ended event')
-			})
-
-			track1.on('pan',function(){
-				updatePanDisplay('track1',track1panCanvas)
-				document.getElementById('track1pan').value = track1.options.pan
-			})
-
-			track1.on('gain',function(){
-				document.getElementById('track1gain').value = track1.options.gain*100
-			})
-
-			var timeEl = document.getElementById('track1time')
-			,	playheadEl = document.getElementById('track1playhead')
-
-			track1.on('play',function(){
-				frameRunner.add('drone_timeUpdate','everyFrame', function(){
-					updateTime( track1, timeEl, playheadEl )
-				})
-			})
-
-			track1.on('pause',function(){
-				frameRunner.remove('drone_timeUpdate','everyFrame')
-			})
-
-
-
-			var updateTime = function( track, timeEl, playheadEl ){
-				if( !track ) return
-				timeEl.innerHTML = track1.formattedTime();
-				playheadEl.style.left = ( track1.currentTime() / track1.duration() ) * 100 + 'px';
-			}
-
-			frameRunner.add('updateTime','everyFrame',updateTime)
-
-
-
-
-		}
-
-		// ~~~
-
-		function createFluorescent(){
-
-			Mixer.createTrack('track2', {
-				source: 'audio/' + document.getElementById('track2-source').value,
-				sourceMode: document.getElementById('track2-source-mode').value,
-				autoplay: true,
-				gain: 1,
-				pan: 'left'
-			})
-
-			Mixer.getTrack('track2').on('pan',function(){
-				updatePanDisplay('track2',track2panCanvas)
-				document.getElementById('track2pan').value = Mixer.getTrack('track2').options.pan
-			})
-
-			Mixer.getTrack('track2').on('gain',function(){
-				document.getElementById('track2gain').value = Mixer.getTrack('track2').options.gain*100
-			})
-
-		}
-
-
-
-		function createtrack3(){
-			Mixer.createTrack('track3', {
-				source: 'audio/' + document.getElementById('track3-source').value,
-				sourceMode: document.getElementById('track3-source-mode').value,
-				gain: 0.5,
-				pan: 0,
-				// nodes: [ 'compressor' ]
-			})
-
-			Mixer.getTrack('track3').on('load',function(){
-				console.log('TRACK 3 LOADED CALLBACK')
-			})
-
-			Mixer.getTrack('track3').on('pan',function(){
-				updatePanDisplay('track3',track3panCanvas)
-				document.getElementById('track3pan').value = Mixer.getTrack('track3').options.pan
-			})
-
-			Mixer.getTrack('track3').on('gain',function(){
-				document.getElementById('track3gain').value = Mixer.getTrack('track3').options.gain*100
-			})
-		}
-
-		// ~~~
-
-
-
-		// ********************************************************
-		// Gain Sliders
-
-		document.getElementById('track1gain').addEventListener('change',function(e){
-			console.log('CHANGE')
-			if(Mixer.getTrack('track1')) Mixer.getTrack('track1').gain(e.target.value/100)
-		},false)
-
-		document.getElementById('track2gain').addEventListener('change',function(e){
-			if(Mixer.getTrack('track2')) Mixer.getTrack('track2').gain(e.target.value/100)
-		},false)
-
-		document.getElementById('track3gain').addEventListener('change',function(e){
-			if(Mixer.getTrack('track3')) Mixer.getTrack('track3').gain(e.target.value/100)
-		},false)
-
+		// Master Gain Slider
 		document.getElementById('mastergain').addEventListener('change',function(e){
 			Mixer.gain(e.target.value/100)
-		},false)
-
-
-
-		// ********************************************************
-		// Pan Sliders
-
-		document.getElementById('track1pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('track1')) Mixer.getTrack('track1').pan( e.target.valueAsNumber );
-		},false)
-
-		document.getElementById('track2pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('track2')) Mixer.getTrack('track2').pan( e.target.valueAsNumber )
-		},false)
-
-		document.getElementById('track3pan').addEventListener('change',function(e){
-			if(Mixer.getTrack('track3')) Mixer.getTrack('track3').pan( e.target.valueAsNumber )
 		},false)
 
 

@@ -241,7 +241,7 @@ var heliosAudioMixer = (function() {
 
   };
 
-
+  // inherit base class functionality
   Mix.prototype = new BaseClass()
 
 
@@ -1082,7 +1082,7 @@ var heliosAudioMixer = (function() {
     // W3C standard implementation (Firefox, recent Chrome)
     if(typeof _this.mix.context.createGain === 'function') {
 
-      _this.mix.context.decodeAudioData(_this.options.audioData, function onSuccess(decodedBuffer) {
+      _this.mix.context.decodeAudioData(_this.options.audioData, function(decodedBuffer){
         if(_this.status.ready) return
 
         _this.source        = _this.mix.context.createBufferSource();
@@ -1332,7 +1332,7 @@ var heliosAudioMixer = (function() {
     var _this = this;
     return new Promise(function(resolve, reject){
       if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') reject(Error('Invalid value for duration.'))
-      _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening gain ' + _this.options.gain + ' -> ' + _val)
+      _this.mix.log(2, '[Mixer] "' + _this.name + '" tweening gain ' + _this.options.gain + ' -> ' + _val + ' ('+_tweenDuration+'ms)')
 
       // replace existing gain tween
       if(_this.tweens.gain) _this.tweens.gain.stop()
@@ -1347,6 +1347,7 @@ var heliosAudioMixer = (function() {
           resolve(_this)
         })
         .start()
+
     })
   }
 
