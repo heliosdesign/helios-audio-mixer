@@ -7,27 +7,86 @@ var gutil = require('gulp-util');
 var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var rename = require('gulp-rename');
+var livereload   = require('gulp-livereload');
 
-var entry = './src/bundle-standalone.js'
-
-var opts = {
-  debug: true,
-  entries: [entry]
-};
-var b = watchify(browserify(opts));
-
-gulp.task('js', bundle);
-function bundle() {
-  return b.bundle()
-    .pipe(source(entry))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true}))
-      .pipe(uglify())
-      .pipe(rename('./helios-audio-mixer.js'))
-      .on('error', gutil.log)
-    .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('./'));
+var entry = {
+  standalone: './src/bundle-standalone.js',
+  browserify: './src/bundle-browserify.js',
 }
 
-b.on('update', bundle);
-b.on('log', gutil.log)
+var uglifyOpts = { mangle: false }
+
+/*
+
+  Watch
+
+*/
+
+
+
+gulp.task('watch', function(){
+  livereload.listen();
+
+  var b = browserify({
+    debug: true,
+    entries: [entry.standalone]
+  });
+
+  var w = watchify(b);
+
+  function bundle() {
+    return w.bundle()
+      .pipe(source(entry.standalone))
+      .pipe(buffer())
+      .pipe(sourcemaps.init({loadMaps: true}))
+        .pipe(rename('./helios-audio-mixer.js'))
+        .on('error', gutil.log)
+      .pipe(sourcemaps.write('./src/'))
+      .pipe(gulp.dest('./src/'))
+      .pipe(livereload())
+  }
+
+  w.on('update', bundle);
+  w.on('log', gutil.log);
+
+  bundle();
+});
+
+
+
+
+
+
+/*
+
+  Build
+
+*/
+
+gulp.task('build-browserify', function(){
+  var b = browserify({
+    debug: false,
+    entries: entry.browserify
+  });
+  return b.bundle()
+    .pipe(source(entry.browserify))
+    .pipe(buffer())
+      .pipe(uglify(uglifyOpts))
+      .pipe(rename('./helios-audio-mixer.browserify.js'))
+    .pipe(gulp.dest('./'))
+});
+
+gulp.task('build-standalone', function(){
+  var b = browserify({
+    debug: false,
+    entries: entry.standalone
+  });
+  return b.bundle()
+    .pipe(source(entry.standalone))
+    .pipe(buffer())
+      .pipe(uglify(uglifyOpts))
+      .pipe(rename('./helios-audio-mixer.js'))
+    .pipe(gulp.dest('./'))
+});
+
+gulp.task('build', ['build-standalone', 'build-browserify']);

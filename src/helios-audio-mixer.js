@@ -1,3 +1,645 @@
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var mix = require('./mix');
+window.heliosAudioMixer = mix;
+},{"./mix":4}],2:[function(require,module,exports){
+/*
+
+  Debug
+
+*/
+
+var u = require('./utils')
+
+var debug = {};
+module.exports = debug;
+
+// 0 no logging, 1 minimal, 2 all (spammy)
+debug.level = 1;
+
+// u.log(1, arg, arg, arg) -> console.log('[Mixer] arg arg arg')
+debug.log = function(lvl) {
+  if(lvl <= debug.level) {
+    var str = '[Mixer] '
+    for (var i = 1; i < arguments.length; i++)
+      str += arguments[i] + ' '
+    console.log(str)
+  }
+}
+
+debug.setLogLvl = function(lvl) {
+  this.debug = u.constrain(lvl, 0, 2);
+  debug.log(1, 'Set log level:', lvl)
+}
+},{"./utils":7}],3:[function(require,module,exports){
+var detect = {};
+
+// Web audio API support
+detect.webAudio = !!(window.AudioContext || window.webkitAudioContext),
+
+// Which audio types can the browser actually play?
+detect.audioTypes =(function() {
+  var el = document.createElement('audio')
+
+  return {
+    '.m4a': !!(el.canPlayType && el.canPlayType('audio/mp4; codecs="mp4a.40.2"').replace(/no/, '')),
+    '.mp3': !!(el.canPlayType && el.canPlayType('audio/mpeg;').replace(/no/, '')),
+    '.ogg': !!(el.canPlayType && el.canPlayType('audio/ogg; codecs="vorbis"').replace(/no/, ''))
+  }
+})(),
+
+detect.videoTypes = (function() {
+
+  var el = document.createElement('video')
+
+  return {
+    '.webm': !!(el.canPlayType && el.canPlayType('video/webm; codecs="vp8, vorbis"').replace(/no/, '')),
+    '.mp4':  !!(el.canPlayType && el.canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"').replace(/no/, '')),
+    '.ogv':  !!(el.canPlayType && el.canPlayType('video/ogg; codecs="theora"').replace(/no/, ''))
+  }
+})(),
+
+// prefer bowser, but with fallback
+detect.browser = (function() {
+
+  if(typeof bowser !== 'undefined') return bowser;
+
+  return {
+    firefox: !!navigator.userAgent.match(/Firefox/g),
+    android: !!navigator.userAgent.match(/Android/g),
+    msie:    !!navigator.userAgent.match(/MSIE/g),
+    ios:     !!navigator.userAgent.match(/(iPad|iPhone|iPod)/g),
+
+    version: false
+  };
+})(),
+
+// is tween.js present?
+detect.tween = (function() {
+  return (typeof TWEEN === 'undefined') ? false : true
+})()
+
+module.exports = detect;
+},{}],4:[function(require,module,exports){
+/*
+
+  ###  ### #### ##   ##
+  ########  ##   ## ##
+  ## ## ##  ##    ###
+  ##    ##  ##   ## ##
+  ##    ## #### ##   ##
+
+*/
+
+var u = require('./utils')
+var Track = require('./track')
+var html5Track = require('./track-html5')
+var detect = require('./detect')
+var debug = require('./debug')
+
+
+var Mix = function(opts) {
+
+  // Web Audio support overrides
+  if(
+    (detect.browser.name === 'Firefox' && detect.version && detect.version < 25) || // Firefox < 25
+    (detect.browser.ios === true && detect.browser.version === 7)                   // ios 7
+  ) {
+    detect.webAudio = false;
+  }
+
+  var defaults = {
+    fileTypes: [ '.mp3', '.m4a', '.ogg' ],
+    html5: !!detect.webAudio,
+    gain: 1, // master gain for entire mix
+  }
+  this.options = u.extend(defaults, opts || {});
+
+  this.setLogLvl = debug.setLogLvl
+
+  this.tracks  = [];    // tracks as numbered array
+  this.lookup  = {};    // tracks as lookup table: lookup['trackname']
+
+  this.muted   = false; // master mute status
+
+  this.context = null;  // AudioContext object (if webAudio is available)
+
+  this.detect  = detect; // external reference to detect object
+
+
+  // File Types
+  // ********************************************************
+
+  for (var i = this.options.fileTypes.length - 1; i >= 0; i--) {
+    if(!detect.audioTypes[ this.options.fileTypes[i] ])
+      this.options.fileTypes.splice(i, 1);
+  }
+
+  if(this.options.fileTypes.length <= 0) {
+    console.warn('Can’t initialize: none of the specified audio types can play in this browser.')
+    return;
+  }
+
+
+  // Initialize
+  // ********************************************************
+
+  if(detect.webAudio){
+    this.context = (typeof AudioContext === 'function' ? new window.AudioContext() : new window.webkitAudioContext() )
+  }
+
+  debug.log(1, 'initialized,', (detect.webAudio ? 'Web Audio Mode,' : 'HTML5 Mode,'), 'can play:', this.options.fileTypes)
+
+  return this
+
+};
+
+/*
+
+  Event Functionality
+
+*/
+Mix.prototype.on = u.events.on;
+Mix.prototype.one = u.events.one;
+Mix.prototype.off = u.events.off;
+Mix.prototype.trigger = u.events.trigger;
+
+
+/**************************************************************************
+
+  Track Management
+
+**************************************************************************/
+
+Mix.prototype.createTrack = function(name, opts) {
+  var mix = this;
+
+  if(!name){
+    debug.log(0, 'Can’t create track with no name');
+    return;
+  }
+
+  if(mix.lookup[name]) {
+    debug.log(0, 'a track named “' + mix.name + '” already exists')
+    return;
+  }
+
+  var track = mix.options.html5 ? new html5Track(name, opts, mix) : new Track(name, opts, mix);
+
+  mix.tracks.push(track);
+  mix.lookup[name] = track;
+
+  return track;
+};
+
+
+
+
+Mix.prototype.removeTrack = function(_input) {
+
+  var mix = this;
+
+  // _input can be either a string or a track object
+  var trackName;
+  if(typeof _input === 'string')
+    trackName = _input
+  else if(typeof _input === 'object' && _input.name)
+    trackName = _input.name
+
+  var track = mix.lookup[trackName];
+
+  if(!track) {
+    debug.log(1, 'can’t remove "' + trackName + '", it doesn’t exist');
+    return;
+  }
+
+
+  var rest  = [];
+  var arr   = mix.tracks;
+  var total = arr.length;
+
+  for (var i = 0; i < total; i++) {
+    if(arr[i] && arr[i].name === trackName) {
+      rest = arr.slice(i + 1 || total);
+      arr.length = (i < 0) ? (total + i) : (i);
+      arr.push.apply(arr, rest);
+    }
+  }
+
+  track.pause();
+  track.events = [];
+
+  // stop memory leaks!
+  if(track.element)
+    track.element.src = '';
+
+  track.trigger('remove', mix);
+
+  track = null;
+  delete mix.lookup[trackName];
+  debug.log(1, 'Removed track "' + trackName + '"');
+
+};
+
+
+Mix.prototype.getTrack = function(name) {
+  return this.lookup[name] || false;
+};
+
+
+
+
+
+/**************************************************************************
+
+  Global Mix Control
+
+**************************************************************************/
+
+Mix.prototype.pause = function() {
+
+  debug.log(1, 'Pausing ' + this.tracks.length + ' track(s) ||')
+
+  for (var i = 0; i < this.tracks.length; i++)
+    this.tracks[i].pause()
+};
+
+Mix.prototype.play = function() {
+
+  debug.log(1, 'Playing ' + this.tracks.length + ' track(s) >')
+
+  for (var i = 0; i < this.tracks.length; i++)
+    this.tracks[i].play()
+};
+
+Mix.prototype.stop = function() {
+
+  debug.log(1, 'Stopping ' + this.tracks.length + ' track(s) .')
+
+  for (var i = 0; i < this.tracks.length; i++)
+     this.tracks[i].stop()
+};
+
+
+
+
+Mix.prototype.mute = function() {
+  if(this.muted) return
+  this.muted = true
+  debug.log(1, 'Muting ' + this.tracks.length + ' tracks')
+  for (var i = 0; i < this.tracks.length; i++)
+    this.tracks[i].mute();
+};
+
+
+Mix.prototype.unmute = function() {
+  if(!this.muted) return
+  this.muted = false
+  debug.log(1, 'Unmuting ' + this.tracks.length + ' tracks')
+  for (var i = 0; i < this.tracks.length; i++)
+    this.tracks[i].unmute();
+};
+
+
+
+Mix.prototype.gain = function(masterGain) {
+  if(typeof masterGain === 'number') {
+    masterGain = u.constrain(masterGain, 0, 1);
+    this.options.gain = masterGain;
+
+    // tracks multiply their gain by the mix’s gain, so when
+    // we change the master gain we need to call track.gain()
+    // to get the intended result
+    for (var i = 0; i < this.tracks.length; i++)
+      this.tracks[i].gain(this.tracks[i].gain());
+  }
+
+  return this.options.gain;
+}
+
+
+
+
+/**************************************************************************
+
+  Utilities
+
+**************************************************************************/
+
+
+// call this using requestanimationframe
+Mix.prototype.updateTween = function() {
+  TWEEN.update();
+};
+
+
+
+
+Mix.prototype.report = function(){
+  var report = ""
+  for (var i = 0; i < this.tracks.length; i++) {
+    report += this.tracks[i].gain() + '\t' + this.tracks[i].currentTime() + '\t' + this.tracks[i].name + '\n'
+  }
+  console.log(report)
+}
+
+
+
+
+
+module.exports = Mix;
+},{"./debug":2,"./detect":3,"./track":6,"./track-html5":5,"./utils":7}],5:[function(require,module,exports){
+/*
+
+  HTML5 Track
+
+    wrapper for html5 media element
+
+*/
+
+var u = require('./utils')
+var detect = require('./detect')
+var debug = require('./debug');
+
+var Track = function(name, opts, mix) {
+
+  console.log('HTML5 TRACK');
+
+  var track = this;
+
+  var defaults = {
+
+    source: false,   // path to audio source (without file extension) OR html5 <audio> or <video> element
+
+    gain:        1,  // initial/current gain (0-1)
+
+    start:       0,  // start time in seconds
+    cachedTime:  0,  // local current time (cached for resuming from pause)
+    startTime:   0,  // time started (cached for accurately reporting currentTime)
+
+    looping:  false, //
+    autoplay: true,  // play immediately on load
+    muted:    (mix.muted) ? true : false
+  };
+
+  // override option defaults
+  track.options = u.extend(defaults, opts || {});
+
+  track.name = name;
+
+  // Status
+  track.status = {
+    loaded:  false,
+    ready:   false,
+    playing: false
+  }
+
+  track.mix = mix;  // reference to parent
+
+  track.events = {};
+  track.tweens = {};
+
+  track.element = undefined; // html5 <audio> or <video> element
+
+
+  debug.log(1, 'createTrack "' + track.name + '", mode: "html5", autoplay: ' + track.options.autoplay);
+
+  // Load
+  // ~~~~
+
+  if(typeof track.options.source === 'string' && track.options.source.indexOf('blob:') !== 0) {
+    // append extension only if it’s a file path
+    track.options.source  += track.mix.options.fileTypes[0];
+
+    track.element = document.createElement('audio');
+
+  } else if(typeof track.options.source === 'object') {
+    track.element = track.options.source;
+    track.source = track.element.src;
+  }
+
+  track.useElement();
+
+};
+
+
+/*
+
+  Event Functionality
+
+*/
+Track.prototype.on = u.events.on;
+Track.prototype.one = u.events.one;
+Track.prototype.off = u.events.off;
+Track.prototype.trigger = u.events.trigger;
+
+
+
+
+
+
+/*
+
+  Load
+
+*/
+Track.prototype.useElement = function() {
+  var track = this;
+  track.element.crossOrigin = '';
+
+  // Add options if they're set.
+  if (track.options.looping)  track.element.loop  = true;
+  if (track.options.muted)    track.element.muted = true;
+  if (track.options.autoplay) track.element.autoplay = true;
+
+  // Event listeners
+  var ready = function() {
+    track.status.loaded = true
+    if(track.options.autoplay) track.play();
+    track.trigger('load', track);
+  }
+
+  track.element.addEventListener('load', ready, false);
+  track.element.addEventListener('canplaythrough', ready, false);
+
+  track.element.addEventListener('error', function() { track.trigger('loadError') });
+
+  track.element.src = track.options.source;
+  track.element.load();
+}
+
+
+
+/*
+
+  Play
+
+*/
+Track.prototype.play = function() {
+
+  var track = this;
+
+  debug.log(1, 'Playing track "' + track.name + '" >')
+
+  track.gain(track.options.gain);
+
+  track.status.ready = true;
+  track.element.play();
+  track.trigger('play', track);
+
+  return track
+}
+
+
+/*
+
+  Pause
+
+*/
+
+Track.prototype.pause = function(at) {
+  var track = this;
+  if(!track.status.ready || !track.status.playing) return;
+
+  track.element.pause();
+  debug.log(2, 'Pausing track "' + track.name + '" at ' + track.options.cachedTime)
+  track.trigger('pause', track);
+
+  return track
+}
+
+
+//  #### ###### ######  ######
+// ##      ##  ##    ## ##   ##
+//  ####   ##  ##    ## ######
+//     ##  ##  ##    ## ##
+// #####   ##   ######  ##
+
+Track.prototype.stop = function() {
+  var track = this;
+
+  if(!track.status.ready || !track.status.playing) return;
+
+  track.element.pause();
+  track.element.currentTime = 0;
+
+  track.status.playing = false;
+  track.trigger('stop', track);
+
+  debug.log(2, 'Stopping track "' + track.name)
+
+  return track
+}
+
+
+
+
+
+function dummy(){ return this }
+
+Track.prototype.pan = dummy
+Track.prototype.tweenPan = dummy
+
+
+
+//  #####   #####  #### ###  ##
+// ##      ##   ##  ##  #### ##
+// ##  ### #######  ##  ## ####
+// ##   ## ##   ##  ##  ##  ###
+//  #####  ##   ## #### ##   ##
+
+// Gain getter/setter
+Track.prototype.gain = function(val) {
+  var track = this;
+
+  if(typeof val === 'number') {
+
+    val = u.constrain(val, 0, 1); // normalize value
+
+    track.element.volume = val * track.mix.options.gain;
+
+    debug.log(2, '"' + track.name + '" setting gain to ' + track.options.gain);
+    track.trigger('gain', track.options.gain, track);
+
+    return track;
+  }
+
+  return track.element.volume
+}
+
+Track.prototype.tweenGain = function(_val, _tweenDuration) {
+  var track = this;
+  return new Promise(function(resolve, reject){
+    if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') reject(Error('Invalid value for duration.'))
+    debug.log(2, '"' + track.name + '" tweening gain ' + track.options.gain + ' -> ' + _val + ' ('+_tweenDuration+'ms)')
+
+    // replace existing gain tween
+    if(track.tweens.gain) track.tweens.gain.stop()
+
+    track.tweens.gain = new TWEEN.Tween({ currentGain: track.options.gain })
+      .to({ currentGain: _val }, _tweenDuration)
+      .easing(TWEEN.Easing.Sinusoidal.InOut)
+      .onUpdate(function() {
+        track.gain(this.currentGain)
+      })
+      .onComplete(function() {
+        resolve(track)
+      })
+      .start()
+
+  })
+}
+
+Track.prototype.mute = function() {
+  this.options.muted = true;
+  return this;
+}
+
+Track.prototype.unmute = function() {
+  this.element.muted = false;
+  return this;
+}
+
+
+
+/*
+
+  ###### #### ###  ### ######
+    ##    ##  ######## ##
+    ##    ##  ## ## ## #####
+    ##    ##  ##    ## ##
+    ##   #### ##    ## ######
+
+*/
+
+// set/get
+Track.prototype.currentTime = function(setTo) {
+  if(!this.status.ready) return;
+  var track = this;
+
+  if(typeof setTo === 'number') {
+    debug.log(2, 'setting track "' + track.name + '" to time', setTo)
+    track.element.currentTime = setTo;
+    return track
+  }
+
+  return track.element.currentTime;
+}
+
+// 00:01/00:02
+Track.prototype.formattedTime = function(includeDuration) {
+  if(includeDuration)
+    return u.timeFormat(this.currentTime()) + '/' + u.timeFormat(this.duration());
+  else
+    return u.timeFormat(this.currentTime());
+}
+
+Track.prototype.duration = function() {
+  return this.element.duration || 0;
+}
+
+module.exports = Track;
+
+},{"./debug":2,"./detect":3,"./utils":7}],6:[function(require,module,exports){
 /*
 
   ###### #####   #####   ##### ##  ##
@@ -960,3 +1602,89 @@ Track.prototype.duration = function() {
 }
 
 module.exports = Track;
+},{"./debug":2,"./detect":3,"./utils":7}],7:[function(require,module,exports){
+/*
+
+  Utils
+
+*/
+
+var u = {};
+module.exports = u;
+
+
+u.extend = function() {
+  var output = {}
+  var args = arguments
+  var l = args.length
+
+  for (var i = 0; i < l; i++)
+    for (var key in args[i])
+      if(args[i].hasOwnProperty(key))
+        output[key] = args[i][key];
+  return output;
+}
+
+u.constrain = function(val, min, max) {
+  if(val < min) return min;
+  if(val > max) return max;
+  return val;
+}
+
+
+u.timeFormat = function(seconds) {
+  var m = Math.floor(seconds / 60) < 10 ? '0' + Math.floor(seconds / 60) : Math.floor(seconds / 60);
+  var s = Math.floor(seconds - (m * 60)) < 10 ? '0' + Math.floor(seconds - (m * 60)) : Math.floor(seconds - (m * 60));
+  return m + ':' + s;
+}
+
+/*
+
+  Events
+
+*/
+u.events = {};
+u.events.on = function(type, callback) {
+  this.events[type] = this.events[type] || [];
+  this.events[type].push(callback);
+
+  return this
+}
+
+u.events.one = function(type, callback) {
+  var _this = this
+  this.events[type] = this.events[type] || [];
+  this.events[type].push(function(){
+    _this.off(type)
+    callback()
+  });
+
+  return this
+}
+
+u.events.off = function(type) {
+  if(type === '*')
+    this.events = {};
+  else
+    this.events[type] = [];
+
+  return this
+}
+
+u.events.trigger = function(type) {
+
+  if(!this.events[type]) return;
+
+  var args = Array.prototype.slice.call(arguments, 1);
+
+  for (var i = 0, l = this.events[type].length; i < l; i++)
+      if(typeof this.events[type][i] === 'function')
+        this.events[type][i].apply(this, args);
+
+}
+
+
+},{}]},{},[1])
+
+
+//# sourceMappingURL=src/helios-audio-mixer.js.map

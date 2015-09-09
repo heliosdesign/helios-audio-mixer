@@ -1,12 +1,10 @@
-var Mixer = new heliosAudioMixer();
+var Mixer;
 
 if(window.location.hash === '#html5' || ! Mixer.detect.webAudio) {
   console.log('HTML5 mode')
-  Mixer.detect.webAudio = false;
-
-  Mixer.createTrack('track1', {});
-  Mixer.createTrack('track2', {});
-  Mixer.createTrack('track3', {});
+  Mixer = new heliosAudioMixer({html5: true})
+} else {
+  Mixer = new heliosAudioMixer();
 }
 
 // mute()

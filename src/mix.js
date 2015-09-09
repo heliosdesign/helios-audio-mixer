@@ -10,22 +10,29 @@
 
 var u = require('./utils')
 var Track = require('./track')
+var html5Track = require('./track-html5')
 var detect = require('./detect')
 var debug = require('./debug')
 
 
 var Mix = function(opts) {
 
-  this.Track = Track
-
-  this.setLogLvl = debug.setLogLvl
+  // Web Audio support overrides
+  if(
+    (detect.browser.name === 'Firefox' && detect.version && detect.version < 25) || // Firefox < 25
+    (detect.browser.ios === true && detect.browser.version === 7)                   // ios 7
+  ) {
+    detect.webAudio = false;
+  }
 
   var defaults = {
     fileTypes: [ '.mp3', '.m4a', '.ogg' ],
-    html5: false,
+    html5: !!detect.webAudio,
     gain: 1, // master gain for entire mix
   }
-  this.options = u.extend(defaults, opts || {})
+  this.options = u.extend(defaults, opts || {});
+
+  this.setLogLvl = debug.setLogLvl
 
   this.tracks  = [];    // tracks as numbered array
   this.lookup  = {};    // tracks as lookup table: lookup['trackname']
@@ -35,18 +42,6 @@ var Mix = function(opts) {
   this.context = null;  // AudioContext object (if webAudio is available)
 
   this.detect  = detect; // external reference to detect object
-
-
-  // Web Audio support overrides
-  // ********************************************************
-
-  if(
-    (detect.browser.name === 'Firefox' && detect.version && detect.version < 25) || // Firefox < 25
-    (detect.browser.ios === true && detect.browser.version === 7) ||                 // ios 7
-    this.options.html5
- ) {
-    detect.webAudio = false;
-  }
 
 
   // File Types
@@ -66,7 +61,7 @@ var Mix = function(opts) {
   // Initialize
   // ********************************************************
 
-  if(detect.webAudio === true) {
+  if(detect.webAudio){
     this.context = (typeof AudioContext === 'function' ? new window.AudioContext() : new window.webkitAudioContext() )
   }
 
@@ -94,111 +89,72 @@ Mix.prototype.trigger = u.events.trigger;
 **************************************************************************/
 
 Mix.prototype.createTrack = function(name, opts) {
+  var mix = this;
 
-  var _this = this;
-  var track;
-
-  if(!name)
-    debug.log(0, 'Can’t create track with no name')
-
-  if(detect.webAudio === true) {
-
-    if(this.lookup[name]) {
-      debug.log(0, 'a track named “' + _this.name + '” already exists')
-      return
-    }
-
-
-    track = new Track(name, opts, _this);
-
-    this.tracks.push(track);
-    this.lookup[name] = track;
-
-  } else {
-
-    track = this.lookup[name];
-
-    if(!track) { // create new track
-
-      track = new Track(name, opts, _this);
-
-      this.tracks.push(track);
-      this.lookup[ name ] = track;
-
-    } else { // change source
-
-      track.pause();
-
-      track.options = u.extend(track, track.defaults, opts || {});
-
-      if(track.options.source) {
-        track.options.source  += _this.mix.options.fileTypes[0];
-        track.createHTML5elementSource();
-      }
-    }
+  if(!name){
+    debug.log(0, 'Can’t create track with no name');
+    return;
   }
 
-  return track;
+  if(mix.lookup[name]) {
+    debug.log(0, 'a track named “' + mix.name + '” already exists')
+    return;
+  }
 
+  var track = mix.options.html5 ? new html5Track(name, opts, mix) : new Track(name, opts, mix);
+
+  mix.tracks.push(track);
+  mix.lookup[name] = track;
+
+  return track;
 };
+
+
 
 
 Mix.prototype.removeTrack = function(_input) {
 
-  var _this = this
+  var mix = this;
 
-  var track, name
-
+  // _input can be either a string or a track object
+  var trackName;
   if(typeof _input === 'string')
-    name = _input
+    trackName = _input
   else if(typeof _input === 'object' && _input.name)
-    name = _input.name
+    trackName = _input.name
 
-  var track = _this.lookup[name]
+  var track = mix.lookup[trackName];
 
   if(!track) {
-    debug.log(1, 'can’t remove "' + name + '", it doesn’t exist');
+    debug.log(1, 'can’t remove "' + trackName + '", it doesn’t exist');
     return;
   }
 
-  if(detect.webAudio === true) {
 
-    track.pause();
+  var rest  = [];
+  var arr   = mix.tracks;
+  var total = arr.length;
 
-    var rest
-    var arr   = _this.tracks
-    var total = arr.length
-
-    for (var i = 0; i < total; i++) {
-      if(arr[i] && arr[i].name === name) {
-        rest = arr.slice(i + 1 || total);
-        arr.length = (i < 0) ? (total + i) : (i);
-        arr.push.apply(arr, rest);
-      }
+  for (var i = 0; i < total; i++) {
+    if(arr[i] && arr[i].name === trackName) {
+      rest = arr.slice(i + 1 || total);
+      arr.length = (i < 0) ? (total + i) : (i);
+      arr.push.apply(arr, rest);
     }
-
-    track.trigger('remove', _this);
-    track.events = [];
-
-    // stop memory leaks!
-    if(track.options.sourceMode === 'element' && track.element)
-      track.element.src = '';
-
-    track = null;
-    delete _this.lookup[name];
-    debug.log(1, 'Removed track "' + name + '"');
-
-  } else {
-
-    track.pause();
-
-    track.element.src = '';
-    track.source = '';
-
-    track.ready = false;
-    track.loaded = false;
-
   }
+
+  track.pause();
+  track.events = [];
+
+  // stop memory leaks!
+  if(track.element)
+    track.element.src = '';
+
+  track.trigger('remove', mix);
+
+  track = null;
+  delete mix.lookup[trackName];
+  debug.log(1, 'Removed track "' + trackName + '"');
 
 };
 
@@ -264,12 +220,13 @@ Mix.prototype.unmute = function() {
 
 
 Mix.prototype.gain = function(masterGain) {
-  if(typeof masterGain !== 'undefined') {
+  if(typeof masterGain === 'number') {
+    masterGain = u.constrain(masterGain, 0, 1);
     this.options.gain = masterGain;
 
-    // this seems silly, but tracks multiply their gain by the master's
-    // so if we change the master gain and call track.gain() we will
-    // get the intended result
+    // tracks multiply their gain by the mix’s gain, so when
+    // we change the master gain we need to call track.gain()
+    // to get the intended result
     for (var i = 0; i < this.tracks.length; i++)
       this.tracks[i].gain(this.tracks[i].gain());
   }
