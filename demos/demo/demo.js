@@ -1,6 +1,6 @@
 var Mixer;
 
-if(window.location.hash === '#html5' || ! Mixer.detect.webAudio) {
+if(window.location.hash === '#html5') {
   console.log('HTML5 mode')
   Mixer = new heliosAudioMixer({html5: true})
 } else {

@@ -41,7 +41,7 @@ gulp.task('watch', function(){
       .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(rename('./helios-audio-mixer.js'))
         .on('error', gutil.log)
-      .pipe(sourcemaps.write('./src/'))
+      .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('./src/'))
       .pipe(livereload())
   }
