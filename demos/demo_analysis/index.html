@@ -7,7 +7,7 @@
 	<style>
 		* { font-family: sans-serif; }
 
-		h4 { 
+		h4 {
 			display: inline-block;
 			width: 5em;
 			margin: 0;
@@ -48,7 +48,7 @@
 	<br><br>
 
 	<button onclick="mute()">Toggle Mute</button>
-	
+
 	<br><br>
 
 	<canvas id="fft"></canvas>
@@ -144,13 +144,13 @@
 
 			ctx.fillStyle = 'rgb(250, 250, 250)';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      
+
       var x = 0
 
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 
       for(var i = 0; i < track.options.bufferLength.length; i++) {
-	   
+
         fftdivs[i].innerText = fftdata[i]
 
         barHeight = fftdata[i]
@@ -161,7 +161,7 @@
 
 		}
 
-		
+
 
 	</script>
 
