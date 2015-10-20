@@ -9,7 +9,7 @@ if(window.location.hash === '#html5') {
 
 // mute()
 
-Mixer.setLogLvl(2)
+Mixer.setLogLvl(0)
 
 frameRunner.start();
 frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
@@ -45,8 +45,7 @@ var demoTrack = function(name){
 
   function create(){
     var opts = {
-      source: 'http://phoneline.quipu-project.com/sites/default/files/RE630481ccca46d73f7d062659cdeb89e2',
-      // source: 'audio/' + document.getElementById(name+'-source').value,
+      source: 'audio/' + document.getElementById(name+'-source').value,
       sourceMode: document.getElementById(name+'-source-mode').value,
       gain: 1.0,
       looping: document.getElementById(name+'-looping').checked,

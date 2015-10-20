@@ -14,6 +14,7 @@ debug.level = 1;
 
 // u.log(1, arg, arg, arg) -> console.log('[Mixer] arg arg arg')
 debug.log = function(lvl) {
+  console.log(lvl, arguments);
   if(lvl <= debug.level) {
     var str = '[Mixer] '
     for (var i = 1; i < arguments.length; i++)
@@ -24,5 +25,5 @@ debug.log = function(lvl) {
 
 debug.setLogLvl = function(lvl) {
   this.debug = u.constrain(lvl, 0, 2);
-  debug.log(1, 'Set log level:', lvl)
+  debug.log(0, 'Set log level:', lvl)
 }
