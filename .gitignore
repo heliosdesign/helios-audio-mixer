@@ -1,8 +1,16 @@
 .*
+*.map
+
+*.mp3
+*.m4a
+*.ogg
+*.wav
+*.mv4
+*.mp4
+*.webm
+
 node_modules/
-demo/audio
-*demo*/audio
-*test*/audio
+*/audio
 bower_components/
 /_*
 

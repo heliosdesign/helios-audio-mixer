@@ -1,4 +1,17 @@
-### 0.1.1
+## 0.2.0
+
+- audio analysis
+- refactored into separate modules using Browserify
+
+### 0.1.3
+
+misc fixes
+
+### 0.1.2
+
+fixed `removeTrack()` memory leak
+
+## 0.1.1
 
 2015.6.8
 

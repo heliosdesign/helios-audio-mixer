@@ -1,0 +1,31 @@
+{
+  "name": "audio-mixer",
+  "version": "1.0.0",
+  "description": "**Bower** `helios-audio-mixer`",
+  "main": "helios-audio-mixer-html5.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heliosdesign/helios-audio-mixer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/heliosdesign/helios-audio-mixer/issues"
+  },
+  "homepage": "https://github.com/heliosdesign/helios-audio-mixer",
+  "devDependencies": {
+    "browserify": "^11.0.1",
+    "gulp": "^3.9.0",
+    "gulp-livereload": "^3.8.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-uglify": "^1.4.0",
+    "gulp-util": "^3.0.6",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.4.0"
+  }
+}

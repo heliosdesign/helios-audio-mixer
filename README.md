@@ -228,20 +228,31 @@ mix.getTrack('name').off('eventType');
 
 #### Analysis
 
-FFT using the [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode).
+FFT using the [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode). Access analysis data at `track.analysis`. The raw data is available, as well as averages for lows, mids, highs, and the entire spectrum:
 
 ```
-var track = Mixer.createTrack('analysisTrack',{
+track.analysis = {
+  raw:    [128, 128, ...],
+  average: 128,
+  low:     128,
+  mid:     128,
+  high:    128
+}
+```
+
+```
+var track = Mixer.createTrack('analysisTrack', {
   source: 'file',
   nodes: 'analyse'
 })
 
-var analysisData
-
-track.on('analyse', function(_analysisData){
-    analysisData = _analysisData
-    console.log(analysisData)
+track.on('play', function(){
+  frameRunner.add('fft', 'everyFrame', fft)
 })
+
+function fft(){
+  var data = track.analysis;
+}
 ```
 
 ## HTML5 Mode
