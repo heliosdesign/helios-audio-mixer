@@ -332,28 +332,28 @@ Track.prototype.addNode = function(nodeType) {
       for (var i = 0; i < _this.options.bufferLength; i++)
         scratch += _this.analysis.raw[i];
 
-      _this.analysis.average = scratch / _this.options.bufferLength;
+      _this.analysis.average = (scratch / _this.options.bufferLength) / 256;
 
       // lows
       scratch = 0;
       for (var i = 0; i < third; i++)
         scratch += _this.analysis.raw[i];
 
-      _this.analysis.low = scratch / third;
+      _this.analysis.low = scratch / third / 256;
 
       // mids
       scratch = 0;
       for (var i = third; i < third*2; i++)
         scratch += _this.analysis.raw[i];
 
-      _this.analysis.mid = scratch / third;
+      _this.analysis.mid = scratch / third / 256;
 
       // highs
       scratch = 0;
       for (var i = third*2; i < _this.options.bufferLength; i++)
         scratch += _this.analysis.raw[i];
 
-      _this.analysis.high = scratch / third;
+      _this.analysis.high = scratch / third / 256;
 
       _this.trigger('analyse', _this.analysis)
     }
