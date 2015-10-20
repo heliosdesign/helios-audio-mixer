@@ -1,16 +1,18 @@
 {
   "name": "helios-audio-mixer",
-  "version": "0.1.3",
-  "homepage": "https://github.com/heliosdesign/audioMixer",
+  "version": "0.2.0",
+  "homepage": "https://github.com/heliosdesign/helios-audio-mixer",
   "authors": [
     "Helios Design Labs"
   ],
   "description": "Web Audio API mixer library",
-  "main": "dist/audioMixer.js",
+  "main": "helios-audio-mixer.js",
   "license": "MIT",
   "private": false,
   "ignore": [
     "**/.*",
+    "_*",
+    "*.map",
     "node_modules",
     "bower_components",
     "demos*",
@@ -20,12 +22,9 @@
     "package.json"
   ],
   "devDependencies": {
-    "mocha": "~1.20.1",
-    "chai": "~1.9.1",
     "tweenjs": "*",
     "helios-frame-runner": "*",
     "bowser": "~0.7.1",
-    "jquery": "~2.1.1",
-    "knockout": "~3.1.0"
+    "jquery": "~2.1.1"
   }
 }
