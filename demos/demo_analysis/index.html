@@ -55,13 +55,20 @@
 
 	<div id="numbers"></div>
 
+	<div>
+		<div id="data-average"></div>
+		<div id="data-low"></div>
+		<div id="data-mid"></div>
+		<div id="data-high"></div>
+	</div>
+
 
 
 
 	<script src="js/bowser.min.js"></script>
 	<script src="js/tween.min.js"></script>
 	<script src="js/frameRunner.js"></script>
-	<script src="../helios-audio-mixer.js"></script>
+	<script src="../../helios-audio-mixer.js"></script>
 
 	<script>
 
@@ -78,15 +85,15 @@
 			else            Mixer.mute()
 		}
 
-		var TRACK_ID = 'austra'
+		var TRACK_ID = 'budos';
 
 		var track = Mixer.createTrack(TRACK_ID, {
 			source: 'Up From The South',
 			sourceMode: 'element',
 			gain: 1,
-			nodes: ['analyse'],
+			nodes: ['analyze'],
 			looping: true,
-			autoplay: true
+			autoplay: false
 		})
 
 		// Gain Slider ********************************************************
@@ -103,11 +110,11 @@
 		var fftcanvas = document.getElementById('fft')
 		var ctx = fftcanvas.getContext('2d')
 
-		var fftdata
+		var fftdata = {}
 
-		track.on('analyse', function(data){ fftdata = data })
+		// track.on('analyse', function(data){ fftdata = data })
 
-		var WIDTH  = 800
+		var WIDTH  = 600
 		var HEIGHT = 400
 		fftcanvas.width  = WIDTH
 		fftcanvas.height = HEIGHT
@@ -115,16 +122,17 @@
 		var barWidth, barHeight
 
 		var fftdivs = []
+		var numberDivs = {}
 
 		track.on('play', function(){
 			track.off('play')
 
-			barWidth = WIDTH / (track.options.bufferLength.length+1)
+			barWidth = WIDTH / (track.options.bufferLength+1)
 
 			// create divs for numberical display
 			var container = document.getElementById('numbers')
 
-			for (var i = 0; i < track.options.bufferLength.length; i++) {
+			for (var i = 0; i < track.options.bufferLength; i++) {
 				var id = 'fft'+i
 				var div = document.createElement('div')
 				div.setAttribute('id', id)
@@ -135,25 +143,42 @@
 				fftdivs.push(div)
 			}
 
+			numberDivs.average = document.getElementById('data-average')
+			numberDivs.low = document.getElementById('data-low')
+			numberDivs.mid = document.getElementById('data-mid')
+			numberDivs.high = document.getElementById('data-high')
+
 			frameRunner.add('drawFFT', 'everyFrame', drawFFT)
 			frameRunner.start()
+
+			track.on('pause', function(){ frameRunner.remove('drawFFT', 'everyFrame') })
+			track.on('play', function(){ frameRunner.add('drawFFT', 'everyFrame', drawFFT) })
 		})
 
+
+
 		function drawFFT(){
-			if(!track.options.bufferLength || !track.options.bufferLength.length) return
+			if(!track.analysis) return;
+			if(!track.analysis.raw.length) return;
+
+			var fftdata = track.analysis;
 
 			ctx.fillStyle = 'rgb(250, 250, 250)';
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      var x = 0
-
+      var x = 0;
 			ctx.fillStyle = 'rgb(0, 0, 0)';
 
-      for(var i = 0; i < track.options.bufferLength.length; i++) {
+			numberDivs.average.innerText = fftdata.average
+			numberDivs.low.innerText = fftdata.low
+			numberDivs.mid.innerText = fftdata.mid
+			numberDivs.high.innerText = fftdata.high
 
-        fftdivs[i].innerText = fftdata[i]
+      for(var i = 0; i < track.options.bufferLength; i++) {
 
-        barHeight = fftdata[i]
+        fftdivs[i].innerText = fftdata.raw[i]
+
+        barHeight = fftdata.raw[i]
         ctx.fillRect(x, HEIGHT-barHeight/2, barWidth, barHeight/2 )
 
         x += barWidth + 1

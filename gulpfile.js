@@ -12,9 +12,9 @@ var livereload   = require('gulp-livereload');
 var entry = {
   standalone: './src/bundle-standalone.js',
   browserify: './src/bundle-browserify.js',
-}
+};
 
-var uglifyOpts = { mangle: false }
+var uglifyOpts = { mangle: false };
 
 /*
 
@@ -42,7 +42,7 @@ gulp.task('watch', function(){
         .pipe(rename('./helios-audio-mixer.js'))
         .on('error', gutil.log)
       .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('./src/'))
+      .pipe(gulp.dest('./'))
       .pipe(livereload())
   }
 

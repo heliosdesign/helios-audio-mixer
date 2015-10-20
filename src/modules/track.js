@@ -294,9 +294,9 @@ Track.prototype.addNode = function(nodeType) {
 
   debug.log(2, ' +  addNode ' + nodeType);
 
-  // Analyser and Processor ********************************************************
+  // Analyzer ********************************************************
 
-  if(nodeType === 'analyse') {
+  if(nodeType === 'analyze') {
 
     // create a script processor with bufferSize of 2048
     _this.nodes.processor = _this.mix.context.createScriptProcessor(2048, 1, 1)
@@ -310,14 +310,52 @@ Track.prototype.addNode = function(nodeType) {
     _this.nodes.analyser.connect(_this.nodes.processor)          // analyser -> processor
 
     // define a Uint8Array to receive the analyser’s data
-    _this.options.bufferLength = new Uint8Array(_this.nodes.analyser.frequencyBinCount)
-    var analyserData = new Uint8Array(_this.options.bufferLength)
+    _this.options.bufferLength = _this.nodes.analyser.frequencyBinCount;
+    _this.analysis = {
+      raw: new Uint8Array(_this.options.bufferLength),
+      average: 0,
+      low: 0,
+      mid: 0,
+      high: 0,
+    };
 
-    _this.nodes.lastnode.connect(_this.nodes.analyser)
+    var third = Math.round(_this.options.bufferLength / 3);
+    var scratch = 0;
+
+    _this.nodes.lastnode.connect(_this.nodes.analyser);
 
     _this.nodes.processor.onaudioprocess = function(){
-      _this.nodes.analyser.getByteTimeDomainData(analyserData)
-      _this.trigger('analyse', analyserData)
+      _this.nodes.analyser.getByteTimeDomainData(_this.analysis.raw);
+
+      // calculate average, mid, high
+      scratch = 0;
+      for (var i = 0; i < _this.options.bufferLength; i++)
+        scratch += _this.analysis.raw[i];
+
+      _this.analysis.average = scratch / _this.options.bufferLength;
+
+      // lows
+      scratch = 0;
+      for (var i = 0; i < third; i++)
+        scratch += _this.analysis.raw[i];
+
+      _this.analysis.low = scratch / third;
+
+      // mids
+      scratch = 0;
+      for (var i = third; i < third*2; i++)
+        scratch += _this.analysis.raw[i];
+
+      _this.analysis.mid = scratch / third;
+
+      // highs
+      scratch = 0;
+      for (var i = third*2; i < _this.options.bufferLength; i++)
+        scratch += _this.analysis.raw[i];
+
+      _this.analysis.high = scratch / third;
+
+      _this.trigger('analyse', _this.analysis)
     }
   }
 
@@ -459,7 +497,7 @@ Track.prototype.play = function(bufferSourceLoaded) {
 
 function playCreateNodes(_this) {
 
-  debug.log(2, 'Creating nodes for track "' + _this.name + '"')
+  debug.log(0, 'Creating nodes for track "' + _this.name + '"')
 
   // Create Nodes
   // ~~~~~~~~~~~~
@@ -514,7 +552,7 @@ function playElementSource(_this) {
   _this.options.startTime = _this.element.currentTime - _this.options.cachedTime;
   var startFrom = _this.options.cachedTime || 0;
 
-  debug.log(1, 'Playing track "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
+  debug.log(1, 'Playing track (element) "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
 
   // Play!
 
@@ -582,7 +620,7 @@ function playBufferSource(_this) {
     _this.options.startTime = _this.source.context.currentTime - _this.options.cachedTime;
     var startFrom = _this.options.cachedTime || 0;
 
-    debug.log(2, 'Playing track "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
+    debug.log(2, 'Playing track (buffer) "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
 
     // prefer start() but fall back to deprecated noteOn()
     if(typeof _this.source.start === 'function') _this.source.start(0, startFrom);
@@ -630,7 +668,7 @@ function playBufferSource(_this) {
 
 function playSingleElement(_this) {
 
-  debug.log(1, 'Playing track "' + _this.name + '" >')
+  debug.log(1, 'Playing track (single element) "' + _this.name + '" >')
 
   _this.gain(_this.options.gain)
 

@@ -1,2 +1,2 @@
-var mix = require('./mix');
+var mix = require('./modules/mix');
 module.exports = mix;

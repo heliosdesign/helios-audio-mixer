@@ -27,7 +27,7 @@ var Mix = function(opts) {
 
   var defaults = {
     fileTypes: [ '.mp3', '.m4a', '.ogg' ],
-    html5: !!detect.webAudio,
+    html5: !detect.webAudio,
     gain: 1, // master gain for entire mix
   }
   this.options = u.extend(defaults, opts || {});
