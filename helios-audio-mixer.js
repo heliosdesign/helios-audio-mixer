@@ -952,7 +952,7 @@ Track.prototype.addNode = function(nodeType) {
     // define a Uint8Array to receive the analyser’s data
     _this.options.bufferLength = _this.nodes.analyser.frequencyBinCount;
     _this.analysis = {
-      raw: new Uint8Array(_this.options.bufferLength),
+      raw: new Uint8Array(_this.nodes.analyser.frequencyBinCount),
       average: 0,
       low: 0,
       mid: 0,
@@ -965,7 +965,8 @@ Track.prototype.addNode = function(nodeType) {
     _this.nodes.lastnode.connect(_this.nodes.analyser);
 
     _this.nodes.processor.onaudioprocess = function(){
-      _this.nodes.analyser.getByteTimeDomainData(_this.analysis.raw);
+      // _this.nodes.analyser.getByteTimeDomainData(_this.analysis.raw);
+      _this.nodes.analyser.getByteFrequencyData(_this.analysis.raw);
 
       // calculate average, mid, high
       scratch = 0;
