@@ -9,7 +9,7 @@ var u = require('./utils')
 var debug = {};
 module.exports = debug;
 
-// 0 no logging, 1 minimal, 2 all (spammy)
+// 0 none, 1 only errors, 2 everything
 debug.level = 1;
 
 // u.log(1, arg, arg, arg) -> console.log('[Mixer] arg arg arg')

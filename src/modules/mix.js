@@ -154,7 +154,7 @@ Mix.prototype.removeTrack = function(_input) {
 
   track = null;
   delete mix.lookup[trackName];
-  debug.log(1, 'Removed track "' + trackName + '"');
+  debug.log(2, 'Removed track "' + trackName + '"');
 
 };
 
@@ -175,7 +175,7 @@ Mix.prototype.getTrack = function(name) {
 
 Mix.prototype.pause = function() {
 
-  debug.log(1, 'Pausing ' + this.tracks.length + ' track(s) ||')
+  debug.log(2, 'Pausing ' + this.tracks.length + ' track(s) ||')
 
   for (var i = 0; i < this.tracks.length; i++)
     this.tracks[i].pause()
@@ -183,7 +183,7 @@ Mix.prototype.pause = function() {
 
 Mix.prototype.play = function() {
 
-  debug.log(1, 'Playing ' + this.tracks.length + ' track(s) >')
+  debug.log(2, 'Playing ' + this.tracks.length + ' track(s) >')
 
   for (var i = 0; i < this.tracks.length; i++)
     this.tracks[i].play()
@@ -191,7 +191,7 @@ Mix.prototype.play = function() {
 
 Mix.prototype.stop = function() {
 
-  debug.log(1, 'Stopping ' + this.tracks.length + ' track(s) .')
+  debug.log(2, 'Stopping ' + this.tracks.length + ' track(s) .')
 
   for (var i = 0; i < this.tracks.length; i++)
      this.tracks[i].stop()
@@ -203,7 +203,7 @@ Mix.prototype.stop = function() {
 Mix.prototype.mute = function() {
   if(this.muted) return
   this.muted = true
-  debug.log(1, 'Muting ' + this.tracks.length + ' tracks')
+  debug.log(2, 'Muting ' + this.tracks.length + ' tracks')
   for (var i = 0; i < this.tracks.length; i++)
     this.tracks[i].mute();
 };
@@ -212,7 +212,7 @@ Mix.prototype.mute = function() {
 Mix.prototype.unmute = function() {
   if(!this.muted) return
   this.muted = false
-  debug.log(1, 'Unmuting ' + this.tracks.length + ' tracks')
+  debug.log(2, 'Unmuting ' + this.tracks.length + ' tracks')
   for (var i = 0; i < this.tracks.length; i++)
     this.tracks[i].unmute();
 };

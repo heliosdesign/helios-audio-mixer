@@ -13,7 +13,6 @@ var detect = require('./detect')
 var debug = require('./debug');
 
 var Track = function(name, opts, mix) {
-  console.log('REGULAR TRACK');
 
   this.defaults = {
 
@@ -75,7 +74,7 @@ var Track = function(name, opts, mix) {
     this.options.sourceMode = 'element'
   }
 
-  debug.log(1, 'createTrack "' + this.name + '", mode: "' + this.options.sourceMode + '", autoplay: ' + this.options.autoplay);
+  debug.log(2, 'createTrack "' + this.name + '", mode: "' + this.options.sourceMode + '", autoplay: ' + this.options.autoplay);
 
 
 
@@ -87,7 +86,7 @@ var Track = function(name, opts, mix) {
     // Web Audio
 
     if(!this.options.source) {
-      debug.log(1, 'Creating track "' + name + '" without a source');
+      debug.log(2, 'Creating track "' + name + '" without a source');
       return;
     }
 
@@ -108,7 +107,7 @@ var Track = function(name, opts, mix) {
 
     // HTML5
 
-    debug.log(1, 'creating html5 element for track ' + name);
+    debug.log(2, 'creating html5 element for track ' + name);
 
     // Look for pre-created audio element and failing that create one
     this.element = document.querySelector('audio#' + name);
@@ -498,7 +497,7 @@ Track.prototype.play = function(bufferSourceLoaded) {
 
 function playCreateNodes(_this) {
 
-  debug.log(0, 'Creating nodes for track "' + _this.name + '"')
+  debug.log(2, 'Creating nodes for track "' + _this.name + '"')
 
   // Create Nodes
   // ~~~~~~~~~~~~
@@ -553,7 +552,7 @@ function playElementSource(_this) {
   _this.options.startTime = _this.element.currentTime - _this.options.cachedTime;
   var startFrom = _this.options.cachedTime || 0;
 
-  debug.log(1, 'Playing track (element) "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
+  debug.log(2, 'Playing track (element) "' + _this.name + '" from ' + startFrom + ' (' + _this.options.startTime + ') gain ' + _this.gain());
 
   // Play!
 
@@ -669,7 +668,7 @@ function playBufferSource(_this) {
 
 function playSingleElement(_this) {
 
-  debug.log(1, 'Playing track (single element) "' + _this.name + '" >')
+  debug.log(2, 'Playing track (single element) "' + _this.name + '" >')
 
   _this.gain(_this.options.gain)
 
