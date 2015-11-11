@@ -74,11 +74,12 @@ var Track = function(name, opts, mix){
 
   var track = {
 
-    nodes: nodes,
+    // nodes: nodes,
 
     // Public Properties
-    options: options,
     name: name,
+    status: status,
+    options: options,
 
     // Events
     on:      events.on,
@@ -234,7 +235,7 @@ var Track = function(name, opts, mix){
     }
 
     else if(options.sourceMode === 'element')
-      playElementSource(_this);
+      playElementSource();
 
     return track;
   }
@@ -270,8 +271,8 @@ var Track = function(name, opts, mix){
     element.currentTime = startFrom;
     element.play();
 
-    events.trigger('play', track);
     status.playing = true;
+    events.trigger('play', track);
 
   }
 
@@ -335,8 +336,8 @@ var Track = function(name, opts, mix){
       onendtimer = false;
       setEndTimer.call();
 
-      events.trigger('play', track);
       status.playing = true;
+      events.trigger('play', track);
     };
 
     // Create source

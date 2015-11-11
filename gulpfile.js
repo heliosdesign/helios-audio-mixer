@@ -25,7 +25,7 @@ function handleError(e){
 }
 
 
-gulp.task('watch', function(){
+gulp.task('default', function(){
   livereload.listen();
 
   var b = browserify({

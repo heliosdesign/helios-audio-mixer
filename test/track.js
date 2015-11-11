@@ -13,19 +13,37 @@ describe('Track', function(){
 
   describe('basics', function(){
 
-    var track;
+    var bufferTrack;
+    var elementTrack;
 
-    before(function(){
-      track = mixer.createTrack('test', { source: './audio/silence_9s' })
+    it('should create a track with a buffer source', function(){
+      bufferTrack = mixer.createTrack('buffer', { source: './audio/silence_9s', sourceMode: 'buffer' })
+      expect( bufferTrack ).to.have.property('play');
     })
 
-    it('should exist', function(){
-      expect(track).to.have.property('play')
-      expect(track).to.have.property('pause')
+    it('should play a track with a buffer source', function(){
+      bufferTrack.play();
+      bufferTrack.on('play', function(){
+        expect( bufferTrack.status.playing ).to.equal( true )
+      })
     })
+
+    it('should create a track with an element source', function(){
+      elementTrack = mixer.createTrack('element', { source: './audio/silence_9s', sourceMode: 'element' })
+      expect( elementTrack ).to.have.property('play');
+    })
+
+    it('should play a track with an element source', function(){
+      elementTrack.play();
+      elementTrack.on('play', function(){
+        expect( elementTrack.status.playing ).to.equal( true )
+      })
+    })
+
 
     after(function(){
-      mixer.removeTrack('test')
+      mixer.removeTrack('buffer')
+      mixer.removeTrack('element')
     })
   })
 
