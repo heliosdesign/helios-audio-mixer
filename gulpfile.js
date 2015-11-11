@@ -14,14 +14,15 @@ var entry = {
   browserify: './src/bundle-browserify.js',
 };
 
-var uglifyOpts = { mangle: false };
-
 /*
 
   Watch
 
 */
 
+function handleError(e){
+  console.log(e);
+}
 
 
 gulp.task('watch', function(){
@@ -36,6 +37,7 @@ gulp.task('watch', function(){
 
   function bundle() {
     return w.bundle()
+      .on('error', handleError)
       .pipe(source(entry.standalone))
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}))
@@ -43,7 +45,7 @@ gulp.task('watch', function(){
         .on('error', gutil.log)
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('./'))
-      .pipe(livereload())
+      .pipe(livereload());
   }
 
   w.on('update', bundle);
@@ -73,7 +75,7 @@ gulp.task('build-browserify', function(){
     .pipe(buffer())
       .pipe(uglify(uglifyOpts))
       .pipe(rename('./helios-audio-mixer.browserify.js'))
-    .pipe(gulp.dest('./'))
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('build-standalone', function(){
@@ -86,7 +88,7 @@ gulp.task('build-standalone', function(){
     .pipe(buffer())
       .pipe(uglify(uglifyOpts))
       .pipe(rename('./helios-audio-mixer.js'))
-    .pipe(gulp.dest('./'))
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('build', ['build-standalone', 'build-browserify']);

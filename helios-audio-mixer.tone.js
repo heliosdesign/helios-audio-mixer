@@ -13,7 +13,7 @@
 	}
 
 	Tone.prototype.start = function(){
-		
+
 		var ctx = this.mix.context
 
 		var now = ctx.currentTime
@@ -38,9 +38,9 @@
 		this.gainNode.gain.value = 0
 		this.oscillator.stop()
 	}
-	
+
 	Mix.prototype.createTone = function(name, opts){
-		console.log('[Mixer] create tone', name)	
+		console.log('[Mixer] create tone', name)
 
 		if ( !name || this.lookup[name] ) return
 
@@ -50,7 +50,7 @@
 	}
 
 	Mix.prototype.removeTone = function(){
-		this.tone = null	
+		this.tone = null
 	}
 
 	return Mix

@@ -6,13 +6,12 @@
 
 */
 
-var u = require('./utils')
+var u      = require('./utils')
+var events = require('./events')
 var detect = require('./detect')
-var debug = require('./debug');
+var debug  = require('./debug');
 
 var HTML5Track = function(name, opts, mix) {
-
-  console.log('HTML5 TRACK');
 
   var track = this;
 
@@ -77,10 +76,10 @@ var HTML5Track = function(name, opts, mix) {
   Event Functionality
 
 */
-HTML5Track.prototype.on = u.events.on;
-HTML5Track.prototype.one = u.events.one;
-HTML5Track.prototype.off = u.events.off;
-HTML5Track.prototype.trigger = u.events.trigger;
+HTML5Track.prototype.on      = events.on;
+HTML5Track.prototype.one     = events.one;
+HTML5Track.prototype.off     = events.off;
+HTML5Track.prototype.trigger = events.trigger;
 
 
 

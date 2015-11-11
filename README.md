@@ -4,12 +4,14 @@
 
 Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5.
 
+Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari 6+, and Edge 12+.
+
 #### Contents
 
+- [Development](#development)
 - [Dependencies](#dependencies)
-- [Gotchas](#gotchas)
 - [How To Use](#how-to-use)
-- [Reference](#reference)
+- [API Reference](#api-reference)
 	- Mixer Methods
 	- Track/Group Methods
 	- Track Options
@@ -17,20 +19,21 @@ Javascript audio multi-track mixer library. Optimally uses the web audio API ([c
 	- Track Events
 - [HTML5 Mode](#html5-mode)
 
+## Development
 
-### Dependencies
+`gulp` to live compile modules
 
-- [heliosFrameRunner](https://github.com/heliosdesign/helios-frame-runner) (not _really_ a dependency, but recommended for managing `requestAnimationFrame`)
-- [tween.js](https://github.com/sole/tween.js/) (recommended, but works without it)
-- [Bowser](https://github.com/ded/bowser) (recommended, but works without it)
+## Dependencies
+
+- [heliosFrameRunner](https://github.com/heliosdesign/helios-frame-runner) (not _really_ a dependency, but recommended for managing `requestAnimationFrame` calls)
+- [tween.js](https://github.com/sole/tween.js/) for tweening
+- [Bowser](https://github.com/ded/bowser) for detecting browser versions, because Chrome and Firefox had some non-standard implementations.
 
 ### Props
 
 …to Kevin Ennis for his excellent [Mix.js](https://github.com/kevincennis/Mix.js). We based this library on Mix.js when we started working with the web audio API a couple years ago.
 
-
 ## How to use
-
 
 ### Basic Example
 
@@ -55,8 +58,7 @@ Remember to call `TWEEN.update()` using `requestAnimationFrame`, or tweens won�
 
 Tracks use buffer source by default. Use HTML5 element source for a track by setting the `sourceMode` option (an out-of-DOM `<audio>` element will be created), or setting the `source` option to an existing HTML5 media element instead of a string. The main advantage of HTML5 element source is that audio files can be streamed. The main disadvantage is that
 
-```
-
+```js
 Mixer.createTrack('elementSourceTrack', {
   source: 'path/to/audio/file',
   sourceMode: 'element'
@@ -65,19 +67,19 @@ Mixer.createTrack('elementSourceTrack', {
 Mixer.createTrack('inDOMelementSourceTrack', {
   source: document.queryselector('audio#elementSourceTrack')
 })
-
 ```
 
 
-# Reference
+# API Reference
 
 ## Feature Detection
 
 Access/override/whatever through `Mixer.detect`.
 
-```
+```js
 Detect = {
-	webAudio:    true | false
+	webAudio:    true | false,
+	promise:     true | false,
 	audioTypes: {
 	  'mp3': true/false,
 	  'm4a': true/false,
@@ -85,89 +87,84 @@ Detect = {
 	}, // in order of preference
 	videoType:  {
 	  '.webm': true/false,
-	  '.mp4': true/false,
-	  '.ogv': true/false
+	  '.mp4':  true/false,
+	  '.ogv':  true/false
 	},
-	bowser:     bowser.js | fallback // browser detection
-	tween:      true | false
+	bowser:     bowser.js,
+	tween:      <Boolean>,
+	
 }
 ```
 
-## Mixer Options
+## Mixer
 
-`new heliosAudioMixer( options{} )`
+`new heliosAudioMixer( options )`
 
 name | default | notes
----------|---------|---------
+:--|:--|:--
 audioTypes | `[ 'mp3', 'm4a', 'ogg' ]` | List audio file types in order of preference. The first type available in the current browser will be used.
 html5 | `false` | Force HTML5 mode.
 
 
-## Mixer Methods
+### Mixer Methods
 
 ##### Track Management
 
-- `mix.createTrack( 'name', opts{} )` _see track options below_
-- `mix.removeTrack( 'name' || track object )`
-- `mix.getTrack( 'name' )` _returns track object_
-- `mix.getTrack( 'name' ).method()` access a single track, chainable
+- `createTrack( 'name', opts )` _see track options below_
+- `removeTrack( 'name' || track object )`
+- `getTrack( 'name' )` _returns track object_
+- `getTrack( 'name' ).method()` access a single track, chainable
 
 ##### Global Mix Control
 
-- `mix.pause()`
-- `mix.play()`
-- `mix.mute()`
-- `mix.unmute()`
-- `mix.gain( <0-1> )`
+- `pause()`
+- `play()`
+- `mute()`
+- `unmute()`
+- `gain( <0-1> )`
 
 ##### Utilities
 
-- `mix.setLogLvl( <Integer> )` 0 none, 1 minimal, 2 all (spammy)
+- `mix.setLogLvl( <Integer> )` `0` none, `1` minimal, `2` spammy
 
-## Track Options
+## Track
 
-`mix.createTrack( 'name', options{} )`
+### Track Options
+
+`mix.createTrack( 'name', options )`
 
 name | default | notes
----------|---------|---------
-source       | `""`     | Path to audio source file (without file extension), OR media element to use as source
-gain         | `0`        | initial/current gain (0-1)
-pan          | `0`        | stereo pan (in degrees, clockwise, 0 is front)
-nodes        | `[]`      | array of strings: names of desired additional audio nodes. `pan` and `gain` are included by default.
+:--|:--|:--
+source       | `""`     | Path to audio source (without file extension),<br>OR media element to use as source,<br>OR audio blob
+gain         | `1`        | Initial gain (0-1)
+panMode      | `"360"`     | Choose between stereo L/R pan (`stereo`), 360° pan (`360`), and full 3D pan (`3d`)
+pan          | `0`        | Initial pan
+nodes        | `[]`       | array of strings: names of desired audio nodes. See [Nodes](#nodes). Gain and pan nodes are always used.
 start        | `0`        | start time in seconds
 currentTime  | `0`        | current time (cached for resuming from pause)
 looping      | `false`    |
 autoplay     | `true`     | play immediately on load
 muted        | `false`    |
 
-## Track Methods
+### Track Methods
 
 #### Events
 
-##### `track.on('event', function )`
+`track.on('event', callback )`
 
-See event list below.
+See the [event list](#event-list) below. The callback receives the `track` object as an argument.
 
-##### `track.off('event')`
+`track.off('event')`
+
+`track.one('event', function)`
 
 #### Control
 
-##### `track.play()`
+`track.play()`
 
-##### `track.pause()`
+`track.pause()`
 
-##### `track.stop()`
-
-#### Pan
-
-##### `track.pan(angle)`
-
-Getter/setter for stereo pan: angle can be a number in degrees (0° front, clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
-
-
-##### `track.tweenPan(angle, duration)`
-
-Returns a Promise, which passes the track object: `.then(function(track){})`.
+`track.stop()`
 
 #### Gain
 
@@ -186,6 +183,20 @@ Returns a Promise, like `tweenPan()`.
 ##### `track.unmute()`
 
 
+
+#### Pan
+
+There are three panning modes available.
+
+1. **Stereo** uses a `StereoPannerNode`, one axis, left to right. <br>`track.pan()` accepts `-1` to `1`.
+2. **360** uses a simplified `PannerNode`. <br>`track.pan()` accepts an angle in degrees, or a string: `'front'`, `'back'`, `'left'`, `'right'`
+3. **3d** uses a full `PannerNode`.
+
+##### tweenPan
+
+`track.tweenPan(angle, duration)`
+
+Works for Stereo and 360 panning. Returns a Promise, which receives the track object as an argument.
 
 #### Time
 
@@ -225,6 +236,10 @@ name | when
 mix.getTrack('name').on('eventType',function(){});
 mix.getTrack('name').off('eventType');
 ```
+
+#### Nodes
+
+Web Audio Mixer nodes
 
 #### Analysis
 
