@@ -45,7 +45,8 @@ var demoTrack = function(name){
 
   function create(){
     var opts = {
-      source: 'audio/' + document.getElementById(name+'-source').value,
+      source: 'http://205.186.156.50/global-offshore/assets/audio/ocean_sounds',
+      // source: 'audio/' + document.getElementById(name+'-source').value,
       sourceMode: document.getElementById(name+'-source-mode').value,
       gain: 1.0,
       looping: document.getElementById(name+'-looping').checked,

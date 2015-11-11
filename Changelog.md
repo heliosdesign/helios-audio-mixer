@@ -1,3 +1,9 @@
+## 0.3.0 (in development)
+
+- Refactor
+- Unit Tests (Karma + Chai)
+- `track.options.looping` &rarr; `track.options.loop`
+
 ## 0.2.0
 
 - audio analysis
