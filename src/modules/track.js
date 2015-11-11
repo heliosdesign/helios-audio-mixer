@@ -8,9 +8,9 @@
 
 */
 
-var u = require('./utils')
-var detect = require('./detect')
-var debug = require('./debug');
+var u      = require('./utils');
+var detect = require('./detect');
+var debug  = require('./debug');
 
 var Track = function(name, opts, mix) {
 
@@ -22,7 +22,7 @@ var Track = function(name, opts, mix) {
 
     nodes:      [],  // array of strings: names of desired additional audio nodes
 
-    gain:        1,  // initial/current gain (0-1)
+    gain:        1,      // initial/current gain (0-1)
     gainCache:   false,  // for resuming from mute
 
     pan:         0,  // circular horizontal pan
@@ -31,7 +31,7 @@ var Track = function(name, opts, mix) {
     panY:        0,  //
     panZ:        0,  //
 
-    start:       0,  // start time in seconds
+    // start:       0,  // start time in seconds
     cachedTime:  0,  // local current time (cached for resuming from pause)
     startTime:   0,  // time started (cached for accurately reporting currentTime)
 
@@ -44,7 +44,10 @@ var Track = function(name, opts, mix) {
   this.options = u.extend(this.defaults, opts || {});
 
   if(this.options.gainCache === false)
-    this.options.gainCache = this.options.gain
+    this.options.gainCache = this.options.gain;
+
+  if(!this.options.source)
+    throw new Error('Can’t create a track without a source.');
 
   this.name = name;
 

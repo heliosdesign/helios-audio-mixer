@@ -8,22 +8,15 @@
 
 */
 
-var u = require('./utils')
-var Track = require('./track')
+var u          = require('./utils')
+var events     = require('./events')
+var Track      = require('./track-new')
 var html5Track = require('./track-html5')
-var detect = require('./detect')
-var debug = require('./debug')
+var detect     = require('./detect')
+var debug      = require('./debug')
 
 
 var Mix = function(opts) {
-
-  // Web Audio support overrides
-  if(
-    (detect.browser.name === 'Firefox' && detect.version && detect.version < 25) || // Firefox < 25
-    (detect.browser.ios === true && detect.browser.version === 7)                   // ios 7
-  ) {
-    detect.webAudio = false;
-  }
 
   var defaults = {
     fileTypes: [ '.mp3', '.m4a', '.ogg' ],
@@ -76,10 +69,10 @@ var Mix = function(opts) {
   Event Functionality
 
 */
-Mix.prototype.on = u.events.on;
-Mix.prototype.one = u.events.one;
-Mix.prototype.off = u.events.off;
-Mix.prototype.trigger = u.events.trigger;
+Mix.prototype.on      = events.on;
+Mix.prototype.one     = events.one;
+Mix.prototype.off     = events.off;
+Mix.prototype.trigger = events.trigger;
 
 
 /**************************************************************************
@@ -92,13 +85,13 @@ Mix.prototype.createTrack = function(name, opts) {
   var mix = this;
 
   if(!name){
-    debug.log(0, 'Can’t create track with no name');
+    throw new Error('Can’t create track with no name');
     return;
   }
 
   if(mix.lookup[name]) {
     debug.log(0, 'a track named “' + mix.name + '” already exists')
-    return;
+    return false;
   }
 
   var track = mix.options.html5 ? new html5Track(name, opts, mix) : new Track(name, opts, mix);
