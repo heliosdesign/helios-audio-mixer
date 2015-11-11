@@ -9,7 +9,7 @@ if(window.location.hash === '#html5') {
 
 // mute()
 
-Mixer.setLogLvl(0)
+Mixer.setLogLvl(2);
 
 frameRunner.start();
 frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
@@ -45,8 +45,8 @@ var demoTrack = function(name){
 
   function create(){
     var opts = {
-      source: 'http://205.186.156.50/global-offshore/assets/audio/ocean_sounds',
-      // source: 'audio/' + document.getElementById(name+'-source').value,
+      // source: 'http://205.186.156.50/global-offshore/assets/audio/ocean_sounds',
+      source: 'audio/' + document.getElementById(name+'-source').value,
       sourceMode: document.getElementById(name+'-source-mode').value,
       gain: 1.0,
       looping: document.getElementById(name+'-looping').checked,
@@ -54,6 +54,7 @@ var demoTrack = function(name){
       autoplay: document.getElementById(name+'-autoplay').checked,
     }
     track = Mixer.createTrack(name, opts)
+    console.log('create', name, opts);
 
     track.on('ended', function(){
       console.log(name+'ended event')
@@ -83,7 +84,7 @@ var demoTrack = function(name){
 
     var updateTime = function( track, timeEl, playheadEl ){
       if( !track ) return
-      timeEl.innerHTML = track.formattedTime();
+      timeEl.innerHTML = track.formattedTime(true);
       playheadEl.style.left = ( track.currentTime() / track.duration() ) * 100 + 'px';
     }
   }

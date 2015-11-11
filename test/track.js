@@ -16,7 +16,7 @@ describe('Track', function(){
     var track;
 
     before(function(){
-      track = mixer.createTrack('test', { source: 'asdf' })
+      track = mixer.createTrack('test', { source: './audio/silence_9s' })
     })
 
     it('should exist', function(){
@@ -34,33 +34,43 @@ describe('Track', function(){
     var track;
 
     before(function(){
-      track = mixer.createTrack('test', { source: 'asdf', autoplay: false })
+      track = mixer.createTrack('test', { source: './audio/silence_9s', autoplay: false })
     })
 
-    it('gain should be chainable', function(){
-      var chain = track.gain(1)
-      expect( chain ).to.be.a('object')
-    })
-
-    it('pan should be chainable', function(){
-      var chain = track.pan(1)
-      expect( chain ).to.be.a('object')
-    })
-
-    it('play should be chainable', function(){
+    it('play() should be chainable', function(){
       var chain = track.play()
-      expect( chain ).to.be.a('object')
+      console.log(chain);
+      expect( chain ).to.have.property('play')
     })
 
-    it('pause should be chainable', function(){
+    it('pause() should be chainable', function(){
       var chain = track.pause()
-      expect( chain ).to.be.a('object')
+      expect( chain ).to.have.property('play')
+    })
+
+    it('stop() should be chainable', function(){
+      var chain = track.stop()
+      expect( chain ).to.have.property('play')
+    })
+
+    it('gain() should be chainable', function(){
+      var chain = track.gain(1)
+      expect( chain ).to.have.property('play')
+    })
+
+    it('pan() should be chainable', function(){
+      var chain = track.pan(1)
+      expect( chain ).to.have.property('play')
     })
 
     after(function(){
       mixer.removeTrack('test')
     })
 
+  })
+
+  describe('pan', function(){
+    // pan modes: 2d, 360, 3d
   })
 
 

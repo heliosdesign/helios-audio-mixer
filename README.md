@@ -4,6 +4,8 @@
 
 Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5.
 
+Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari 6+, and Edge 12+.
+
 #### Contents
 
 - [Development](#development)
@@ -135,7 +137,7 @@ name | default | notes
 :--|:--|:--
 source       | `""`     | Path to audio source (without file extension),<br>OR media element to use as source,<br>OR audio blob
 gain         | `1`        | Initial gain (0-1)
-panType      | `"2d"`     | Choose between default L/R pan (`2d`), 360° pan (`360`), and full 3D pan (`3d`)
+panMode      | `"360"`     | Choose between stereo L/R pan (`stereo`), 360° pan (`360`), and full 3D pan (`3d`)
 pan          | `0`        | Initial pan
 nodes        | `[]`       | array of strings: names of desired audio nodes. See [Nodes](#nodes). Gain and pan nodes are always used.
 start        | `0`        | start time in seconds
@@ -148,30 +150,21 @@ muted        | `false`    |
 
 #### Events
 
-##### `track.on('event', function )`
+`track.on('event', callback )`
 
-See event list below.
+See the [event list](#event-list) below. The callback receives the `track` object as an argument.
 
-##### `track.off('event')`
+`track.off('event')`
+
+`track.one('event', function)`
 
 #### Control
 
-##### `track.play()`
+`track.play()`
 
-##### `track.pause()`
+`track.pause()`
 
-##### `track.stop()`
-
-#### Pan
-
-##### `track.pan(angle)`
-
-Getter/setter for stereo pan: angle can be a number in degrees (0° front, clockwise: 90° is right) or a string: `'front'`, `'back'`, `'left'`, `'right'`
-
-
-##### `track.tweenPan(angle, duration)`
-
-Returns a Promise, which passes the track object: `.then(function(track){})`.
+`track.stop()`
 
 #### Gain
 
@@ -190,6 +183,20 @@ Returns a Promise, like `tweenPan()`.
 ##### `track.unmute()`
 
 
+
+#### Pan
+
+There are three panning modes available.
+
+1. **Stereo** uses a `StereoPannerNode`, one axis, left to right. <br>`track.pan()` accepts `-1` to `1`.
+2. **360** uses a simplified `PannerNode`. <br>`track.pan()` accepts an angle in degrees, or a string: `'front'`, `'back'`, `'left'`, `'right'`
+3. **3d** uses a full `PannerNode`.
+
+##### tweenPan
+
+`track.tweenPan(angle, duration)`
+
+Works for Stereo and 360 panning. Returns a Promise, which receives the track object as an argument.
 
 #### Time
 

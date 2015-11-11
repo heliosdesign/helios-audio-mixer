@@ -20,6 +20,9 @@ var entry = {
 
 */
 
+function handleError(e){
+  console.log(e);
+}
 
 
 gulp.task('watch', function(){
@@ -34,6 +37,7 @@ gulp.task('watch', function(){
 
   function bundle() {
     return w.bundle()
+      .on('error', handleError)
       .pipe(source(entry.standalone))
       .pipe(buffer())
       .pipe(sourcemaps.init({loadMaps: true}))

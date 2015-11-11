@@ -24,7 +24,7 @@ describe('Mix', function(){
     })
 
     it('shouldn’t allow duplicate tracks',function(){
-      var create = mixer.createTrack.bind(mixer, 'test', { source: 'asdf' })
+      var create = mixer.createTrack.bind(mixer, 'test', { source: './audio/silence_9s' })
       create();
       var result = create();
       expect( result ).to.equal( false )
@@ -38,7 +38,7 @@ describe('Mix', function(){
   describe('Track Management', function(){
 
     it('should create a track', function(){
-      var track = mixer.createTrack('test', { source: 'asdf' })
+      var track = mixer.createTrack('test', { source: './audio/silence_9s' })
       expect( track ).to.exist
     })
 
@@ -48,7 +48,7 @@ describe('Mix', function(){
     })
 
     it('should create a track with a valid source', function(){
-      var track = mixer.createTrack( 'test', {source: 'audio/Drone_1_norm'} )
+      var track = mixer.createTrack( 'test', {source: './audio/silence_9s'} )
     })
 
     afterEach(function(){
