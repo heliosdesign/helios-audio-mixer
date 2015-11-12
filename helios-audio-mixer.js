@@ -98,9 +98,14 @@ detect.supported = (function(){
 
 module.exports = detect;
 },{}],4:[function(require,module,exports){
-var Events = function(that){
+/*
 
-  var events = [];
+  Simple event system
+
+*/
+var Events = function(){
+
+  var events = {};
 
   return {
     on:      on,
@@ -111,46 +116,60 @@ var Events = function(that){
 
   function on(type, callback) {
     events[type] = events[type] || [];
-    events[type].push(callback);
+    events[type].push({
+      id: (new Date).getTime(),
+      cb: callback
+    });
 
-    return that
+    return this
   }
 
+  // todo: make this not wipe out other events of its type
   function one(type, callback) {
     var _this = this
     events[type] = events[type] || [];
-    events[type].push(function(){
-      _this.off(type)
-      callback()
-    });
 
-    return that
+    var id = (new Date).getTime();
+    var cb = function(){
+      _this.off(type, id);
+      callback(_this);
+    };
+
+    events[type].push({ id: id, cb: cb });
+
+    return this
   }
 
-  function off(type) {
-    if(type === '*') events = {};
-    else             events[type] = [];
+  function off(type, id) {
+    if(type === '*'){
+      events = {};
+    } else if( !!(type) && typeof id !== 'undefined' ){
+      for (var i = events[type].length - 1; i >= 0; i--) {
+        if( events[type][i].id === id ){
+          events[type].splice(i,1);
+        }
+      };
+    } else {
+      events[type] = [];
+    }
 
-    return that
+    return this
   }
 
   function trigger(type) {
-
     if(!events[type]) return;
+    var _this = this
 
     var args = Array.prototype.slice.call(arguments, 1);
 
     if(events[type].length)
       events[type].forEach(function(f){
-        f.apply(this, args);
+        f.cb.apply(_this, args);
       })
-
   }
 }
 
-module.exports = Events
-
-
+module.exports = Events;
 },{}],5:[function(require,module,exports){
 /*
 
@@ -718,6 +737,7 @@ var debug  = require('./debug');
 var Events = require('./events');
 
 var Track = function(name, opts, mix){
+  var track = this;
 
   if(!opts.source)
     throw new Error('Can’t create a track without a source.');
@@ -766,49 +786,44 @@ var Track = function(name, opts, mix){
   var cachedTime = 0; // local current time (cached for resuming from pause)
 
   var onendtimer;
+
+  var audioData
   var element;
   var source;
 
-  // Events
-  var events = new Events(track);
+  // var track = {};
+  var events = new Events();
 
   debug.log(2, 'createTrack "' + name + '", mode: "' + options.sourceMode + '", autoplay: ' + options.autoplay);
 
   setup();
 
-  var track = {
+  // Public Properties
+  this.name    = name;
+  this.status  = status;
+  this.options = options;
 
-    // nodes: nodes,
+  // Events
+  this.on      = events.on.bind(this);
+  this.one     = events.one.bind(this);
+  this.off     = events.off.bind(this);
+  this.trigger = events.trigger.bind(this);
 
-    // Public Properties
-    name: name,
-    status: status,
-    options: options,
+  // Controls
+  this.play  = play;
+  this.pause = pause;
+  this.stop  = stop;
 
-    // Events
-    on:      events.on,
-    one:     events.one,
-    off:     events.off,
-    trigger: events.trigger,
+  this.pan  = pan;
+  this.gain = gain;
+  this.tweenGain = tweenGain;
 
-    // Controls
-    play: play,
-    pause: pause,
-    stop: stop,
+  this.currentTime   = currentTime;
+  this.formattedTime = formattedTime;
+  this.duration = duration;
 
-    pan: pan,
-    gain: gain,
-    tweenGain: tweenGain,
-
-    currentTime: currentTime,
-    formattedTime: formattedTime,
-    duration: duration,
-
-    mute: mute,
-    unmute: unmute,
-  };
-
-  return track;
+  this.mute   = mute;
+  this.unmute = unmute;
 
   // ********************************************************
 
@@ -893,23 +908,26 @@ var Track = function(name, opts, mix){
     request.open('GET', options.source, true);
     request.responseType = 'arraybuffer';
 
-    // asynchronous callback
-    request.onload = function() {
-      debug.log(2, '"' + name + '" loaded "' + options.source + '"');
-      options.audioData = request.response; // cache the audio data
-      status.loaded = true;
-      events.trigger('load', track);
-      if(forcePlay){
-        play(true);
-      } else {
-        if(options.autoplay) play();
+    request.onreadystatechange = function(e){
+      if(request.readyState === 4){
+        if(request.status === 200){
+          // 200 -> success
+          debug.log(2, '"' + name + '" loaded "' + options.source + '"');
+          audioData = request.response; // cache the audio data
+          status.loaded = true;
+          events.trigger('load', track);
+          if(forcePlay){
+            play(true);
+          } else {
+            if(options.autoplay) play();
+          }
+        } else {
+          // other -> failure
+          debug.log(1, 'couldn’t load track "' + name + '" with source "' + options.source + '"');
+          events.trigger('loadError', track, { status: request.status });
+        }
       }
-    };
-
-    request.onerror = function() {
-      debug.log(1, 'couldn’t load track "' + name + '" with source "' + options.source + '"');
-      events.trigger('loadError', track);
-    };
+    }
 
     request.send();
   }
@@ -983,8 +1001,10 @@ var Track = function(name, opts, mix){
   function setEndTimer(){
     var startFrom = cachedTime || 0;
     var timerDuration = (source.buffer.duration - startFrom);
+    console.log('setEndTimer', startFrom, timerDuration);
 
     onendtimer = setTimeout(function() {
+      console.log('onendtimer!');
       events.trigger('ended', track);
 
       if(options.looping){
@@ -1003,7 +1023,7 @@ var Track = function(name, opts, mix){
   }
 
   function playBufferSource() {
-
+    console.log('playBufferSource');
     status.ready = false;
 
     // Construct Audio Buffer
@@ -1050,7 +1070,7 @@ var Track = function(name, opts, mix){
     // W3C standard implementation (Firefox, recent Chrome)
     if(typeof mix.context.createGain === 'function') {
 
-      mix.context.decodeAudioData(options.audioData, function(decodedBuffer){
+      mix.context.decodeAudioData(audioData, function(decodedBuffer){
         if(status.ready) return;
 
         source           = mix.context.createBufferSource();
@@ -1065,7 +1085,7 @@ var Track = function(name, opts, mix){
     else if(typeof mix.context.createGainNode === 'function') {
 
       source = mix.context.createBufferSource();
-      var sourceBuffer  = mix.context.createBuffer(options.audioData, true);
+      var sourceBuffer  = mix.context.createBuffer(audioData, true);
       source.buffer = sourceBuffer;
 
       finish();
@@ -1123,7 +1143,6 @@ var Track = function(name, opts, mix){
     startTime  = 0;
 
     if(options.sourceMode === 'buffer') {
-
       // prefer stop(), fallback to deprecated noteOff()
       if(typeof source.stop === 'function')         source.stop(0);
       else if(typeof source.noteOff === 'function') source.noteOff(0);
@@ -1402,7 +1421,7 @@ var Track = function(name, opts, mix){
   */
 
   function currentTime(setTo) {
-    if(!status.ready) return;
+    if(!status.ready) return false;
 
     if(typeof setTo === 'number') {
       if(options.sourceMode === 'buffer') {

@@ -11,20 +11,42 @@ describe('Track', function(){
 
   })
 
-  describe('basics', function(){
 
-    var bufferTrack;
-    var elementTrack;
+  /*
+
+    Loading
+
+      todo: source types (string, media element, blob) -> proper media source loading
+
+  */
+
+  describe('loading', function(){
+
+    var bufferTrack, elementTrack, failTrack;
+
+    it('should throw a loadError when a track fails to load', function(done){
+      failTrack = mixer.createTrack('shouldfail', { source: 'nonexistent' })
+      failTrack.on('loadError', function(track, error){
+        expect(error).to.have.property('status')
+        done();
+      })
+    })
 
     it('should create a track with a buffer source', function(){
       bufferTrack = mixer.createTrack('buffer', { source: './audio/silence_9s', sourceMode: 'buffer' })
       expect( bufferTrack ).to.have.property('play');
     })
 
-    it('should play a track with a buffer source', function(){
-      bufferTrack.play();
+    it('should play a track with a buffer source', function(done){
+      bufferTrack.play(0);
       bufferTrack.on('play', function(){
-        expect( bufferTrack.status.playing ).to.equal( true )
+        bufferTrack.off('play');
+        expect( bufferTrack.status.playing ).to.equal( true );
+        setTimeout(function(){
+          expect( bufferTrack.currentTime() ).to.be.at.least(0.5);
+          bufferTrack.stop();
+          done();
+        }, 550);
       })
     })
 
@@ -33,19 +55,104 @@ describe('Track', function(){
       expect( elementTrack ).to.have.property('play');
     })
 
-    it('should play a track with an element source', function(){
-      elementTrack.play();
+    it('should play a track with an element source', function(done){
+      elementTrack.play(0);
       elementTrack.on('play', function(){
-        expect( elementTrack.status.playing ).to.equal( true )
+        elementTrack.off('play');
+        expect( elementTrack.status.playing ).to.equal( true );
+        setTimeout(function(){
+          expect( elementTrack.currentTime() ).to.be.at.least(0.5);
+          elementTrack.stop();
+          done();
+        }, 550);
       })
     })
 
 
     after(function(){
-      mixer.removeTrack('buffer')
-      mixer.removeTrack('element')
+      mixer.removeTrack(bufferTrack)
+      mixer.removeTrack(elementTrack)
+      mixer.removeTrack(failTrack)
     })
   })
+
+  /*
+
+    Events
+
+  */
+  describe('events', function(){
+
+    var track;
+    var duration;
+
+    before(function(){
+      track = mixer.createTrack('events', { source: './audio/silence_9s', autoplay: false })
+    })
+
+    it('should trigger a load event', function(done){
+      track.one('load', function(t){
+        expect(t).to.have.property('play');
+        done();
+      });
+    })
+
+    it('should trigger a play event', function(done){
+      track.one('play', function(t){
+        expect(t).to.have.property('play');
+        duration = track.duration();
+        done();
+      });
+      track.play();
+    });
+
+    it('should trigger a pause event', function(done){
+      track.one('pause', function(t){
+        expect(t).to.have.property('play');
+        done();
+      })
+      track.pause();
+    })
+
+    it('should trigger a stop event', function(done){
+      track.play();
+      track.one('stop', function(t){
+        expect(t).to.have.property('play');
+        done();
+      })
+      track.on('play', track.stop)
+    })
+
+    // it('should trigger an ended event', function(done){
+    //   track.on('ended', function(t){
+    //     expect(t).to.have.property('play');
+    //     done();
+    //   })
+
+    //   track.currentTime( duration - 0.25 );
+
+    //   track.one('play', function(){
+    //     console.log('playing???');
+    //     setInterval(function(){
+    //       console.log( track.currentTime() );
+    //     }, 333);
+    //   })
+
+    //   track.play();
+    // })
+
+    after(function(){
+      mixer.removeTrack(track);
+    })
+
+  })
+
+
+  /*
+
+    Chaining
+
+  */
 
   describe('chaining', function(){
 
@@ -57,7 +164,6 @@ describe('Track', function(){
 
     it('play() should be chainable', function(){
       var chain = track.play()
-      console.log(chain);
       expect( chain ).to.have.property('play')
     })
 
@@ -87,19 +193,16 @@ describe('Track', function(){
 
   })
 
+
+  /*
+
+    Pan
+
+  */
   describe('pan', function(){
     // pan modes: 2d, 360, 3d
   })
 
-
-  // source types (string, media element, blob) -> proper media source loading
-  describe('sources', function(){
-
-  })
-
-  describe('events', function(){
-
-  })
 
   after(function(){
     frameRunner.remove({id: 'tween'});

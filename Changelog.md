@@ -1,4 +1,13 @@
-## 0.3.0 (in development)
+
+## 0.3.2
+
+- `track.one()` no longer remove other callbacks for the same event type
+
+## 0.3.1
+
+fixes
+
+## 0.3.0
 
 - Refactor
 - Unit Tests (Karma + Chai)

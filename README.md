@@ -92,7 +92,7 @@ Detect = {
 	},
 	bowser:     bowser.js,
 	tween:      <Boolean>,
-	
+
 }
 ```
 
@@ -221,9 +221,9 @@ Transforms:
 
 name | when
 :-- | :--
-`remove` | removeTrack()
 `load` | audio track is ready to play
 `loadError` | source file couldn’t be loaded
+`remove` | removeTrack()
 `play` |
 `pause` |
 `stop` |
