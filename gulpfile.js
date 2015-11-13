@@ -77,7 +77,7 @@ gulp.task('build-browserify', function(){
     .pipe(source(entry.browserify))
     .pipe(buffer())
       .pipe(uglify(uglifyOpts))
-      .pipe(rename('./helios-audio-mixer.browserify.js'))
+      .pipe(rename('./helios-audio-mixer.browserify.min.js'))
     .pipe(gulp.dest('./'));
 });
 
@@ -90,7 +90,7 @@ gulp.task('build-standalone', function(){
     .pipe(source(entry.standalone))
     .pipe(buffer())
       .pipe(uglify(uglifyOpts))
-      .pipe(rename('./helios-audio-mixer.js'))
+      .pipe(rename('./helios-audio-mixer.min.js'))
     .pipe(gulp.dest('./'));
 });
 
