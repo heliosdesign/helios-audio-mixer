@@ -2,9 +2,9 @@ var Mixer;
 
 if(window.location.hash === '#html5') {
   console.log('HTML5 mode')
-  Mixer = new heliosAudioMixer({html5: true})
+  Mixer = new HeliosAudioMixer({html5: true})
 } else {
-  Mixer = new heliosAudioMixer();
+  Mixer = new HeliosAudioMixer();
 }
 
 // mute()
@@ -12,7 +12,7 @@ if(window.location.hash === '#html5') {
 Mixer.setLogLvl(2);
 
 frameRunner.start();
-frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween);
+frameRunner.add('updateMixerTween','everyFrame', Mixer.update);
 
 console.log('Feature detection: %O', Mixer.detect)
 

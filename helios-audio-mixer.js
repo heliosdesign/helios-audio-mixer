@@ -1,6 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var mix = require('./modules/mix');
-window.heliosAudioMixer = mix;
+window.HeliosAudioMixer = mix;
 },{"./modules/mix":5}],2:[function(require,module,exports){
 /*
 
@@ -183,7 +183,7 @@ module.exports = Events;
 
 var u          = require('./utils')
 var events     = require('./events')
-var Track      = require('./track-new')
+var Track      = require('./track')
 var html5Track = require('./track-html5')
 var detect     = require('./detect')
 var debug      = require('./debug')
@@ -191,11 +191,14 @@ var debug      = require('./debug')
 
 var Mix = function(opts) {
 
+  var mix = this;
+
   var defaults = {
     fileTypes: [ '.mp3', '.m4a', '.ogg' ],
     html5: !detect.webAudio,
     gain: 1, // master gain for entire mix
   }
+
   this.options = u.extend(defaults, opts || {});
 
   this.setLogLvl = debug.setLogLvl
@@ -209,6 +212,9 @@ var Mix = function(opts) {
 
   this.detect  = detect; // external reference to detect object
 
+
+  this.update = update;
+  this.report = report;
 
   // File Types
   // ********************************************************
@@ -233,7 +239,22 @@ var Mix = function(opts) {
 
   debug.log(1, 'initialized,', (detect.webAudio ? 'Web Audio Mode,' : 'HTML5 Mode,'), 'can play:', this.options.fileTypes)
 
-  return this
+
+  // ********************************************************
+
+  function update() {
+    TWEEN.update();
+    mix.tracks.forEach(function(track){
+      track.updateTimelineEvents();
+    })
+  };
+
+  function report(){
+    var report = ""
+    for (var i = 0; i < mix.tracks.length; i++)
+      report += mix.tracks[i].gain() + '\t' + mix.tracks[i].currentTime() + '\t' + mix.tracks[i].name + '\n'
+    console.log(report)
+  }
 
 };
 
@@ -356,11 +377,10 @@ Mix.prototype.play = function() {
 };
 
 Mix.prototype.stop = function() {
-
-  debug.log(2, 'Stopping ' + this.tracks.length + ' track(s) .')
-
-  for (var i = 0; i < this.tracks.length; i++)
-     this.tracks[i].stop()
+  debug.log(2, 'Stopping ' + this.tracks.length + ' track(s) .');
+  this.tracks.forEach(function(track){
+    track.stop();
+  })
 };
 
 
@@ -402,35 +422,8 @@ Mix.prototype.gain = function(masterGain) {
 
 
 
-
-/**************************************************************************
-
-  Utilities
-
-**************************************************************************/
-
-
-// call this using requestanimationframe
-Mix.prototype.updateTween = function() {
-  TWEEN.update();
-};
-
-
-
-Mix.prototype.report = function(){
-  var report = ""
-  for (var i = 0; i < this.tracks.length; i++) {
-    report += this.tracks[i].gain() + '\t' + this.tracks[i].currentTime() + '\t' + this.tracks[i].name + '\n'
-  }
-  console.log(report)
-}
-
-
-
-
-
 module.exports = Mix;
-},{"./debug":2,"./detect":3,"./events":4,"./track-html5":6,"./track-new":7,"./utils":8}],6:[function(require,module,exports){
+},{"./debug":2,"./detect":3,"./events":4,"./track":7,"./track-html5":6,"./utils":8}],6:[function(require,module,exports){
 /*
 
   HTML5 Track
@@ -791,8 +784,11 @@ var Track = function(name, opts, mix){
   var element;
   var source;
 
-  // var track = {};
+  // on(), off(), etc
   var events = new Events();
+
+  // popcorn-style events (triggered at a certain time)
+  var timelineEvents = [];
 
   debug.log(2, 'createTrack "' + name + '", mode: "' + options.sourceMode + '", autoplay: ' + options.autoplay);
 
@@ -820,7 +816,11 @@ var Track = function(name, opts, mix){
 
   this.currentTime   = currentTime;
   this.formattedTime = formattedTime;
-  this.duration = duration;
+  this.duration      = duration;
+
+  this.addEvent    = addTimelineEvent;
+  this.removeEvent = removeTimelineEvent;
+  this.updateTimelineEvents = updateTimelineEvents;
 
   this.mute   = mute;
   this.unmute = unmute;
@@ -1001,29 +1001,23 @@ var Track = function(name, opts, mix){
   function setEndTimer(){
     var startFrom = cachedTime || 0;
     var timerDuration = (source.buffer.duration - startFrom);
-    console.log('setEndTimer', startFrom, timerDuration);
 
     onendtimer = setTimeout(function() {
-      console.log('onendtimer!');
       events.trigger('ended', track);
 
       if(options.looping){
-
         if(bowser && bowser.chrome && Math.floor(bowser.version) >= 42){
           // HACK chrome 42+ looping fix
-          stop();
-          play();
+          stop(); play();
         } else {
-          setEndTimer.call();
+          setEndTimer();
         }
-
       }
 
     }, timerDuration * 1000);
   }
 
   function playBufferSource() {
-    console.log('playBufferSource');
     status.ready = false;
 
     // Construct Audio Buffer
@@ -1050,6 +1044,13 @@ var Track = function(name, opts, mix){
       startTime = source.context.currentTime - cachedTime;
       var startFrom = cachedTime || 0;
 
+      // console.log('Playing "'+name+'" %o', {
+      //   cachedTime:  cachedTime,
+      //   startFrom:   startFrom,
+      //   currentTime: source.context.currentTime,
+      //   startTime:   startTime,
+      // });
+
       debug.log(2, 'Playing track (buffer) "' + name + '" from ' + startFrom + ' (' + startTime + ') gain ' + gain());
 
       // prefer start() but fall back to deprecated noteOn()
@@ -1057,7 +1058,7 @@ var Track = function(name, opts, mix){
       else                                   source.noteOn(startFrom);
 
       // fake ended event
-      onendtimer = false;
+      if(onendtimer) clearTimeout(onendtimer);
       setEndTimer.call();
 
       status.playing = true;
@@ -1421,7 +1422,7 @@ var Track = function(name, opts, mix){
   */
 
   function currentTime(setTo) {
-    if(!status.ready) return false;
+    if(!status.ready) return 0;
 
     if(typeof setTo === 'number') {
       if(options.sourceMode === 'buffer') {
@@ -1439,10 +1440,12 @@ var Track = function(name, opts, mix){
 
     if(!status.playing) return cachedTime || 0;
 
-    if(options.sourceMode === 'buffer')
+    if(options.sourceMode === 'buffer'){
       return source.context.currentTime - startTime || 0;
-    else
+    } else {
       return element.currentTime || 0;
+    }
+
   }
 
 
@@ -1465,9 +1468,77 @@ var Track = function(name, opts, mix){
   }
 
 
+
+  /*
+
+    Timeline Events (Popcorn-style)
+
+      Timeline events can trigger functions at their start and end.
+      Each function will only be triggered once.
+
+      Start and end times are both optional.
+
+      event: {
+        start: time
+        end:   time
+        onstart: function()
+        onend:   function()
+      }
+
+  */
+
+  function addTimelineEvent(e){
+    timelineEvents.push({
+      id:      (new Date).getTime(),
+      start:   e.start,
+      end:     e.end,
+      onstart: e.onstart,
+      onend:   e.onend,
+      active:  e.start ? false : true // start active if there’s no start time or start time is 0
+    });
+    return track;
+  }
+
+  function updateTimelineEvents(){
+    if(timelineEvents.length && status.playing){
+
+      // check where we are at
+      var now = currentTime();
+      if(!now) return;
+
+      timelineEvents.forEach(function(e){
+
+        if( e.start || e.start === 0 )
+          if( now >= e.start && !e.active ){
+            if(e.onstart) e.onstart.call(null, track);
+            e.active = true;
+          }
+
+
+        if( e.end )
+          if( now >= e.end && e.active ){
+            if( e.onend ) e.onend.call(null, track);
+            e.active = false;
+          }
+      })
+    }
+  }
+
+  function removeTimelineEvent(id){
+    // for (var i = timelineEvents.length - 1; i >= 0; i--) {
+    //   timelineEvents[i]
+    // };
+  }
+
+
+
+
+
+
 };
 
 module.exports = Track;
+
 },{"./debug":2,"./detect":3,"./events":4,"./utils":8}],8:[function(require,module,exports){
 /*
 

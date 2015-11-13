@@ -65,6 +65,9 @@ gulp.task('default', function(){
 
 */
 
+// var uglifyOpts = { mangle: false }
+var uglifyOpts = {}
+
 gulp.task('build-browserify', function(){
   var b = browserify({
     debug: false,

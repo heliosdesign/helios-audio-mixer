@@ -1,4 +1,10 @@
 
+## 0.4.0
+
+- Popcorn-style events
+- `mix.updateTween()` &rarr; `mix.update()`
+- `new heliosAudioMixer()` &rarr; `new HeliosAudioMixer()`
+
 ## 0.3.2
 
 - `track.one()` no longer remove other callbacks for the same event type

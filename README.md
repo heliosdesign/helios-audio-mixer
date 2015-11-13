@@ -2,9 +2,9 @@
 
 # Web Audio Mixer
 
-Javascript audio multi-track mixer library. Optimally uses the web audio API ([caniuse](http://caniuse.com/audio-api)), but gracefully degrades to HTML5.
+Javascript audio multi-track mixer library.
 
-Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari 6+, and Edge 12+.
+The Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari 6+, and Edge 12+.
 
 #### Contents
 
@@ -21,7 +21,7 @@ Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari
 
 ## Development
 
-`gulp` to live compile modules
+`gulp` to live compile modules, `gulp build` for minification
 
 ## Dependencies
 

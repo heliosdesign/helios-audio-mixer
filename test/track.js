@@ -1,13 +1,14 @@
 describe('Track', function(){
 
   var mixer, frameRunner;
-  window.mixer = mixer
 
   before(function(){
-    mixer = new heliosAudioMixer()
+    mixer = new HeliosAudioMixer()
+
+    mixer.setLogLvl(1);
 
     frameRunner = new heliosFrameRunner()
-    frameRunner.add({id:'tween', type: 'everyFrame', f: mixer.updateTween});
+    frameRunner.add({id:'tween', type: 'everyFrame', f: mixer.update});
 
   })
 
@@ -39,14 +40,13 @@ describe('Track', function(){
 
     it('should play a track with a buffer source', function(done){
       bufferTrack.play(0);
-      bufferTrack.on('play', function(){
-        bufferTrack.off('play');
+      bufferTrack.one('play', function(){
         expect( bufferTrack.status.playing ).to.equal( true );
         setTimeout(function(){
-          expect( bufferTrack.currentTime() ).to.be.at.least(0.5);
+          expect( bufferTrack.currentTime() ).to.be.at.least(0.25);
           bufferTrack.stop();
           done();
-        }, 550);
+        }, 300);
       })
     })
 
@@ -57,14 +57,13 @@ describe('Track', function(){
 
     it('should play a track with an element source', function(done){
       elementTrack.play(0);
-      elementTrack.on('play', function(){
-        elementTrack.off('play');
+      elementTrack.one('play', function(){
         expect( elementTrack.status.playing ).to.equal( true );
         setTimeout(function(){
-          expect( elementTrack.currentTime() ).to.be.at.least(0.5);
+          expect( elementTrack.currentTime() ).to.be.at.least(0.25);
           elementTrack.stop();
           done();
-        }, 550);
+        }, 300);
       })
     })
 
@@ -120,32 +119,60 @@ describe('Track', function(){
         expect(t).to.have.property('play');
         done();
       })
-      track.on('play', track.stop)
+      track.one('play', track.stop)
     })
 
-    // it('should trigger an ended event', function(done){
-    //   track.on('ended', function(t){
-    //     expect(t).to.have.property('play');
-    //     done();
-    //   })
+    it('should trigger an ended event', function(done){
+      track.on('ended', function(t){
+        expect(t).to.have.property('play');
+        done();
+      })
 
-    //   track.currentTime( duration - 0.25 );
-
-    //   track.one('play', function(){
-    //     console.log('playing???');
-    //     setInterval(function(){
-    //       console.log( track.currentTime() );
-    //     }, 333);
-    //   })
-
-    //   track.play();
-    // })
+      track.currentTime( duration - 0.25 );
+      track.play();
+    })
 
     after(function(){
       mixer.removeTrack(track);
     })
 
   })
+
+
+  /*
+
+    Timeline Events
+
+  */
+
+  describe('timeline events', function(){
+
+    var track;
+
+    before(function(){
+      track = mixer.createTrack('timeline', { source: './audio/silence_9s', autoplay: true });
+    })
+
+    it('should trigger an onstart event', function(done){
+      track.addEvent({
+        start: 0.25,
+        onstart: function(){ done(); }
+      });
+    })
+
+    it('should trigger an onend event', function(done){
+      track.addEvent({
+        end: 0.5,
+        onend: function(){ done(); }
+      })
+    })
+
+    after(function(){
+      mixer.removeTrack(track)
+    })
+
+  })
+
 
 
   /*
@@ -184,6 +211,11 @@ describe('Track', function(){
 
     it('pan() should be chainable', function(){
       var chain = track.pan(1)
+      expect( chain ).to.have.property('play')
+    })
+
+    it('addEvent() should be chainable', function(){
+      var chain = track.addEvent({})
       expect( chain ).to.have.property('play')
     })
 

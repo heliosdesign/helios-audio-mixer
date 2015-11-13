@@ -10,7 +10,7 @@
 
 var u          = require('./utils')
 var events     = require('./events')
-var Track      = require('./track-new')
+var Track      = require('./track')
 var html5Track = require('./track-html5')
 var detect     = require('./detect')
 var debug      = require('./debug')
@@ -18,11 +18,14 @@ var debug      = require('./debug')
 
 var Mix = function(opts) {
 
+  var mix = this;
+
   var defaults = {
     fileTypes: [ '.mp3', '.m4a', '.ogg' ],
     html5: !detect.webAudio,
     gain: 1, // master gain for entire mix
   }
+
   this.options = u.extend(defaults, opts || {});
 
   this.setLogLvl = debug.setLogLvl
@@ -36,6 +39,9 @@ var Mix = function(opts) {
 
   this.detect  = detect; // external reference to detect object
 
+
+  this.update = update;
+  this.report = report;
 
   // File Types
   // ********************************************************
@@ -60,7 +66,22 @@ var Mix = function(opts) {
 
   debug.log(1, 'initialized,', (detect.webAudio ? 'Web Audio Mode,' : 'HTML5 Mode,'), 'can play:', this.options.fileTypes)
 
-  return this
+
+  // ********************************************************
+
+  function update() {
+    TWEEN.update();
+    mix.tracks.forEach(function(track){
+      track.updateTimelineEvents();
+    })
+  };
+
+  function report(){
+    var report = ""
+    for (var i = 0; i < mix.tracks.length; i++)
+      report += mix.tracks[i].gain() + '\t' + mix.tracks[i].currentTime() + '\t' + mix.tracks[i].name + '\n'
+    console.log(report)
+  }
 
 };
 
@@ -183,11 +204,10 @@ Mix.prototype.play = function() {
 };
 
 Mix.prototype.stop = function() {
-
-  debug.log(2, 'Stopping ' + this.tracks.length + ' track(s) .')
-
-  for (var i = 0; i < this.tracks.length; i++)
-     this.tracks[i].stop()
+  debug.log(2, 'Stopping ' + this.tracks.length + ' track(s) .');
+  this.tracks.forEach(function(track){
+    track.stop();
+  })
 };
 
 
@@ -226,33 +246,6 @@ Mix.prototype.gain = function(masterGain) {
 
   return this.options.gain;
 }
-
-
-
-
-/**************************************************************************
-
-  Utilities
-
-**************************************************************************/
-
-
-// call this using requestanimationframe
-Mix.prototype.updateTween = function() {
-  TWEEN.update();
-};
-
-
-
-Mix.prototype.report = function(){
-  var report = ""
-  for (var i = 0; i < this.tracks.length; i++) {
-    report += this.tracks[i].gain() + '\t' + this.tracks[i].currentTime() + '\t' + this.tracks[i].name + '\n'
-  }
-  console.log(report)
-}
-
-
 
 
 

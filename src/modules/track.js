@@ -68,8 +68,11 @@ var Track = function(name, opts, mix){
   var element;
   var source;
 
-  // var track = {};
+  // on(), off(), etc
   var events = new Events();
+
+  // popcorn-style events (triggered at a certain time)
+  var timelineEvents = [];
 
   debug.log(2, 'createTrack "' + name + '", mode: "' + options.sourceMode + '", autoplay: ' + options.autoplay);
 
@@ -97,7 +100,11 @@ var Track = function(name, opts, mix){
 
   this.currentTime   = currentTime;
   this.formattedTime = formattedTime;
-  this.duration = duration;
+  this.duration      = duration;
+
+  this.addEvent    = addTimelineEvent;
+  this.removeEvent = removeTimelineEvent;
+  this.updateTimelineEvents = updateTimelineEvents;
 
   this.mute   = mute;
   this.unmute = unmute;
@@ -278,29 +285,23 @@ var Track = function(name, opts, mix){
   function setEndTimer(){
     var startFrom = cachedTime || 0;
     var timerDuration = (source.buffer.duration - startFrom);
-    console.log('setEndTimer', startFrom, timerDuration);
 
     onendtimer = setTimeout(function() {
-      console.log('onendtimer!');
       events.trigger('ended', track);
 
       if(options.looping){
-
         if(bowser && bowser.chrome && Math.floor(bowser.version) >= 42){
           // HACK chrome 42+ looping fix
-          stop();
-          play();
+          stop(); play();
         } else {
-          setEndTimer.call();
+          setEndTimer();
         }
-
       }
 
     }, timerDuration * 1000);
   }
 
   function playBufferSource() {
-    console.log('playBufferSource');
     status.ready = false;
 
     // Construct Audio Buffer
@@ -327,6 +328,13 @@ var Track = function(name, opts, mix){
       startTime = source.context.currentTime - cachedTime;
       var startFrom = cachedTime || 0;
 
+      // console.log('Playing "'+name+'" %o', {
+      //   cachedTime:  cachedTime,
+      //   startFrom:   startFrom,
+      //   currentTime: source.context.currentTime,
+      //   startTime:   startTime,
+      // });
+
       debug.log(2, 'Playing track (buffer) "' + name + '" from ' + startFrom + ' (' + startTime + ') gain ' + gain());
 
       // prefer start() but fall back to deprecated noteOn()
@@ -334,7 +342,7 @@ var Track = function(name, opts, mix){
       else                                   source.noteOn(startFrom);
 
       // fake ended event
-      onendtimer = false;
+      if(onendtimer) clearTimeout(onendtimer);
       setEndTimer.call();
 
       status.playing = true;
@@ -698,7 +706,7 @@ var Track = function(name, opts, mix){
   */
 
   function currentTime(setTo) {
-    if(!status.ready) return false;
+    if(!status.ready) return 0;
 
     if(typeof setTo === 'number') {
       if(options.sourceMode === 'buffer') {
@@ -716,10 +724,12 @@ var Track = function(name, opts, mix){
 
     if(!status.playing) return cachedTime || 0;
 
-    if(options.sourceMode === 'buffer')
+    if(options.sourceMode === 'buffer'){
       return source.context.currentTime - startTime || 0;
-    else
+    } else {
       return element.currentTime || 0;
+    }
+
   }
 
 
@@ -740,6 +750,73 @@ var Track = function(name, opts, mix){
     else
       return element.duration || 0;
   }
+
+
+
+  /*
+
+    Timeline Events (Popcorn-style)
+
+      Timeline events can trigger functions at their start and end.
+      Each function will only be triggered once.
+
+      Start and end times are both optional.
+
+      event: {
+        start: time
+        end:   time
+        onstart: function()
+        onend:   function()
+      }
+
+  */
+
+  function addTimelineEvent(e){
+    timelineEvents.push({
+      id:      (new Date).getTime(),
+      start:   e.start,
+      end:     e.end,
+      onstart: e.onstart,
+      onend:   e.onend,
+      active:  e.start ? false : true // start active if there’s no start time or start time is 0
+    });
+    return track;
+  }
+
+  function updateTimelineEvents(){
+    if(timelineEvents.length && status.playing){
+
+      // check where we are at
+      var now = currentTime();
+      if(!now) return;
+
+      timelineEvents.forEach(function(e){
+
+        if( e.start || e.start === 0 )
+          if( now >= e.start && !e.active ){
+            if(e.onstart) e.onstart.call(null, track);
+            e.active = true;
+          }
+
+
+        if( e.end )
+          if( now >= e.end && e.active ){
+            if( e.onend ) e.onend.call(null, track);
+            e.active = false;
+          }
+      })
+    }
+  }
+
+  function removeTimelineEvent(id){
+    // for (var i = timelineEvents.length - 1; i >= 0; i--) {
+    //   timelineEvents[i]
+    // };
+  }
+
+
+
+
 
 
 };

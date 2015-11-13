@@ -3,10 +3,10 @@ describe('Mix', function(){
   var mixer, frameRunner
 
   before(function(){
-    mixer = new heliosAudioMixer()
+    mixer = new HeliosAudioMixer()
 
     frameRunner = new heliosFrameRunner()
-    frameRunner.add({id:'tween', type: 'everyFrame', f: mixer.updateTween});
+    frameRunner.add({id:'tween', type: 'everyFrame', f: mixer.update});
   })
 
   describe('Setup', function(){
