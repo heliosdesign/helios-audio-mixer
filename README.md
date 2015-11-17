@@ -39,8 +39,11 @@ Unit tests use [Mocha](https://mochajs.org/) and [Chai](http://chaijs.com/api/bd
 
 ### Basic Example
 
-```
-var Mixer = new heliosAudioMixer();
+```js
+var Mixer = new HeliosAudioMixer();
+
+// call update() using requestAnimationFrame (in this case using HeliosFrameRunner)
+frameRunner.add({ id: 'mixer', f: Mixer.update });
 
 Mixer.createTrack('track1', { source: 'path/to/audio/file' });
 
@@ -48,7 +51,6 @@ Mixer.getTrack('track1').gain(0.5).pan(180);
 
 Mixer.getTrack('track1').tweenGain(0, 1000)
   .then(function(track){
-    track.stop();
     Mixer.removeTrack(track);
   })
 
@@ -100,7 +102,7 @@ Detect = {
 
 ## Mixer
 
-`new heliosAudioMixer( options )`
+`new HeliosAudioMixer( options )`
 
 name | default | notes
 :--|:--|:--
