@@ -30,6 +30,11 @@ describe('Mix', function(){
       expect( result ).to.equal( false )
     })
 
+    it('shouldn’t allow invalid node types', function(){
+      var invalid = mixer.createTrack.bind(mixer, 'nodes', { source: './audio/silence_9s', nodes: ['invalid'] })
+      expect( invalid ).to.throw( Error )
+    })
+
     after(function(){
       mixer.removeTrack('test')
     })

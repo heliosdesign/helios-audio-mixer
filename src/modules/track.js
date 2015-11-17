@@ -19,6 +19,25 @@ var Track = function(name, opts, mix){
   if(!opts.source)
     throw new Error('Can’t create a track without a source.');
 
+  var nodeCreators = {
+    analyse:    createAnalyse,
+    gain:       createGain,
+    panner:     createPanner,
+    convolver:  createConvolver,
+    compressor: createCompressor
+  };
+
+  // validate node types
+  var nodeError = false;
+  if(opts.nodes)
+    if(opts.nodes.length){
+      opts.nodes.forEach(function(node){
+        if( typeof node === 'string' && !nodeCreators[node] )
+            nodeError = '"'+node+'" is an unsupported node type';
+      })
+    }
+  if(nodeError) throw new Error(nodeError)
+
   var defaults = {
 
     sourceMode: 'buffer', // buffer or (media) element
@@ -472,18 +491,7 @@ var Track = function(name, opts, mix){
 
   */
 
-
-
-
   function createNodes() {
-    var creators = {
-      analyse:    createAnalyse,
-      gain:       createGain,
-      panner:     createPanner,
-      convolver:  createConvolver,
-      compressor: createCompressor
-    };
-
     track.nodes = {};
 
     var nodeArray = ['panner', 'gain'].concat( (options.nodes || []) );
@@ -493,8 +501,8 @@ var Track = function(name, opts, mix){
     nodeArray.forEach(function(node){
 
       if(typeof node === 'string'){
-        if( creators[node] ){
-          var newNode = creators[node]( mix.context, lastNode );
+        if( nodeCreators[node] ){
+          var newNode = nodeCreators[node]( mix.context, lastNode );
           track.nodes[node] = newNode;
           lastNode    = newNode;
         }

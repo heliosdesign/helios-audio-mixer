@@ -117,6 +117,8 @@ Mix.prototype.createTrack = function(name, opts) {
 
   var track = mix.options.html5 ? new html5Track(name, opts, mix) : new Track(name, opts, mix);
 
+  // if(track.error) throw new Error(track.error);
+
   mix.tracks.push(track);
   mix.lookup[name] = track;
 
