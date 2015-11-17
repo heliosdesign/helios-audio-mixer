@@ -1,11 +1,15 @@
 
-## 0.4.1
+## 0.4.2
 
 - removed `.browserify.js` file
 - analysis works again
 - unit tests for analysis
 - buffer source tracks no longer trigger ended event when looping (for consistency with element source tracks)
 - calling `track.play()` before the media file is loaded now tells the track to play when loaded instead of failing silently
+
+## 0.4.1
+
+- separate minified js files (`.min.js`)
 
 ## 0.4.0
 
