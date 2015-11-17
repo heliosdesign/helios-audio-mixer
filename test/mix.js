@@ -17,13 +17,13 @@ describe('Mix', function(){
 
   })
 
-  describe('Fail Gracefully',function(){
+  describe('Throw expected errors',function(){
 
-    it('shouldn’t allow a track with no name',function(){
+    it('shouldn’t allow a track with no name', function(){
       expect( mixer.createTrack.bind() ).to.throw( Error )
     })
 
-    it('shouldn’t allow duplicate tracks',function(){
+    it('shouldn’t allow duplicate tracks', function(){
       var create = mixer.createTrack.bind(mixer, 'test', { source: './audio/silence_9s' })
       create();
       var result = create();

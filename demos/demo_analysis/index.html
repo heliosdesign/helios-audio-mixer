@@ -72,12 +72,12 @@
 
 	<script>
 
-		var Mixer = new heliosAudioMixer;
+		var Mixer = new HeliosAudioMixer;
 
 		Mixer.setLogLvl(2)
 
 		frameRunner.start()
-		frameRunner.add('updateMixerTween','everyFrame',Mixer.updateTween)
+		frameRunner.add('updateMixerTween','everyFrame',Mixer.update)
 
 		function mute(){
 			console.log('mute')
@@ -93,7 +93,7 @@
 			sourceMode: 'element',
 			gain: 1,
 			nodes: ['analyze'],
-			looping: true,
+			loop: true,
 			autoplay: false
 		})
 
@@ -125,8 +125,9 @@
 		var fftdivs = []
 		var numberDivs = {}
 
-		track.on('play', function(){
-			track.off('play')
+		track.one('play', function(){
+
+			console.log(track);
 
 			barWidth = WIDTH / (track.options.bufferLength+1)
 
@@ -154,12 +155,19 @@
 
 			track.on('pause', function(){ frameRunner.remove('drawFFT', 'everyFrame') })
 			track.on('play', function(){ frameRunner.add('drawFFT', 'everyFrame', drawFFT) })
+
+			track.on('ended', function(){
+				console.log('ended');
+			})
+
+			console.log(track);
 		})
 
 
 
 		function drawFFT(){
 			if(!track.analysis) return;
+			if(!track.analysis.raw) return;
 			if(!track.analysis.raw.length) return;
 
 			var fftdata = track.analysis;

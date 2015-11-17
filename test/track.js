@@ -43,10 +43,10 @@ describe('Track', function(){
       bufferTrack.one('play', function(){
         expect( bufferTrack.status.playing ).to.equal( true );
         setTimeout(function(){
-          expect( bufferTrack.currentTime() ).to.be.at.least(0.25);
+          expect( bufferTrack.currentTime() ).to.be.at.least(0.1);
           bufferTrack.stop();
           done();
-        }, 300);
+        }, 150);
       })
     })
 
@@ -60,10 +60,10 @@ describe('Track', function(){
       elementTrack.one('play', function(){
         expect( elementTrack.status.playing ).to.equal( true );
         setTimeout(function(){
-          expect( elementTrack.currentTime() ).to.be.at.least(0.25);
+          expect( elementTrack.currentTime() ).to.be.at.least(0.1);
           elementTrack.stop();
           done();
-        }, 300);
+        }, 150);
       })
     })
 
@@ -128,7 +128,7 @@ describe('Track', function(){
         done();
       })
 
-      track.currentTime( duration - 0.25 );
+      track.currentTime( duration - 0.10 );
       track.play();
     })
 
@@ -155,14 +155,14 @@ describe('Track', function(){
 
     it('should trigger an onstart event', function(done){
       track.addEvent({
-        start: 0.25,
+        start: 0.1,
         onstart: function(){ done(); }
       });
     })
 
     it('should trigger an onend event', function(done){
       track.addEvent({
-        end: 0.5,
+        end: 0.2,
         onend: function(){ done(); }
       })
     })
@@ -234,6 +234,58 @@ describe('Track', function(){
   describe('pan', function(){
     // pan modes: 2d, 360, 3d
   })
+
+
+  /*
+
+    Analysis
+
+  */
+  describe('analysis', function(){
+
+    var track;
+
+    before(function(){
+      track = mixer.createTrack('analysis', {
+        source: './audio/silence_9s',
+        autoplay: false,
+        nodes: ['analyse']
+      })
+    })
+
+    it('should create the analysis node', function(done){
+      track.one('play', function(){
+        expect( track.nodes.analyse ).to.exist;
+        track.pause();
+        done()
+      })
+      track.play();
+    })
+
+    it('should make analysis data accessible at track.analysis', function(done){
+      track.one('play', function(){
+        expect( track.analysis ).to.exist;
+        expect( track.analysis.raw ).to.be.a( 'Uint8Array' )
+        expect( track.analysis.raw ).to.have.length.above(0)
+        done()
+      })
+      track.play();
+    })
+
+    it('should trigger the analyse event', function(done){
+      track.one('analyse', function(){
+        expect( track.analysis ).to.exist;
+        done()
+      })
+    })
+
+    after(function(){
+      mixer.removeTrack(track);
+    })
+
+  })
+
+
 
 
   after(function(){

@@ -65,23 +65,20 @@ gulp.task('default', function(){
 
 */
 
-// var uglifyOpts = { mangle: false }
-var uglifyOpts = {}
+// gulp.task('build-browserify', function(){
+//   var b = browserify({
+//     debug: false,
+//     entries: entry.browserify
+//   });
+//   return b.bundle()
+//     .pipe(source(entry.browserify))
+//     .pipe(buffer())
+//       .pipe(uglify(uglifyOpts))
+//       .pipe(rename('./helios-audio-mixer.browserify.min.js'))
+//     .pipe(gulp.dest('./'));
+// });
 
-gulp.task('build-browserify', function(){
-  var b = browserify({
-    debug: false,
-    entries: entry.browserify
-  });
-  return b.bundle()
-    .pipe(source(entry.browserify))
-    .pipe(buffer())
-      .pipe(uglify(uglifyOpts))
-      .pipe(rename('./helios-audio-mixer.browserify.min.js'))
-    .pipe(gulp.dest('./'));
-});
-
-gulp.task('build-standalone', function(){
+gulp.task('build', function(){
   var b = browserify({
     debug: false,
     entries: entry.standalone
@@ -89,9 +86,9 @@ gulp.task('build-standalone', function(){
   return b.bundle()
     .pipe(source(entry.standalone))
     .pipe(buffer())
-      .pipe(uglify(uglifyOpts))
+      .pipe(uglify({}))
       .pipe(rename('./helios-audio-mixer.min.js'))
     .pipe(gulp.dest('./'));
 });
 
-gulp.task('build', ['build-standalone', 'build-browserify']);
+// gulp.task('build', ['build-standalone', 'build-browserify']);

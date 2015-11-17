@@ -21,7 +21,9 @@ The Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Sa
 
 ## Development
 
-`gulp` to live compile modules, `gulp build` for minification
+`gulp` to live compile modules, `gulp build` for minification.
+
+Unit tests use [Mocha](https://mochajs.org/) and [Chai](http://chaijs.com/api/bdd/).
 
 ## Dependencies
 

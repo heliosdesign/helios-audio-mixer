@@ -67,6 +67,9 @@ var Track = function(name, opts, mix){
   var audioData
   var element;
   var source;
+  var shouldPlay = false;
+
+  var analysis = { test: true };
 
   // on(), off(), etc
   var events = new Events();
@@ -79,9 +82,11 @@ var Track = function(name, opts, mix){
   setup();
 
   // Public Properties
-  this.name    = name;
-  this.status  = status;
-  this.options = options;
+  this.name     = name;
+  this.status   = status;
+  this.options  = options;
+  this.nodes    = nodes;
+  this.analysis = analysis;
 
   // Events
   this.on      = events.on.bind(this);
@@ -173,7 +178,7 @@ var Track = function(name, opts, mix){
 
     var ready = function() {
       status.loaded = true;
-      if(options.autoplay) play();
+      if( options.autoplay || shouldPlay ) play();
       events.trigger('load', track);
     };
 
@@ -200,8 +205,10 @@ var Track = function(name, opts, mix){
           audioData = request.response; // cache the audio data
           status.loaded = true;
           events.trigger('load', track);
-          if(forcePlay){
+          if( forcePlay ){
             play(true);
+          } else if( shouldPlay ){
+            play();
           } else {
             if(options.autoplay) play();
           }
@@ -228,7 +235,14 @@ var Track = function(name, opts, mix){
   */
   function play(bufferSourceLoaded) {
 
-    if(!status.loaded || status.playing) return track;
+    if(!status.loaded){
+      shouldPlay = true;
+      return track;
+    }
+
+    if(status.playing) return track;
+
+    shouldPlay = false;
 
     if(options.sourceMode === 'buffer'){
       // need to re-xhr the audio file so we loop back to load
@@ -250,7 +264,7 @@ var Track = function(name, opts, mix){
 
     // unlike buffer mode, we only need to construct the nodes once
     // we’ll also take this opportunity to do event listeners
-    if( !nodes.length ) {
+    if( !track.nodes.length ) {
       createNodes();
 
       element.addEventListener('ended', function() {
@@ -287,7 +301,6 @@ var Track = function(name, opts, mix){
     var timerDuration = (source.buffer.duration - startFrom);
 
     onendtimer = setTimeout(function() {
-      events.trigger('ended', track);
 
       if(options.looping){
         if(bowser && bowser.chrome && Math.floor(bowser.version) >= 42){
@@ -296,6 +309,8 @@ var Track = function(name, opts, mix){
         } else {
           setEndTimer();
         }
+      } else {
+        events.trigger('ended', track);
       }
 
     }, timerDuration * 1000);
@@ -462,14 +477,14 @@ var Track = function(name, opts, mix){
 
   function createNodes() {
     var creators = {
-      analyze:    createAnalyze,
+      analyse:    createAnalyse,
       gain:       createGain,
       panner:     createPanner,
       convolver:  createConvolver,
       compressor: createCompressor
     };
 
-    nodes = {};
+    track.nodes = {};
 
     var nodeArray = ['panner', 'gain'].concat( (options.nodes || []) );
 
@@ -480,7 +495,7 @@ var Track = function(name, opts, mix){
       if(typeof node === 'string'){
         if( creators[node] ){
           var newNode = creators[node]( mix.context, lastNode );
-          nodes[node] = newNode;
+          track.nodes[node] = newNode;
           lastNode    = newNode;
         }
       } else if( typeof node === 'object' ){
@@ -521,7 +536,7 @@ var Track = function(name, opts, mix){
   }
 
 
-  function createAnalyze(context, lastNode){
+  function createAnalyse(context, lastNode){
 
     // create a script processor with bufferSize of 2048
     var processorNode = context.createScriptProcessor(2048, 1, 1);
@@ -532,11 +547,11 @@ var Track = function(name, opts, mix){
     analyserNode.fftSize = 32;
 
     processorNode.connect(context.destination); // processor -> destination
-    analyserNode.connect(processorNode);          // analyser -> processor
+    analyserNode.connect(processorNode);        // analyser -> processor
 
     // define a Uint8Array to receive the analyser’s data
     options.bufferLength = analyserNode.frequencyBinCount;
-    analysis = {
+    track.analysis = {
       raw: new Uint8Array(analyserNode.frequencyBinCount),
       average: 0,
       low:     0,
@@ -551,39 +566,42 @@ var Track = function(name, opts, mix){
     lastNode.connect(analyserNode);
 
     processorNode.onaudioprocess = function(){
-      // analyserNode.getByteTimeDomainData(analysis.raw);
-      analyserNode.getByteFrequencyData(analysis.raw);
+
+      // analyserNode.getByteTimeDomainData(track.analysis.raw);
+      analyserNode.getByteFrequencyData(track.analysis.raw);
 
       // calculate average, mid, high
       scratch = 0;
-      for (i=0; i < options.bufferLength; i++)
-        scratch += analysis.raw[i];
+      for (i = 0; i < options.bufferLength; i++)
+        scratch += track.analysis.raw[i];
 
-      analysis.average = (scratch / options.bufferLength) / 256;
+      track.analysis.average = (scratch / options.bufferLength) / 256;
 
       // lows
       scratch = 0;
       for (i=0; i<third; i++)
-        scratch += analysis.raw[i];
+        scratch += track.analysis.raw[i];
 
-      analysis.low = scratch / third / 256;
+      track.analysis.low = scratch / third / 256;
 
       // mids
       scratch = 0;
       for (i=third; i<third*2; i++)
-        scratch += analysis.raw[i];
+        scratch += track.analysis.raw[i];
 
-      analysis.mid = scratch / third / 256;
+      track.analysis.mid = scratch / third / 256;
 
       // highs
       scratch = 0;
       for (i=third*2; i<options.bufferLength; i++)
-        scratch += analysis.raw[i];
+        scratch += track.analysis.raw[i];
 
-      analysis.high = scratch / third / 256;
+      track.analysis.high = scratch / third / 256;
 
-      events.trigger('analyse', analysis);
+      events.trigger('analyse', track);
     };
+
+    return lastNode;
   }
 
 
@@ -596,7 +614,7 @@ var Track = function(name, opts, mix){
   // "3d" stereo panning
   function pan(angleDeg) {
 
-    if( !detect.webAudio || !status.ready || !nodes.panner ) return track;
+    if( !detect.webAudio || !status.ready || !track.nodes.panner ) return track;
 
     if(typeof angleDeg === 'string') {
       if(     angleDeg === 'front') angleDeg =   0;
@@ -615,7 +633,7 @@ var Track = function(name, opts, mix){
       var y = options.panY = Math.sin(angleRad);
       var z = options.panZ = -0.5;
 
-      nodes.panner.setPosition(x, y, z);
+      track.nodes.panner.setPosition(x, y, z);
 
       events.trigger('pan', track);
 
@@ -657,8 +675,8 @@ var Track = function(name, opts, mix){
       }
 
       if(status.playing)
-        if(nodes.gain)
-          nodes.gain.gain.value = options.gain * mix.options.gain;
+        if(track.nodes.gain)
+          track.nodes.gain.gain.value = options.gain * mix.options.gain;
 
       // setters should be chainable
       events.trigger('gain', track);
@@ -672,7 +690,7 @@ var Track = function(name, opts, mix){
       throw new Error('Invalid arguments to tweenGain()');
 
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
-    nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+    track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
   }
 
   /*
