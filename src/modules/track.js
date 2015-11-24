@@ -544,6 +544,11 @@ var Track = function(name, opts, mix){
   }
 
 
+  /*
+
+    Audio Analysis Node
+
+  */
   function createAnalyse(context, lastNode){
 
     // create a script processor with bufferSize of 2048
@@ -552,13 +557,14 @@ var Track = function(name, opts, mix){
     // create an analyser
     var analyserNode = context.createAnalyser();
     analyserNode.smoothingTimeConstant = 0.5;
+
     analyserNode.fftSize = 32;
 
     processorNode.connect(context.destination); // processor -> destination
     analyserNode.connect(processorNode);        // analyser -> processor
+    options.bufferLength = analyserNode.frequencyBinCount;
 
     // define a Uint8Array to receive the analyser’s data
-    options.bufferLength = analyserNode.frequencyBinCount;
     track.analysis = {
       raw: new Uint8Array(analyserNode.frequencyBinCount),
       average: 0,
@@ -587,21 +593,21 @@ var Track = function(name, opts, mix){
 
       // lows
       scratch = 0;
-      for (i=0; i<third; i++)
+      for (i=0; i < third; i++)
         scratch += track.analysis.raw[i];
 
       track.analysis.low = scratch / third / 256;
 
       // mids
       scratch = 0;
-      for (i=third; i<third*2; i++)
+      for (i = third; i < third*2; i++)
         scratch += track.analysis.raw[i];
 
       track.analysis.mid = scratch / third / 256;
 
       // highs
       scratch = 0;
-      for (i=third*2; i<options.bufferLength; i++)
+      for (i= third*2; i < options.bufferLength; i++)
         scratch += track.analysis.raw[i];
 
       track.analysis.high = scratch / third / 256;

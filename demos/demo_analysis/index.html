@@ -34,6 +34,16 @@
 			vertical-align: top;
 			text-align: center;
 			margin-right: 1px;
+			font-size: 9px;
+			font-weight: bold;
+		}
+		.fft-number.red { color: red; }
+		.fft-number.orange { color: orange; }
+		.fft-number.yellow { color: yellow; }
+
+		.canvases canvas {
+			display: inline-block;
+			margin-right: 31px;
 		}
 	</style>
 </head>
@@ -51,7 +61,10 @@
 
 	<br><br>
 
-	<canvas id="fft"></canvas>
+	<div class="canvases">
+		<canvas id="avg"></canvas>
+		<canvas id="fft"></canvas>
+	</div>
 
 	<div id="numbers"></div>
 
@@ -61,9 +74,6 @@
 		<div id="data-mid"></div>
 		<div id="data-high"></div>
 	</div>
-
-
-
 
 	<script src="js/bowser.min.js"></script>
 	<script src="js/tween.min.js"></script>
@@ -88,8 +98,10 @@
 		var TRACK_ID = 'budos';
 
 		var track = Mixer.createTrack(TRACK_ID, {
+			// source: 'Beat And The Pulse',
 			// source: 'Up From The South',
-			source: 'loop-cello',
+			// source: 'loop-cello',
+			source: 'loop-bass',
 			sourceMode: 'element',
 			gain: 1,
 			nodes: ['analyse'],
@@ -108,38 +120,80 @@
 		},false)
 
 
-		var fftcanvas = document.getElementById('fft')
-		var ctx = fftcanvas.getContext('2d')
+		var fftCanvas = document.getElementById('fft')
+		var fftContext = fftCanvas.getContext('2d')
 
-		var fftdata = {}
+		var avgCanvas = document.getElementById('avg')
+		var avgContext = avgCanvas.getContext('2d')
+
+		var fftdata = {};
 
 		// track.on('analyse', function(data){ fftdata = data })
 
-		var WIDTH  = 600
-		var HEIGHT = 400
-		fftcanvas.width  = WIDTH
-		fftcanvas.height = HEIGHT
+		var height = 400;
+		var barWidth = 30;
 
-		var barWidth, barHeight
+		var barWidth, barHeight;
 
-		var fftdivs = []
+		var bufferLength;
+
+		var fftdivs = [];
+		var fftAvgDivs = [];
+    var thirds = [ 4, 10, 18 ];
 		var numberDivs = {}
 
 		track.one('play', function(){
 
-			console.log(track);
+			bufferLength = track.options.bufferLength;
 
-			barWidth = WIDTH / (track.options.bufferLength+1)
+			fftCanvas.width  = (barWidth+1) * bufferLength
+			fftCanvas.height = height
+
+			avgCanvas.width  = (barWidth+1) * 4
+			avgCanvas.height = height
+
+			// barWidth = WIDTH / (track.options.bufferLength+1)
 
 			// create divs for numberical display
 			var container = document.getElementById('numbers')
 
+			for (var i = 0; i < 4; i++) {
+				var colour;
+
+			  if(i===1)      colour = 'red'
+			  else if(i===2) colour = 'orange'
+			  else if(i===3) colour = 'yellow'
+
+		  	var id = 'fft'+i
+		  	var div = document.createElement('div')
+		  	div.setAttribute('id', id)
+		  	div.setAttribute('class', 'fft-number '+colour)
+		  	div.setAttribute('style', 'width:'+barWidth+'px')
+				container.appendChild(div)
+
+				fftAvgDivs.push(div);
+			}
+
+			// spacer
+	  	var div = document.createElement('div')
+	  	div.setAttribute('class', 'fft-number')
+	  	div.setAttribute('style', 'width:'+barWidth+'px')
+			container.appendChild(div)
+
 			for (var i = 0; i < track.options.bufferLength; i++) {
+
+				var colour;
+
+				if(i<thirds[0])      colour = 'red'
+				else if(i<thirds[1]) colour = 'orange'
+				else if(i<thirds[2]) colour = 'yellow'
+
 				var id = 'fft'+i
 				var div = document.createElement('div')
 				div.setAttribute('id', id)
-				div.setAttribute('class', 'fft-number')
+				div.setAttribute('class', 'fft-number '+colour)
 				div.setAttribute('style', 'width:'+barWidth+'px')
+
 				container.appendChild(div)
 
 				fftdivs.push(div)
@@ -164,7 +218,6 @@
 		})
 
 
-
 		function drawFFT(){
 			if(!track.analysis) return;
 			if(!track.analysis.raw) return;
@@ -172,23 +225,51 @@
 
 			var fftdata = track.analysis;
 
-			ctx.fillStyle = 'rgb(250, 250, 250)';
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
       var x = 0;
-			ctx.fillStyle = 'rgb(0, 0, 0)';
 
-			numberDivs.average.innerText = fftdata.average
-			numberDivs.low.innerText = fftdata.low
-			numberDivs.mid.innerText = fftdata.mid
-			numberDivs.high.innerText = fftdata.high
+			fftContext.fillStyle = 'rgb(250, 250, 250)';
+      fftContext.fillRect(0, 0, fftCanvas.width, fftCanvas.height);
+
+			avgContext.fillStyle = 'rgb(250, 250, 250)';
+      avgContext.fillRect(0, 0, avgCanvas.width, avgCanvas.height);
+
+			fftContext.fillStyle = 'rgb(0, 0, 0)';
+			avgContext.fillStyle = 'rgb(0, 0, 0)';
+
+
+			// numberDivs.average.innerText = 'AVG '+fftdata.average
+			// numberDivs.low.innerText     = 'LOW '+fftdata.low
+			// numberDivs.mid.innerText     = 'MID '+fftdata.mid
+			// numberDivs.high.innerText    = 'HI  '+fftdata.high
+
+			// Averages
+			fftAvgDivs[0].innerText = Math.round( fftdata.average * 100 ) / 100
+			fftAvgDivs[1].innerText = Math.round( fftdata.low * 100 ) / 100
+			fftAvgDivs[2].innerText = Math.round( fftdata.mid * 100 ) / 100
+			fftAvgDivs[3].innerText = Math.round( fftdata.high * 100 ) / 100
+
+			var h
+
+			h = height * fftdata.average
+			avgContext.fillRect( 0, height - h, barWidth, h )
+
+			h = height * fftdata.low
+			avgContext.fillRect( barWidth+1, height - h, barWidth, h )
+
+			h = height * fftdata.mid
+			avgContext.fillRect( (barWidth+1)*2, height - h, barWidth, h )
+
+			h = height * fftdata.high
+			avgContext.fillRect( (barWidth+1)*3, height - h, barWidth, h )
+
+
 
       for(var i = 0; i < track.options.bufferLength; i++) {
 
         fftdivs[i].innerText = fftdata.raw[i]
 
         barHeight = fftdata.raw[i]
-        ctx.fillRect(x, HEIGHT-barHeight/2, barWidth, barHeight/2 )
+        fftContext.fillRect(x, fftCanvas.height-barHeight/2, barWidth, barHeight/2 )
 
         x += barWidth + 1
       }

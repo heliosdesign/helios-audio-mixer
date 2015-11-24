@@ -43,6 +43,8 @@ var Mix = function(opts) {
   this.update = update;
   this.report = report;
 
+  this.extend = u.extend; // expose reference to extend so plugins can use it
+
   // File Types
   // ********************************************************
 
