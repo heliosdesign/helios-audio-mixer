@@ -107,6 +107,9 @@ var Track = function(name, opts, mix){
   this.nodes    = nodes;
   this.analysis = analysis;
 
+  if(options.sourceMode === 'element')
+    this.element = element;
+
   // Events
   this.on      = events.on.bind(this);
   this.one     = events.one.bind(this);
@@ -169,7 +172,7 @@ var Track = function(name, opts, mix){
 
   // Create out-of-DOM html5 <audio> element as source
   function createHTML5elementSource() {
-    // debug.log(2, 'Track "' + name + '" creating HTML5 element source: "' + options.source + mix.options.fileTypes[0]  + '"');
+    debug.log(2, 'Track "' + name + '" creating HTML5 element source: "' + options.source + mix.options.fileTypes[0]  + '"');
     status.ready = false;
 
     var src = options.source;
@@ -181,7 +184,7 @@ var Track = function(name, opts, mix){
     useHTML5elementSource();
   }
 
-  // Use existing in-DOM html5 <audio> or <video> element as source
+  // Use existing html5 <audio> or <video> element as source
   function useHTML5elementSource() {
     debug.log(2, 'Track "' + name + '" using HTML5 element source: "' + options.source + '"');
 
@@ -189,9 +192,10 @@ var Track = function(name, opts, mix){
     options.source.crossOrigin = '';
     options.source = element.src;
 
-    // Add options if they're set.
+    // Add options
     if (options.loop)  element.loop  = true;
     if (options.muted) element.muted = true;
+    element.volume = options.gain;
 
     source = mix.context.createMediaElementSource(element);
 
@@ -696,7 +700,14 @@ var Track = function(name, opts, mix){
       events.trigger('gain', track);
       return track;
     }
+
+    // accurately report gain
+    if(status.playing)
+      if(track.nodes.gain)
+        options.gain = track.nodes.gain.gain.value
+
     return options.gain;
+
   }
 
   function tweenGain(setTo, duration){
@@ -704,7 +715,10 @@ var Track = function(name, opts, mix){
       throw new Error('Invalid arguments to tweenGain()');
 
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
-    track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+
+    if(status.playing)
+      if(track.nodes.gain)
+        track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
   }
 
   /*

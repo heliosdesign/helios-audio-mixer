@@ -2,6 +2,8 @@ describe('Track', function(){
 
   var mixer, frameRunner;
 
+  var silence9s = './audio/silence_9s';
+
   before(function(){
     mixer = new HeliosAudioMixer()
 
@@ -34,7 +36,7 @@ describe('Track', function(){
     })
 
     it('should create a track with a buffer source', function(){
-      bufferTrack = mixer.createTrack('buffer', { source: './audio/silence_9s', sourceMode: 'buffer' })
+      bufferTrack = mixer.createTrack('buffer', { source: silence9s, sourceMode: 'buffer' })
       expect( bufferTrack ).to.have.property('play');
     })
 
@@ -51,7 +53,7 @@ describe('Track', function(){
     })
 
     it('should create a track with an element source', function(){
-      elementTrack = mixer.createTrack('element', { source: './audio/silence_9s', sourceMode: 'element' })
+      elementTrack = mixer.createTrack('element', { source: silence9s, sourceMode: 'element' })
       expect( elementTrack ).to.have.property('play');
     })
 
@@ -86,7 +88,7 @@ describe('Track', function(){
     var duration;
 
     before(function(){
-      track = mixer.createTrack('events', { source: './audio/silence_9s', autoplay: false })
+      track = mixer.createTrack('events', { source: silence9s, autoplay: false })
     })
 
     it('should trigger a load event', function(done){
@@ -150,7 +152,7 @@ describe('Track', function(){
     var track;
 
     before(function(){
-      track = mixer.createTrack('timeline', { source: './audio/silence_9s', autoplay: true });
+      track = mixer.createTrack('timeline', { source: silence9s, autoplay: true });
     })
 
     it('should trigger an onstart event', function(done){
@@ -186,7 +188,7 @@ describe('Track', function(){
     var track;
 
     before(function(){
-      track = mixer.createTrack('test', { source: './audio/silence_9s', autoplay: false })
+      track = mixer.createTrack('test', { source: silence9s, autoplay: false })
     })
 
     it('play() should be chainable', function(){
@@ -238,6 +240,51 @@ describe('Track', function(){
 
   /*
 
+    Gain
+
+  */
+
+  describe('gain', function(){
+
+    it('should create an element track with 0 gain', function(done){
+
+      var track = mixer.createTrack('gain', {
+        source: silence9s,
+        sourceMode: 'element',
+        gain: 0,
+        autoplay: true
+      })
+
+      track.on('play', function(){
+        expect(track.element.volume).to.equal(0)
+        mixer.removeTrack(track)
+        done()
+      })
+
+    })
+
+    it('should fail silently when calling tweenGain at the wrong time', function(){
+      var track = mixer.createTrack('fail', { source: 'nonexistent' })
+      track.tweenGain(0,1)
+      mixer.removeTrack(track)
+    })
+
+    it('should tween gain', function(done){
+      var track = mixer.createTrack('gain', { source: silence9s, gain: 0, autoplay: true })
+      track.one('play', function(){
+        console.log('PLAYYYY');
+        track.tweenGain(1, 0.1);
+        setTimeout(function(){
+          expect(track.gain()).to.equal(1)
+          done()
+        }, 200)
+      })
+    })
+  })
+
+
+  /*
+
     Analysis
 
   */
@@ -247,7 +294,7 @@ describe('Track', function(){
 
     before(function(){
       track = mixer.createTrack('analysis', {
-        source: './audio/silence_9s',
+        source: silence9s,
         autoplay: false,
         nodes: ['analyse']
       })

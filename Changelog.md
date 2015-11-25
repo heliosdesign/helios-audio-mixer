@@ -1,3 +1,11 @@
+## 0.4.4
+
+- fixed a bug where an element source track wouldn’t set gain properly
+- more accurately reporting gain
+
+## 0.4.3
+
+- fixes
 
 ## 0.4.2
 
