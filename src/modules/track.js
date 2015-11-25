@@ -717,8 +717,6 @@ var Track = function(name, opts, mix){
     if(typeof setTo !== 'number' || typeof duration !== 'number')
       throw new Error('Invalid arguments to tweenGain()');
 
-    console.log('tween gain to', setTo, 'over', duration);
-
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
 
     if(options.sourceMode === 'buffer'){
