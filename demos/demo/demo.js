@@ -65,9 +65,9 @@ var demoTrack = function(name){
       document.getElementById(name+'pan').value = track.options.pan
     })
 
-    track.on('gain',function(){
-      document.getElementById(name+'gain').value = track.options.gain*100
-    })
+    // track.on('gain',function(){
+    //   document.getElementById(name+'gain').value = track.options.gain*100
+    // })
 
     var timeEl = document.getElementById(name+'time')
     var playheadEl = document.getElementById(name+'playhead')

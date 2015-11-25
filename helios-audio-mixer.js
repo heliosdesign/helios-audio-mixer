@@ -801,11 +801,7 @@ var Track = function(name, opts, mix){
   var startTime  = 0; // global (unix) time started (cached for accurately reporting currentTime)
   var cachedTime = 0; // local current time (cached for resuming from pause)
 
-  var onendtimer;
-
-  var audioData
-  var element;
-  var source;
+  var onendtimer, audioData, element, source, gainTween
   var shouldPlay = false;
 
   var analysis = { test: true };
@@ -1412,33 +1408,57 @@ var Track = function(name, opts, mix){
         options.gain = setTo;
       }
 
+
       if(status.playing)
         if(track.nodes.gain)
           track.nodes.gain.gain.value = options.gain * mix.options.gain;
+
+      // if element source, also adjust the media element,
+      // because the gain node is meaningless in this context
+      if(options.sourceMode === 'element')
+        element.volume = options.gain * mix.options.gain
 
       // setters should be chainable
       events.trigger('gain', track);
       return track;
     }
 
-    // accurately report gain
-    if(status.playing)
-      if(track.nodes.gain)
-        options.gain = track.nodes.gain.gain.value
+    // accurately report gain while we’re tweening it
+    if(options.sourceMode === 'buffer'){
+      if(status.playing)
+        if(track.nodes.gain)
+          options.gain = track.nodes.gain.gain.value
+    }
 
     return options.gain;
-
   }
 
   function tweenGain(setTo, duration){
     if(typeof setTo !== 'number' || typeof duration !== 'number')
       throw new Error('Invalid arguments to tweenGain()');
 
+    console.log('tween gain to', setTo, 'over', duration);
+
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
 
-    if(status.playing)
-      if(track.nodes.gain)
-        track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+    if(options.sourceMode === 'buffer'){
+      if(status.playing)
+        if(track.nodes.gain)
+          track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+
+    } else if( options.sourceMode === 'element'){
+
+      if(gainTween) gainTween.stop()
+
+      gainTween = new TWEEN.Tween({ gain: options.gain })
+        .to( { gain: setTo }, 1000 * duration )
+        .start();
+
+      gainTween.onUpdate(function(){ gain(this.gain) })
+
+    }
+
+
   }
 
   /*

@@ -269,15 +269,26 @@ describe('Track', function(){
       mixer.removeTrack(track)
     })
 
-    it('should tween gain', function(done){
-      var track = mixer.createTrack('gain', { source: silence9s, gain: 0, autoplay: true })
+    it('should tween gain (buffer track)', function(done){
+      var track = mixer.createTrack('gain', { source: silence9s, gain: 0, autoplay: true, sourceMode: 'buffer' })
       track.one('play', function(){
-        console.log('PLAYYYY');
+        track.tweenGain(1, 0.1);
+        setTimeout(function(){
+          expect(track.gain()).to.equal(1)
+          mixer.removeTrack(track)
+          done()
+        }, 150)
+      })
+    })
+
+    it('should tween gain (element track)', function(done){
+      var track = mixer.createTrack('gain', { source: silence9s, gain: 0, autoplay: true, sourceMode: 'element' })
+      track.one('play', function(){
         track.tweenGain(1, 0.1);
         setTimeout(function(){
           expect(track.gain()).to.equal(1)
           done()
-        }, 200)
+        }, 150)
       })
     })
   })
