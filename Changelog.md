@@ -2,6 +2,7 @@
 
 - fixed a bug where an element source track wouldn’t set gain properly
 - more accurately reporting gain
+- using tween.js again for element source tracks
 
 ## 0.4.3
 
