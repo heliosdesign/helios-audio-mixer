@@ -837,6 +837,8 @@ var Track = function(name, opts, mix){
   this.pause = pause;
   this.stop  = stop;
 
+  this.getAnalysis  = getAnalysis;
+
   this.pan  = pan;
   this.gain = gain;
   this.tweenGain = tweenGain;
@@ -979,7 +981,9 @@ var Track = function(name, opts, mix){
       return track;
     }
 
-    if(status.playing) return track;
+    if(status.playing){
+      return track;
+    }
 
     shouldPlay = false;
 
@@ -991,10 +995,9 @@ var Track = function(name, opts, mix){
         status.playing = false;
         loadBufferSource(true); // loop back to load
       }
-    }
-
-    else if(options.sourceMode === 'element')
+    } else if(options.sourceMode === 'element'){
       playElementSource();
+    }
 
     return track;
   }
@@ -1003,11 +1006,15 @@ var Track = function(name, opts, mix){
 
     // unlike buffer mode, we only need to construct the nodes once
     // we’ll also take this opportunity to do event listeners
-    if( !track.nodes.length ) {
+    if( !track.nodes.gain ){
       createNodes();
 
       element.addEventListener('ended', function() {
         events.trigger('ended', track);
+      }, false);
+
+      element.addEventListener('loop', function() {
+        events.trigger('loop', track);
       }, false);
     }
 
@@ -1213,6 +1220,7 @@ var Track = function(name, opts, mix){
 
   function createNodes() {
     track.nodes = {};
+    console.log('createNodes');
 
     var nodeArray = ['panner', 'gain'].concat( (options.nodes || []) );
 
@@ -1275,67 +1283,72 @@ var Track = function(name, opts, mix){
     var processorNode = context.createScriptProcessor(2048, 1, 1);
 
     // create an analyser
-    var analyserNode = context.createAnalyser();
-    analyserNode.smoothingTimeConstant = 0.5;
+    nodes.analyserNode = context.createAnalyser();
+    nodes.analyserNode.smoothingTimeConstant = 0.2;
 
-    analyserNode.fftSize = 32;
+    nodes.analyserNode.fftSize = 32;
 
     processorNode.connect(context.destination); // processor -> destination
-    analyserNode.connect(processorNode);        // analyser -> processor
-    options.bufferLength = analyserNode.frequencyBinCount;
+    nodes.analyserNode.connect(processorNode);  // analyser  -> processor
+
+    options.bufferLength = nodes.analyserNode.frequencyBinCount;
 
     // define a Uint8Array to receive the analyser’s data
     track.analysis = {
-      raw: new Uint8Array(analyserNode.frequencyBinCount),
+      raw: new Uint8Array(options.bufferLength),
       average: 0,
       low:     0,
       mid:     0,
       high:    0,
     };
 
+    lastNode.connect(nodes.analyserNode);
+
+    // return the last node: the audio processor doesn’t modify the audio
+    // stream, so it doesn’t need to be connected to any other nodes
+    return lastNode;
+  }
+
+  function getAnalysis(){
+    if(!nodes.analyserNode) return
+
     var third = Math.round(options.bufferLength / 3);
     var scratch = 0;
     var i=0;
 
-    lastNode.connect(analyserNode);
+    nodes.analyserNode.getByteFrequencyData(track.analysis.raw);
 
-    processorNode.onaudioprocess = function(){
+    // calculate average, mid, high
+    scratch = 0;
+    for (i = 0; i < options.bufferLength; i++)
+      scratch += track.analysis.raw[i];
 
-      // analyserNode.getByteTimeDomainData(track.analysis.raw);
-      analyserNode.getByteFrequencyData(track.analysis.raw);
+    track.analysis.average = (scratch / options.bufferLength) / 256;
 
-      // calculate average, mid, high
-      scratch = 0;
-      for (i = 0; i < options.bufferLength; i++)
-        scratch += track.analysis.raw[i];
+    // lows
+    scratch = 0;
+    for (i=0; i < third; i++)
+      scratch += track.analysis.raw[i];
 
-      track.analysis.average = (scratch / options.bufferLength) / 256;
+    track.analysis.low = scratch / third / 256;
 
-      // lows
-      scratch = 0;
-      for (i=0; i < third; i++)
-        scratch += track.analysis.raw[i];
+    // mids
+    scratch = 0;
+    for (i = third; i < third*2; i++)
+      scratch += track.analysis.raw[i];
 
-      track.analysis.low = scratch / third / 256;
+    track.analysis.mid = scratch / third / 256;
 
-      // mids
-      scratch = 0;
-      for (i = third; i < third*2; i++)
-        scratch += track.analysis.raw[i];
+    // highs
+    scratch = 0;
+    for (i= third*2; i < options.bufferLength; i++)
+      scratch += track.analysis.raw[i];
 
-      track.analysis.mid = scratch / third / 256;
+    track.analysis.high = scratch / third / 256;
 
-      // highs
-      scratch = 0;
-      for (i= third*2; i < options.bufferLength; i++)
-        scratch += track.analysis.raw[i];
+    events.trigger('analyse', track);
 
-      track.analysis.high = scratch / third / 256;
-
-      events.trigger('analyse', track);
-    };
-
-    return lastNode;
+    return track.analysis
   }
 
 
@@ -1436,8 +1449,6 @@ var Track = function(name, opts, mix){
   function tweenGain(setTo, duration){
     if(typeof setTo !== 'number' || typeof duration !== 'number')
       throw new Error('Invalid arguments to tweenGain()');
-
-    console.log('tween gain to', setTo, 'over', duration);
 
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
 

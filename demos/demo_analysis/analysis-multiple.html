@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audio mix - Analysis Multiple</title>
+
+  <style>
+    * { font-family: sans-serif; }
+
+    h4 {
+      display: inline-block;
+      width: 5em;
+      margin: 0;
+      margin-right: 1em;
+    }
+
+    .slider {
+      display: inline-block;
+      position: relative;
+      width: 100px;
+      margin: 10px 0;
+      background: #eee;
+      height: 1em;
+    }
+    .playhead {
+      position: absolute;
+      width: 1px;
+      height: 100%;
+      background: black;
+    }
+
+    .fft-number {
+      display: inline-block;
+      vertical-align: top;
+      text-align: center;
+      margin-right: 1px;
+      font-size: 9px;
+      font-weight: bold;
+    }
+    .fft-number.red { color: red; }
+    .fft-number.orange { color: orange; }
+    .fft-number.yellow { color: yellow; }
+
+    .canvases canvas {
+      display: inline-block;
+      margin-right: 31px;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>multi-track audio analysis stress test</h3>
+
+  Number of tracks: <input id="number" type="text" placeholder="Number of tracks" value="100" style="width:3em">
+
+  <br><br>
+
+  <button onclick="setup()">Create Tracks</button>
+
+  <br><br>
+
+  <button onclick="mix.play()">Play</button>
+  <button onclick="mix.pause()">Pause</button>
+
+  <br><br>
+
+  <button onclick="mute()">Toggle Mute</button>
+
+  <br><br>
+
+  <div class="canvases">
+    <canvas id="avg"></canvas>
+    <canvas id="fft"></canvas>
+  </div>
+
+  <div id="numbers"></div>
+
+  <div>
+    <div id="data-average"></div>
+    <div id="data-low"></div>
+    <div id="data-mid"></div>
+    <div id="data-high"></div>
+  </div>
+
+  <script src="js/bowser.min.js"></script>
+  <script src="js/tween.min.js"></script>
+  <script src="js/frameRunner.js"></script>
+  <script src="../../helios-audio-mixer.js"></script>
+
+  <script>
+
+    var mix = new HeliosAudioMixer;
+
+    mix.setLogLvl(2)
+
+    frameRunner.start()
+    frameRunner.add('updateMixerTween', 'everyFrame', mix.update)
+
+    function mute(){
+      console.log('mute')
+      if(mix.muted) mix.unmute()
+      else            mix.mute()
+    }
+
+    var NUM_TRACKS = 100;
+    var tracks     = [];
+    var analysis   = [];
+
+    // ********************************************************
+
+    function setup(){
+
+      var num = parseInt( document.getElementById('number').value )
+      console.log('num', num);
+      if(!num) return
+
+      if(mix.tracks.length){
+        mix.tracks.forEach(function(track){
+          mix.removeTrack(track)
+        })
+      };
+
+      var track
+      for (var i = 0; i < num; i++) {
+        track = mix.createTrack('track'+i, {
+          source: 'Beat And The Pulse',
+          // source: 'Up From The South',
+          // source: 'loop-cello',
+          // source: 'loop-bass',
+
+          sourceMode: 'element',
+          gain: 0.2,
+          nodes: ['analyse'],
+          loop: true,
+          autoplay: false
+        })
+        tracks.push(track)
+      }
+
+      tracks[0].one('play', buildVisualization)
+    }
+
+
+
+    function buildVisualization(){
+
+      frameRunner.add('drawFFT', 'everyFrame', drawFFT)
+      frameRunner.start()
+
+      tracks[0].on('pause', function(){ frameRunner.remove('drawFFT', 'everyFrame') })
+      tracks[0].on('play',  function(){ frameRunner.add('drawFFT', 'everyFrame', drawFFT) })
+
+    }
+
+
+    function drawFFT(){
+
+
+      for (var i = 0; i < tracks.length; i++) {
+
+        if(!tracks[i].status.ready) continue;
+        if(!tracks[i].analysis) continue;
+        if(!tracks[i].analysis.raw) continue;
+        if(!tracks[i].analysis.raw.length) continue;
+
+        analysis[i] = tracks[i].getAnalysis();
+      }
+
+    }
+
+
+
+  </script>
+
+</body>
+</html>

@@ -87,7 +87,7 @@
 		Mixer.setLogLvl(2)
 
 		frameRunner.start()
-		frameRunner.add('updateMixerTween','everyFrame',Mixer.update)
+		frameRunner.add('updateMixerTween', 'everyFrame', Mixer.update)
 
 		function mute(){
 			console.log('mute')
@@ -95,13 +95,15 @@
 			else            Mixer.mute()
 		}
 
-		var TRACK_ID = 'budos';
+		var TRACK_ID = 'analysis';
 
 		var track = Mixer.createTrack(TRACK_ID, {
-			// source: 'Beat And The Pulse',
+
+			source: 'Beat And The Pulse',
 			// source: 'Up From The South',
 			// source: 'loop-cello',
-			source: 'loop-bass',
+			// source: 'loop-bass',
+
 			sourceMode: 'element',
 			gain: 1,
 			nodes: ['analyse'],
@@ -119,6 +121,7 @@
 			if(Mixer.getTrack(TRACK_ID)) Mixer.getTrack(TRACK_ID).gain(e.target.value/100)
 		},false)
 
+		// ********************************************************
 
 		var fftCanvas = document.getElementById('fft')
 		var fftContext = fftCanvas.getContext('2d')
@@ -128,9 +131,7 @@
 
 		var fftdata = {};
 
-		// track.on('analyse', function(data){ fftdata = data })
-
-		var height = 400;
+		var height   = 400;
 		var barWidth = 30;
 
 		var barWidth, barHeight;
@@ -142,7 +143,9 @@
     var thirds = [ 4, 10, 18 ];
 		var numberDivs = {}
 
-		track.one('play', function(){
+		track.one('play', buildVisualization)
+
+		function buildVisualization(){
 
 			bufferLength = track.options.bufferLength;
 
@@ -208,14 +211,11 @@
 			frameRunner.start()
 
 			track.on('pause', function(){ frameRunner.remove('drawFFT', 'everyFrame') })
-			track.on('play', function(){ frameRunner.add('drawFFT', 'everyFrame', drawFFT) })
+			track.on('play',  function(){ frameRunner.add('drawFFT', 'everyFrame', drawFFT) })
 
-			track.on('ended', function(){
-				console.log('ended');
-			})
+			track.on('ended', function(){ console.log('ended'); })
 
-			console.log(track);
-		})
+		}
 
 
 		function drawFFT(){
@@ -223,7 +223,7 @@
 			if(!track.analysis.raw) return;
 			if(!track.analysis.raw.length) return;
 
-			var fftdata = track.analysis;
+			var fftdata = track.getAnalysis();
 
       var x = 0;
 
@@ -235,12 +235,6 @@
 
 			fftContext.fillStyle = 'rgb(0, 0, 0)';
 			avgContext.fillStyle = 'rgb(0, 0, 0)';
-
-
-			// numberDivs.average.innerText = 'AVG '+fftdata.average
-			// numberDivs.low.innerText     = 'LOW '+fftdata.low
-			// numberDivs.mid.innerText     = 'MID '+fftdata.mid
-			// numberDivs.high.innerText    = 'HI  '+fftdata.high
 
 			// Averages
 			fftAvgDivs[0].innerText = Math.round( fftdata.average * 100 ) / 100
@@ -261,8 +255,6 @@
 
 			h = height * fftdata.high
 			avgContext.fillRect( (barWidth+1)*3, height - h, barWidth, h )
-
-
 
       for(var i = 0; i < track.options.bufferLength; i++) {
 
