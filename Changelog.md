@@ -1,3 +1,8 @@
+## 0.4.5
+
+- fixed a bug where audio analysis would stop a few seconds into the track
+- audio analysis is now triggered externally, by calling `track.getAnalysis()`
+
 ## 0.4.4
 
 - fixed a bug where an element source track wouldn’t set gain properly

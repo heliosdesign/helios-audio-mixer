@@ -270,7 +270,8 @@ track.on('play', function(){
 })
 
 function fft(){
-  var data = track.analysis;
+  var data = track.getAnalysis();
+  console.log(data.average)
 }
 ```
 
