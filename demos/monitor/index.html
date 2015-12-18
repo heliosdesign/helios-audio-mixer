@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+</head>
+<body>
+
+  <p>headphones in!!!!!</p>
+
+  <p><a href="#" onclick="monitor()">Start Monitor</a></p>
+
+  <p><a href="#" onclick="toggleMute()">Mute</a></p>
+
+  <p><a href="#" onclick="stop()">Stop</a></p>
+
+  <script src="../../bower_components/bowser/bowser.min.js"></script>
+  <script src="../../bower_components/tweenjs/src/Tween.js"></script>
+  <script src="../../bower_components/helios-frame-runner/helios-frame-runner.js"></script>
+
+  <script src="../../helios-audio-mixer.js"></script>
+
+  <script>
+
+    var mixer = new HeliosAudioMixer()
+    var monitorTrack
+
+    function monitor(){
+      getUserMedia(function(mediaStream){
+        monitorTrack = mixer.createTrack('monitor', {
+          source:      mediaStream,
+          sourceMode: 'mediaStream',
+          autoplay:    true
+        })
+        console.log(monitorTrack);
+      })
+    }
+
+    function toggleMute(){
+      console.log(monitorTrack.options.gain);
+      monitorTrack.options.gain ? monitorTrack.gain(0) : monitorTrack.gain(1)
+    }
+
+    function stop(){
+
+    }
+
+    function getUserMedia(callback){
+      var constraints = { video: false, audio: true }
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+      navigator.getUserMedia(constraints, callback, function(){});
+    }
+
+
+
+
+  </script>
+
+</body>
+</html>
