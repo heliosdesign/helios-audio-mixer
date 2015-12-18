@@ -40,7 +40,7 @@ var Track = function(name, opts, mix){
 
   var defaults = {
 
-    sourceMode: 'buffer', // buffer or (media) element
+    sourceMode: 'buffer', // 'buffer' 'element' 'mediaStream'
 
     source: false,   // either path to audio source (without file extension) or b) html5 <audio> or <video> element
 
@@ -81,7 +81,12 @@ var Track = function(name, opts, mix){
   var startTime  = 0; // global (unix) time started (cached for accurately reporting currentTime)
   var cachedTime = 0; // local current time (cached for resuming from pause)
 
-  var onendtimer, audioData, element, source, gainTween
+  var onendtimer
+  var audioData
+  var element
+  var source
+  var gainTween
+
   var shouldPlay = false;
 
   var analysis = { test: true };
@@ -161,6 +166,10 @@ var Track = function(name, opts, mix){
     } else if(options.sourceMode === 'element') {
       if(typeof options.source === 'object') useHTML5elementSource();
       else                                   createHTML5elementSource();
+    } else if(options.sourceMode === 'mediaStream'){
+      loadMediaStream();
+    } else {
+      throw new Error('"'+options.sourceMode+'" is an invalid source mode.')
     }
 
   }
@@ -277,6 +286,8 @@ var Track = function(name, opts, mix){
       }
     } else if(options.sourceMode === 'element'){
       playElementSource();
+    } else if( options.sourceMode === 'mediaStream'){
+      playMediaStreamSource();
     }
 
     return track;
@@ -286,7 +297,7 @@ var Track = function(name, opts, mix){
 
     // unlike buffer mode, we only need to construct the nodes once
     // we’ll also take this opportunity to do event listeners
-    if( !track.nodes.gain ){
+    if( !nodes.gain ){
       createNodes();
 
       element.addEventListener('ended', function() {
@@ -418,6 +429,39 @@ var Track = function(name, opts, mix){
     }
   }
 
+
+
+
+  /*
+
+    Media Stream
+
+  */
+
+  function loadMediaStream(shouldPlay){
+    source = mix.context.createMediaStreamSource(options.source);
+    status.loaded = true
+    if( options.autoplay || shouldPlay ) play();
+  }
+
+  function playMediaStreamSource(){
+
+    createNodes();
+
+    status.ready = true;
+    events.trigger('ready', track);
+
+    // Apply Options
+    gain(options.gain);
+    pan(options.pan);
+
+    status.playing = true;
+    events.trigger('play', track);
+  }
+
+
+
+
   /*
 
     ######   #####  ##   ##  ####  ######
@@ -499,8 +543,7 @@ var Track = function(name, opts, mix){
   */
 
   function createNodes() {
-    track.nodes = {};
-    console.log('createNodes');
+    nodes = {};
 
     var nodeArray = ['panner', 'gain'].concat( (options.nodes || []) );
 
@@ -511,7 +554,7 @@ var Track = function(name, opts, mix){
       if(typeof node === 'string'){
         if( nodeCreators[node] ){
           var newNode = nodeCreators[node]( mix.context, lastNode );
-          track.nodes[node] = newNode;
+          nodes[node] = newNode;
           lastNode    = newNode;
         }
       } else if( typeof node === 'object' ){
@@ -641,7 +684,7 @@ var Track = function(name, opts, mix){
   // "3d" stereo panning
   function pan(angleDeg) {
 
-    if( !detect.webAudio || !status.ready || !track.nodes.panner ) return track;
+    if( !detect.webAudio || !status.ready || !nodes.panner ) return track;
 
     if(typeof angleDeg === 'string') {
       if(     angleDeg === 'front') angleDeg =   0;
@@ -660,7 +703,7 @@ var Track = function(name, opts, mix){
       var y = options.panY = Math.sin(angleRad);
       var z = options.panZ = -0.5;
 
-      track.nodes.panner.setPosition(x, y, z);
+      nodes.panner.setPosition(x, y, z);
 
       events.trigger('pan', track);
 
@@ -701,10 +744,9 @@ var Track = function(name, opts, mix){
         options.gain = setTo;
       }
 
-
       if(status.playing)
-        if(track.nodes.gain)
-          track.nodes.gain.gain.value = options.gain * mix.options.gain;
+        if(nodes.gain)
+          nodes.gain.gain.value = options.gain * mix.options.gain;
 
       // if element source, also adjust the media element,
       // because the gain node is meaningless in this context
@@ -719,8 +761,8 @@ var Track = function(name, opts, mix){
     // accurately report gain while we’re tweening it
     if(options.sourceMode === 'buffer'){
       if(status.playing)
-        if(track.nodes.gain)
-          options.gain = track.nodes.gain.gain.value
+        if(nodes.gain)
+          options.gain = nodes.gain.gain.value
     }
 
     return options.gain;
@@ -734,8 +776,8 @@ var Track = function(name, opts, mix){
 
     if(options.sourceMode === 'buffer'){
       if(status.playing)
-        if(track.nodes.gain)
-          track.nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+        if(nodes.gain)
+          nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
 
     } else if( options.sourceMode === 'element'){
 
@@ -762,6 +804,7 @@ var Track = function(name, opts, mix){
     gainCache(options.gain);
     gain(0);
     options.muted = true;
+    status.muted  = true;
     if(options.sourceMode === 'element')
       element.muted = true;
     return track
@@ -769,6 +812,7 @@ var Track = function(name, opts, mix){
 
   function unmute() {
     options.muted = false;
+    status.muted  = false;
     if(options.sourceMode === 'element')
       element.muted = false;
     gain(options.gainCache);

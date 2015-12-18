@@ -4,6 +4,12 @@ describe('Track', function(){
 
   var silence9s = './audio/silence_9s';
 
+  function getUserMedia(callback){
+    var constraints = { video: false, audio: true }
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+    navigator.getUserMedia(constraints, callback, function(){});
+  }
+
   before(function(){
     mixer = new HeliosAudioMixer()
 
@@ -25,7 +31,7 @@ describe('Track', function(){
 
   describe('loading', function(){
 
-    var bufferTrack, elementTrack, failTrack;
+    var bufferTrack, elementTrack, mediaStreamTrack, mediaStream, failTrack;
 
     it('should throw a loadError when a track fails to load', function(done){
       failTrack = mixer.createTrack('shouldfail', { source: 'nonexistent' })
@@ -41,6 +47,7 @@ describe('Track', function(){
     })
 
     it('should play a track with a buffer source', function(done){
+
       bufferTrack.play(0);
       bufferTrack.one('play', function(){
         expect( bufferTrack.status.playing ).to.equal( true );
@@ -58,6 +65,7 @@ describe('Track', function(){
     })
 
     it('should play a track with an element source', function(done){
+
       elementTrack.play(0);
       elementTrack.one('play', function(){
         expect( elementTrack.status.playing ).to.equal( true );
@@ -70,7 +78,38 @@ describe('Track', function(){
     })
 
 
+    it('should create a track with a media stream source', function(done){
+
+      getUserMedia(function(_mediaStream){
+        mediaStream = _mediaStream
+        mediaStreamTrack = mixer.createTrack('mediaStream', { source: mediaStream, sourceMode: 'mediaStream' })
+        expect( mediaStreamTrack ).to.have.property('play');
+        done()
+      })
+
+    })
+
+    it('should reject a track with an invalid sourceMode', function(){
+      var invalid = mixer.createTrack.bind(mixer, 'nodes', { source: './audio/silence_9s', sourceMode: 'invalid' })
+      expect( invalid ).to.throw( Error )
+    })
+
+
     after(function(){
+
+      if(mediaStream){
+        if( mediaStream.active ){
+          // chrome 45+
+          var tracks = mediaStream.getTracks();
+          tracks.map(function(track){
+            track.stop();
+          })
+        } else if(mediaStream.stop){
+          // chrome >45
+          mediaStream.stop()
+        }
+      }
+
       mixer.removeTrack(bufferTrack)
       mixer.removeTrack(elementTrack)
       mixer.removeTrack(failTrack)
