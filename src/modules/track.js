@@ -208,14 +208,19 @@ var Track = function(name, opts, mix){
 
     var ready = function() {
       status.loaded = true;
-      if( options.autoplay || shouldPlay ) play();
+
+      if( options.autoplay || shouldPlay )
+        play();
+      else
+        element.pause();
+
       events.trigger('load', track);
     };
 
     element.addEventListener('canplaythrough', ready);
     element.addEventListener('error', function() { events.trigger('loadError', track) });
 
-    element.load();
+    element.play();
 
     return track;
   }
@@ -229,7 +234,7 @@ var Track = function(name, opts, mix){
 
     request.onreadystatechange = function(e){
       if(request.readyState === 4){
-        if(request.status === 200){
+        if(request.status === 200 || request.status === 206 || request.status === 304){
           // 200 -> success
           debug.log(2, '"' + name + '" loaded "' + options.source + '"');
           audioData = request.response; // cache the audio data
