@@ -42,7 +42,7 @@ describe('Track', function(){
     })
 
     it('should create a track with a buffer source', function(){
-      bufferTrack = mixer.createTrack('buffer', { source: silence9s, sourceMode: 'buffer' })
+      bufferTrack = mixer.createTrack('buffer', { source: silence9s, sourceMode: 'buffer', autoplay: false })
       expect( bufferTrack ).to.have.property('play');
     })
 
@@ -60,14 +60,16 @@ describe('Track', function(){
     })
 
     it('should create a track with an element source', function(){
-      elementTrack = mixer.createTrack('element', { source: silence9s, sourceMode: 'element' })
+      console.log('loading silence 9s');
+      elementTrack = mixer.createTrack('element', { source: silence9s, sourceMode: 'element', autoplay: false })
       expect( elementTrack ).to.have.property('play');
     })
 
     it('should play a track with an element source', function(done){
 
-      elementTrack.play(0);
-      elementTrack.one('play', function(){
+      elementTrack.play();
+      elementTrack.one('load', function(){
+        console.log('load!');
         expect( elementTrack.status.playing ).to.equal( true );
         setTimeout(function(){
           expect( elementTrack.currentTime() ).to.be.at.least(0.1);
@@ -359,21 +361,16 @@ describe('Track', function(){
       track.play();
     })
 
-    it('should make analysis data accessible at track.analysis', function(done){
+    it('should make get analysis data using getAnalysis()', function(done){
       track.one('play', function(){
-        expect( track.analysis ).to.exist;
-        expect( track.analysis.raw ).to.be.a( 'Uint8Array' )
-        expect( track.analysis.raw ).to.have.length.above(0)
+        var analysis = track.getAnalysis()
+        console.log('analysis', analysis);
+        expect( analysis ).to.exist;
+        expect( analysis.raw ).to.be.a( 'Uint8Array' )
+        expect( analysis.raw ).to.have.length.above(0)
         done()
       })
       track.play();
-    })
-
-    it('should trigger the analyse event', function(done){
-      track.one('analyse', function(){
-        expect( track.analysis ).to.exist;
-        done()
-      })
     })
 
     after(function(){

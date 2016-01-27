@@ -249,8 +249,10 @@ Web Audio Mixer nodes
 
 FFT using the [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode). Access analysis data at `track.analysis`. The raw data is available, as well as averages for lows, mids, highs, and the entire spectrum:
 
+`track.getAnalysis()` returns:
+
 ```
-track.analysis = {
+{
   raw:    [128, 128, ...],
   average: 128,
   low:     128,
