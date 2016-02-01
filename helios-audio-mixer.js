@@ -980,8 +980,9 @@ var Track = function(name, opts, mix){
     ##      ##### ##   ##   ##
 
   */
-  function play(bufferSourceLoaded) {
+  function play() {
 
+    // if track isn’t loaded yet, tell it to play when it loads
     if(!status.loaded){
       shouldPlay = true;
       return track;
@@ -994,13 +995,8 @@ var Track = function(name, opts, mix){
     shouldPlay = false;
 
     if(options.sourceMode === 'buffer'){
-      // need to re-xhr the audio file so we loop back to load
-      if(bufferSourceLoaded)
-        playBufferSource();
-      else {
-        status.playing = false;
-        loadBufferSource(true); // loop back to load
-      }
+        createBufferSource()
+          .then(playBufferSource)
     } else if(options.sourceMode === 'element'){
       playElementSource();
     } else if( options.sourceMode === 'mediaStream'){
@@ -1050,63 +1046,43 @@ var Track = function(name, opts, mix){
 
   }
 
-  function setEndTimer(){
-    var startFrom = cachedTime || 0;
-    var timerDuration = (source.buffer.duration - startFrom);
+  function createBufferSource() {
+    return new Promise(function(resolve, reject){
+      status.ready = false;
 
-    onendtimer = setTimeout(function() {
+      // Construct Audio Buffer
+      // (we have to re-construct the buffer every time we begin play)
 
-      if(options.looping){
-        if(bowser && bowser.chrome && Math.floor(bowser.version) >= 42){
-          // HACK chrome 42+ looping fix
-          stop(); play();
-        } else {
-          setEndTimer();
-        }
-      } else {
-        events.trigger('ended', track);
+      source = null;
+
+      // W3C standard implementation (Firefox, recent Chrome)
+      if(typeof mix.context.createGain === 'function') {
+
+        mix.context.decodeAudioData(audioData, function(decodedBuffer){
+          if(status.ready) return;
+
+          source           = mix.context.createBufferSource();
+          var sourceBuffer = decodedBuffer;
+          source.buffer    = sourceBuffer;
+
+          resolve()
+        });
       }
 
-    }, timerDuration * 1000);
+      // Non-standard Webkit implementation (Safari, old Chrome)
+      else if(typeof mix.context.createGainNode === 'function') {
+
+        source = mix.context.createBufferSource();
+        var sourceBuffer  = mix.context.createBuffer(audioData, true);
+        source.buffer = sourceBuffer;
+
+        resolve()
+      }
+    })
+
   }
 
   function playBufferSource() {
-    status.ready = false;
-
-    // Construct Audio Buffer
-    // (we have to re-construct the buffer every time we begin play)
-
-    source = null;
-
-    // Create source
-    // ~~~~~~~~~~~~~
-
-    // W3C standard implementation (Firefox, recent Chrome)
-    if(typeof mix.context.createGain === 'function') {
-
-      mix.context.decodeAudioData(audioData, function(decodedBuffer){
-        if(status.ready) return;
-
-        source           = mix.context.createBufferSource();
-        var sourceBuffer = decodedBuffer;
-        source.buffer    = sourceBuffer;
-
-        finish();
-      });
-    }
-
-    // Non-standard Webkit implementation (Safari, old Chrome)
-    else if(typeof mix.context.createGainNode === 'function') {
-
-      source = mix.context.createBufferSource();
-      var sourceBuffer  = mix.context.createBuffer(audioData, true);
-      source.buffer = sourceBuffer;
-
-      finish();
-    }
-  }
-
-  function finish() {
 
     createNodes();
 
@@ -1124,26 +1100,50 @@ var Track = function(name, opts, mix){
     startTime = source.context.currentTime - cachedTime;
     var startFrom = cachedTime || 0;
 
-    // console.log('Playing "'+name+'" %o', {
-    //   cachedTime:  cachedTime,
-    //   startFrom:   startFrom,
-    //   currentTime: source.context.currentTime,
-    //   startTime:   startTime,
-    // });
-
     debug.log(2, 'Playing track (buffer) "' + name + '" from ' + startFrom + ' (' + startTime + ') gain ' + gain());
 
     // prefer start() but fall back to deprecated noteOn()
-    if(typeof source.start === 'function') source.start(0, startFrom);
-    else                                   source.noteOn(startFrom);
+    if(typeof source.start === 'function'){
+      source.start(0, startFrom);
+    } else {
+      source.noteOn(startFrom);
+    }
 
-    // fake ended event
-    if(onendtimer) clearTimeout(onendtimer);
-    setEndTimer.call();
+    setEndTimer();
 
     status.playing = true;
     events.trigger('play', track);
   }
+
+
+
+
+
+
+  // fake ended event
+  function setEndTimer(){
+    var startFrom = cachedTime || 0;
+    var timerDuration = (source.buffer.duration - startFrom);
+
+    if(onendtimer){
+      clearTimeout(onendtimer);
+    }
+
+    onendtimer = setTimeout(ended, timerDuration * 1000);
+  }
+
+  function ended() {
+
+    if(options.looping){
+      events.trigger('loop', track);
+      pause(0);
+      play();
+    } else {
+      events.trigger('ended', track);
+    }
+
+  }
+
 
 
 
