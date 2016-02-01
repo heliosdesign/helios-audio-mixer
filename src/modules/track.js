@@ -781,22 +781,13 @@ var Track = function(name, opts, mix){
 
     setTo = u.constrain(setTo, 0.01, 1); // can’t ramp to 0, will error
 
-    if(options.sourceMode === 'buffer'){
-      if(status.playing)
-        if(nodes.gain)
-          nodes.gain.gain.linearRampToValueAtTime(setTo, source.context.currentTime + duration);
+    if(gainTween) gainTween.stop()
 
-    } else if( options.sourceMode === 'element'){
+    gainTween = new TWEEN.Tween({ gain: options.gain })
+      .to( { gain: setTo }, 1000 * duration )
+      .start();
 
-      if(gainTween) gainTween.stop()
-
-      gainTween = new TWEEN.Tween({ gain: options.gain })
-        .to( { gain: setTo }, 1000 * duration )
-        .start();
-
-      gainTween.onUpdate(function(){ gain(this.gain) })
-
-    }
+    gainTween.onUpdate(function(){ gain(this.gain) })
 
 
   }
