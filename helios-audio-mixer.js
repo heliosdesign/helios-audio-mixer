@@ -334,6 +334,7 @@ Mix.prototype.removeTrack = function(_input) {
     }
   }
 
+  track.destroy()
   track.pause();
   track.events = [];
 
@@ -806,6 +807,7 @@ var Track = function(name, opts, mix){
   var element
   var source
   var gainTween
+  var httpRequest
 
   var shouldPlay = false;
 
@@ -860,6 +862,8 @@ var Track = function(name, opts, mix){
   track.mute   = mute;
   track.unmute = unmute;
 
+  track.destroy = destroy;
+
   // ********************************************************
 
   /*
@@ -881,7 +885,10 @@ var Track = function(name, opts, mix){
     // Web Audio
     if(options.sourceMode === 'buffer') {
 
-      loadBufferSource();
+      loadBufferSource()
+        .then(function(){
+
+        })
 
     } else if(options.sourceMode === 'element') {
 
@@ -931,43 +938,50 @@ var Track = function(name, opts, mix){
     events.trigger('load', track);
   }
 
+
+
+  function loadBufferSource() {
+    return new Promise(function(resolve, reject){
+      debug.log(2, 'Track "' + name + '" webAudio source: "' + options.source + '"');
+
+      httpRequest = new XMLHttpRequest();
+      httpRequest.open('GET', options.source, true);
+      httpRequest.responseType = 'arraybuffer';
+
+      httpRequest.addEventListener('readystatechange', onreadystatechange, false)
+      httpRequest.addEventListener('error', loadError, false)
+
+      httpRequest.send();
+    })
+  }
+
+
+
   function loadError(){
     events.trigger('loadError', track)
   }
 
-  function loadBufferSource(forcePlay) {
-    debug.log(2, 'Track "' + name + '" webAudio source: "' + options.source + '"');
-
-    var request = new XMLHttpRequest();
-    request.open('GET', options.source, true);
-    request.responseType = 'arraybuffer';
-
-    request.onreadystatechange = function(e){
-      if(request.readyState === 4){
-        if(request.status === 200 || request.status === 206 || request.status === 304){
-          // 200 -> success
-          debug.log(2, '"' + name + '" loaded "' + options.source + '"');
-          audioData = request.response; // cache the audio data
-          status.loaded = true;
-          events.trigger('load', track);
-          if( forcePlay ){
-            play(true);
-          } else if( shouldPlay ){
-            play();
-          } else {
-            if(options.autoplay) play();
-          }
+  function onreadystatechange(e){
+    if(this.readyState === 4){
+      if(this.status === 200 || this.status === 206 || this.status === 304){
+        // 200 -> success
+        debug.log(2, '"' + name + '" loaded "' + options.source + '"');
+        audioData = this.response; // cache the audio data
+        status.loaded = true;
+        events.trigger('load', track);
+        if( shouldPlay ){
+          play();
         } else {
-          // other -> failure
-          debug.log(1, 'couldn’t load track "' + name + '" with source "' + options.source + '"');
-          events.trigger('loadError', track, { status: request.status });
+          if(options.autoplay) play();
         }
+      } else {
+        // other -> failure
+        debug.log(1, 'couldn’t load track "' + name + '" with source "' + options.source + '"');
+        events.trigger('loadError', track, { status: this.status });
       }
+
+      httpRequest = null
     }
-
-    request.onerror = loadError
-
-    request.send();
   }
 
 
@@ -1652,6 +1666,13 @@ var Track = function(name, opts, mix){
 
 
 
+  function destroy(){
+    if(httpRequest){
+      httpRequest.abort()
+      // httpRequest.addEventListener('readystatechange', onreadystatechange, false)
+      // httpRequest.addEventListener('error', loadError, false)
+    }
+  }
 
 
 };

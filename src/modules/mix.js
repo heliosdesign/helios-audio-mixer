@@ -161,6 +161,7 @@ Mix.prototype.removeTrack = function(_input) {
     }
   }
 
+  track.destroy()
   track.pause();
   track.events = [];
 

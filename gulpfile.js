@@ -26,7 +26,7 @@ function handleError(e){
 
 
 gulp.task('default', function(){
-  livereload.listen();
+  // livereload.listen();
 
   var b = browserify({
     debug: true,
@@ -45,7 +45,7 @@ gulp.task('default', function(){
         .on('error', gutil.log)
       .pipe(sourcemaps.write('./'))
       .pipe(gulp.dest('./'))
-      .pipe(livereload());
+      // .pipe(livereload());
   }
 
   w.on('update', bundle);
