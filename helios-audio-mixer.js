@@ -1202,7 +1202,12 @@ var Track = function(name, opts, mix){
 
   */
   function pause(at) {
-    if(!status.ready || !status.playing) return track;
+    // turn off autoplay if we've paused the track before it manages to load
+    if(!status.ready || !status.playing){
+      shouldPlay = false
+      options.autoplay = false
+      return track;
+    }
 
     // cache time to resume from later
     cachedTime = (typeof at === 'number' ? at : currentTime());
