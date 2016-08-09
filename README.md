@@ -49,7 +49,7 @@ Mixer.createTrack('track1', { source: 'path/to/audio/file' });
 
 Mixer.getTrack('track1').gain(0.5).pan(180);
 
-Mixer.getTrack('track1').tweenGain(0, 1000)
+Mixer.getTrack('track1').tweenGain(0, 1)
   .then(function(track){
     Mixer.removeTrack(track);
   })

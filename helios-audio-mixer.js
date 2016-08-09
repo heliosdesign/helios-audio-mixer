@@ -1715,7 +1715,7 @@ function timeFormat(seconds) {
 }
 
 
-},{}]},{},[1])
+},{}]},{},[1]);
 
 
 //# sourceMappingURL=helios-audio-mixer.js.map
