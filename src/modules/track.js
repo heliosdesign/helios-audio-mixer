@@ -794,7 +794,6 @@ var Track = function(name, opts, mix){
 
     gainTween.onUpdate(function(){ gain(this.gain) })
 
-
   }
 
   /*

@@ -647,25 +647,21 @@ HTML5Track.prototype.gain = function(val) {
 
 HTML5Track.prototype.tweenGain = function(_val, _tweenDuration) {
   var track = this;
-  return new Promise(function(resolve, reject){
-    if(typeof _val !== 'number' || typeof _tweenDuration !== 'number') reject(Error('Invalid value for duration.'))
-    debug.log(2, '"' + track.name + '" tweening gain ' + track.options.gain + ' -> ' + _val + ' ('+_tweenDuration+'ms)')
 
-    // replace existing gain tween
-    if(track.tweens.gain) track.tweens.gain.stop()
+  if(typeof setTo !== 'number' || typeof duration !== 'number')
+    throw new Error('Invalid arguments to tweenGain()');
 
-    track.tweens.gain = new TWEEN.Tween({ currentGain: track.options.gain })
-      .to({ currentGain: _val }, _tweenDuration)
-      .easing(TWEEN.Easing.Sinusoidal.InOut)
-      .onUpdate(function() {
-        track.gain(this.currentGain)
-      })
-      .onComplete(function() {
-        resolve(track)
-      })
-      .start()
+  // replace existing gain tween
+  if(track.tweens.gain) track.tweens.gain.stop()
 
-  })
+  track.tweens.gain = new TWEEN.Tween({ currentGain: track.options.gain })
+    .to({ currentGain: _val }, _tweenDuration)
+    .easing(TWEEN.Easing.Sinusoidal.InOut)
+    .onUpdate(function() {
+      track.gain(this.currentGain)
+    })
+    .start()
+
 }
 
 HTML5Track.prototype.mute = function() {
@@ -1514,7 +1510,6 @@ var Track = function(name, opts, mix){
       .start();
 
     gainTween.onUpdate(function(){ gain(this.gain) })
-
 
   }
 

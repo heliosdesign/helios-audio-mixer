@@ -55,4 +55,4 @@
 
 	return Mix
 
-})(HeliosAudioMixer || {})
+})(HeliosAudioMixer || {});

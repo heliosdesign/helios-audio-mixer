@@ -49,7 +49,7 @@ Mixer.createTrack('track1', { source: 'path/to/audio/file' });
 
 Mixer.getTrack('track1').gain(0.5).pan(180);
 
-Mixer.getTrack('track1').tweenGain(0, 1000)
+Mixer.getTrack('track1').tweenGain(0, 1)
   .then(function(track){
     Mixer.removeTrack(track);
   })
@@ -83,7 +83,6 @@ Access/override/whatever through `Mixer.detect`.
 ```js
 Detect = {
 	webAudio:    true | false,
-	promise:     true | false,
 	audioTypes: {
 	  'mp3': true/false,
 	  'm4a': true/false,
@@ -180,8 +179,6 @@ If you call `gain()` while a track is muted, the value will be cached and applie
 
 ##### `track.tweenGain(setTo, duration)`
 
-Returns a Promise, like `tweenPan()`.
-
 ##### `track.mute()`
 
 ##### `track.unmute()`
@@ -200,7 +197,7 @@ There are three panning modes available.
 
 `track.tweenPan(angle, duration)`
 
-Works for Stereo and 360 panning. Returns a Promise, which receives the track object as an argument.
+Works for Stereo and 360 panning.
 
 #### Time
 
