@@ -9,9 +9,9 @@ All volume values are normalized, ie 0-1, and all time values are in seconds.
 ## Usage
 
 ```js
-import AudioMixer from 'helios-libraries/lib/audio-mixer'
+import { Mixer } from 'helios-audio-mixer'
 
-let audioMixer = new AudioMixer()
+let audioMixer = new Mixer()
 
 audioMixer.track('track1', { src: 'path/to/audio.file' })
 
@@ -21,6 +21,15 @@ track1.volume(0.5)
 track1.tweenVolume(0, 1)
   .then(track => audioMixer.remove(track))
 ```
+
+
+
+
+
+
+
+
+
 
 ## API
 
@@ -34,7 +43,9 @@ Getter/setter for audio tracks. Calling `track` with a new ID will return a new 
 
 Call `track` with an existing ID will return the existing track, and apply whatever params have been specified.
 
-##### Params:
+##### Track Params
+
+All track params are optional—**except for `src`**.
 
 ```js
 {
@@ -46,6 +57,21 @@ Call `track` with an existing ID will return the existing track, and apply whate
   muted:    false,
   timeline: [],     // see Timeline section of this readme
 }
+```
+
+##### Track Type
+
+Several track types are available: `Html5Track` (default), `BufferSourceTrack`, `ElementSourceTrack`, `StreamSourceTrack`, `ToneTrack`. See [Track Types](#track-types) for more info.
+
+Pass the custom Track class as a `type` param when creating a track. If omitted, you'll get an `Html5Track`.
+
+```js
+import { Mixer, BufferSourceTrack } from 'helios-audio-mixer'
+
+let buffer = mix.track('custom', {
+  src:  'audio.file',
+  type:  BufferSourceTrack,
+})
 ```
 
 #### `AudioMixer.tracks()`
@@ -165,9 +191,58 @@ function callback(){
 ```
 
 
-## Web Audio Track
 
-Same API with added functionality.
+
+
+
+
+
+
+
+## Track Types
+
+Additional track types implement the standard Track API, with added functionality.
+
+### `Html5Track`
+
+_Requirements: HTML5 Media support_
+
+Uses an HTML5 `<audio>` element.
+
+
+### `BufferSourceTrack`
+
+_Requirements: Web Audio API support_
+
+Web Audio API track, with support for pan, gain, and analysis nodes. Uses a Web Audio buffer source. Best for use with small audio files, as the entire file must be downloaded before playback can begin. If you want to use the Web Audio API for larger files, `MediaSourceTrack` can play media as it downloads.
+
+If you want full audio mixer functionality (ie multiple tracks) on iOS, this track type makes things a lot easier. Media elements are subject to iOS rules about tap-to-play.
+
+
+### `MediaSourceTrack`
+
+_Requirements: Web Audio API support_
+
+A Web Audio API track using an HTML5 `<audio>` element as input. Supports the full set of Web Audio nodes. Can stream files, so ideal for larger files.
+
+
+### `StreamSourceTrack`
+
+_Requirements: Web Audio API support, …_
+
+Track using a MediaStream as input, ie a live mic input via `getUserMedia`.
+
+
+
+
+
+
+
+
+
+
+## Web Audio API Nodes
+
 
 ```js
 import AudioMixer    from 'helios-libraries/libs/audio-mixer'
@@ -200,6 +275,6 @@ let webAudioTrack = audioMixer.track('webAudioTrack', {
 
 
 
-## Additional Functionality
+## Features under Consideration
 
 - volume tween easing (Penner equations)
