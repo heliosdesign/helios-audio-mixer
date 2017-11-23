@@ -1,314 +1,205 @@
-**Bower** `helios-audio-mixer`
+# Audio Mixer
 
-# Web Audio Mixer
+Manage multiple HTML5 audio elements easily.
 
-Javascript audio multi-track mixer library.
+Can be extended with Web Audio API functionality using the Web Audio addon (to do). Web Audio is mandatory on iOS, due to its extremely limited HTML5 media support.
 
-The Web Audio API (full feature set) is supported in Chrome 10+, Firefox 25+, Safari 6+, and Edge 12+.
+All volume values are normalized, ie 0-1, and all time values are in seconds.
 
-#### Contents
-
-- [Development](#development)
-- [Dependencies](#dependencies)
-- [How To Use](#how-to-use)
-- [API Reference](#api-reference)
-	- Mixer Methods
-	- Track/Group Methods
-	- Track Options
-	- Nodes
-	- Track Events
-- [HTML5 Mode](#html5-mode)
-
-## Development
-
-`gulp` to live compile modules, `gulp build` for minification.
-
-Unit tests use [Mocha](https://mochajs.org/) and [Chai](http://chaijs.com/api/bdd/).
-
-## Dependencies
-
-- [heliosFrameRunner](https://github.com/heliosdesign/helios-frame-runner) (not _really_ a dependency, but recommended for managing `requestAnimationFrame` calls)
-- [tween.js](https://github.com/sole/tween.js/) for tweening
-- [Bowser](https://github.com/ded/bowser) for detecting browser versions, because Chrome and Firefox had some non-standard implementations.
-
-### Props
-
-…to Kevin Ennis for his excellent [Mix.js](https://github.com/kevincennis/Mix.js). We based this library on Mix.js when we started working with the web audio API a couple years ago.
-
-## How to use
-
-### Basic Example
+## Usage
 
 ```js
-var Mixer = new HeliosAudioMixer();
+import AudioMixer from 'helios-libraries/lib/audio-mixer'
 
-// call update() using requestAnimationFrame (in this case using HeliosFrameRunner)
-frameRunner.add({ id: 'mixer', f: Mixer.update });
+let audioMixer = new AudioMixer()
 
-Mixer.createTrack('track1', { source: 'path/to/audio/file' });
+audioMixer.track('track1', { src: 'path/to/audio.file' })
 
-Mixer.getTrack('track1').gain(0.5).pan(180);
+let track1 = audioMixer.track('track1')
+track1.volume(0.5)
 
-Mixer.getTrack('track1').tweenGain(0, 1)
-  .then(function(track){
-    Mixer.removeTrack(track);
-  })
-
+track1.tweenVolume(0, 1)
+  .then(track => audioMixer.remove(track))
 ```
 
-Remember to call `TWEEN.update()` using `requestAnimationFrame`, or tweens won’t work.
+## API
 
-### Source Types
+### AudioMixer
 
-Tracks use buffer source by default. Use HTML5 element source for a track by setting the `sourceMode` option (an out-of-DOM `<audio>` element will be created), or setting the `source` option to an existing HTML5 media element instead of a string. The main advantage of HTML5 element source is that audio files can be streamed. The main disadvantage is that
+---
 
-```js
-Mixer.createTrack('elementSourceTrack', {
-  source: 'path/to/audio/file',
-  sourceMode: 'element'
-})
+#### `AudioMixer.track(id, params = {})`
 
-Mixer.createTrack('inDOMelementSourceTrack', {
-  source: document.queryselector('audio#elementSourceTrack')
-})
-```
+Getter/setter for audio tracks. Calling `track` with a new ID will return a new Track object, with the specified params.
 
+Call `track` with an existing ID will return the existing track, and apply whatever params have been specified.
 
-# API Reference
-
-## Feature Detection
-
-Access/override/whatever through `Mixer.detect`.
+##### Params:
 
 ```js
-Detect = {
-	webAudio:    true | false,
-	audioTypes: {
-	  'mp3': true/false,
-	  'm4a': true/false,
-	  'ogg': true/false
-	}, // in order of preference
-	videoType:  {
-	  '.webm': true/false,
-	  '.mp4':  true/false,
-	  '.ogv':  true/false
-	},
-	bowser:     bowser.js,
-	tween:      <Boolean>,
-
+{
+  src:  'path/to/audio.file',
+  volume:   1,
+  start:    0,
+  loop:     false,
+  autoplay: false,
+  muted:    false,
+  timeline: [],     // see Timeline section of this readme
 }
 ```
 
-## Mixer
+#### `AudioMixer.tracks()`
 
-`new HeliosAudioMixer( options )`
+Returns the current array of tracks so you can operate on all tracks, ie
 
-name | default | notes
-:--|:--|:--
-audioTypes | `[ 'mp3', 'm4a', 'ogg' ]` | List audio file types in order of preference. The first type available in the current browser will be used.
-html5 | `false` | Force HTML5 mode.
+```
+mix.tracks().forEach(track => track.pause())
+```
+
+#### `AudioMixer.remove(id or track)`
+
+Immediately removes a specified track, by `'track id'` or Track object.
+
+#### `AudioMixer.volume(0-1)`
+
+The AudioMixer’s volume setting acts like a master volume slider, independent of individual tracks. Track volume exists within the master volume envelope. If a track has a volume of 0.5 and the master volume is set to 0.5, it will play back at 0.25.
 
 
-### Mixer Methods
+### Track
 
-##### Track Management
+---
 
-- `createTrack( 'name', opts )` _see track options below_
-- `removeTrack( 'name' || track object )`
-- `getTrack( 'name' )` _returns track object_
-- `getTrack( 'name' ).method()` access a single track, chainable
+All Track methods (except setters) return the Track object, so you can chain function calls, ie
 
-##### Global Mix Control
-
-- `pause()`
-- `play()`
-- `mute()`
-- `unmute()`
-- `gain( <0-1> )`
-
-##### Utilities
-
-- `mix.setLogLvl( <Integer> )` `0` none, `1` minimal, `2` spammy
-
-## Track
-
-### Track Options
-
-`mix.createTrack( 'name', options )`
-
-name | default | notes
-:--|:--|:--
-source       | `""`     | Path to audio source (without file extension),<br>OR media element to use as source,<br>OR audio blob
-gain         | `1`        | Initial gain (0-1)
-panMode      | `"360"`     | Choose between stereo L/R pan (`stereo`), 360° pan (`360`), and full 3D pan (`3d`)
-pan          | `0`        | Initial pan
-nodes        | `[]`       | array of strings: names of desired audio nodes. See [Nodes](#nodes). Gain and pan nodes are always used.
-start        | `0`        | start time in seconds
-currentTime  | `0`        | current time (cached for resuming from pause)
-looping      | `false`    |
-autoplay     | `true`     | play immediately on load
-muted        | `false`    |
-
-### Track Methods
+```
+mix.track('id').volume(1).currentTime(20)
+```
 
 #### Events
 
-`track.on('event', callback )`
+##### `Track.on('event type', callback)`
 
-See the [event list](#event-list) below. The callback receives the `track` object as an argument.
+This is an alias for `addEventListener`, so all the HTML5 media events are available: `canplaythrough`, `ended`, `play`, `pause`, etc. Callbacks receive the Track object as their `this` context:
 
-`track.off('event')`
+```js
+track.on('play', callback)
 
-`track.one('event', function)`
-
-#### Control
-
-`track.play()`
-
-`track.pause()`
-
-`track.stop()`
-
-#### Gain
-
-##### `track.gain(setTo)`
-
-Getter/setter for gain, range 0-1.
-
-If you call `gain()` while a track is muted, the value will be cached and applied upon unmuting.
-
-##### `track.tweenGain(setTo, duration)`
-
-##### `track.mute()`
-
-##### `track.unmute()`
-
-
-
-#### Pan
-
-There are three panning modes available.
-
-1. **Stereo** uses a `StereoPannerNode`, one axis, left to right. <br>`track.pan()` accepts `-1` to `1`.
-2. **360** uses a simplified `PannerNode`. <br>`track.pan()` accepts an angle in degrees, or a string: `'front'`, `'back'`, `'left'`, `'right'`
-3. **3d** uses a full `PannerNode`.
-
-##### tweenPan
-
-`track.tweenPan(angle, duration)`
-
-Works for Stereo and 360 panning.
-
-#### Time
-
-##### `currentTime( setTo )`
-
-Getter/setter for current time, in seconds.
-
-##### `duration()`
-
-Get track duration in seconds.
-
-##### `formattedTime( includeDuration )`
-
-Transforms:
-`23` &rarr; `"00:23"` or `"00:23/00:45"`
-`90` &rarr; `"01:30"` or `"01:30/2:00"`
-
-
-
-
-### Track Events
-
-name | when
-:-- | :--
-`load` | audio track is ready to play
-`loadError` | source file couldn’t be loaded
-`remove` | removeTrack()
-`play` |
-`pause` |
-`stop` |
-`ended` | track reaches the end
-`pan` | pan is changed
-`gain` | gain is changed
-`analyse` | audio analysis data is updated
-
-```
-mix.getTrack('name').on('eventType',function(){});
-mix.getTrack('name').off('eventType');
-```
-
-#### Nodes
-
-Web Audio Mixer nodes
-
-#### Analysis
-
-FFT using the [AnalyserNode](https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode). Access analysis data at `track.analysis`. The raw data is available, as well as averages for lows, mids, highs, and the entire spectrum:
-
-`track.getAnalysis()` returns:
-
-```
-{
-  raw:    [128, 128, ...],
-  average: 128,
-  low:     128,
-  mid:     128,
-  high:    128
+function callback(e){
+  let track = this
+  track.tweenVolume(1, 5)
 }
 ```
 
+##### `Track.off('event type', callback)`
+
+And this is an alias for `removeEventListener`. If you don’t pass in a callback function—`track.off('play')`—all events of that type will be removed.
+
+##### `Track.one('event type', callback)`
+
+Add an event that fires only once, ie on `canplaythrough`.
+
+#### Playback Control
+
+##### `Track.play()`
+##### `Track.pause()`
+##### `Track.stop()`
+
+Stop also resets the track's current time to 0.
+
+##### `Track.currentTime(time)`
+
+Getter/setter for `currentTime`. Call without an argument to get the currentTime.
+
+##### `track.formattedTime(includeDuration)`
+
+Returns the current time in the format `"00:23"`, or `"00:23/00:45"` with duration.
+
+##### `Track.duration()`
+
+Returns the track duration in seconds. Will return 0 until `loadedmetadata` event has fired.
+
+##### `Track.volume(volume)`
+
+Set the volume for this individual track. Normalized value, 0–1.
+
+##### `Track.tweenVolume(volume, time)`
+
+Fade to a volume over time. Returns a promise, not the track object.
+
+```js
+track.tweenVolume(1, 10.5).then()
 ```
-var track = Mixer.createTrack('analysisTrack', {
-  source: 'file',
-  nodes: 'analyse'
+
+
+### Timeline Events
+
+Timeline events can trigger callbacks when audio playback reaches a specific time. You can add timeline events when a track is created:
+
+```js
+let timelineTrack = audioMixer.track('timelineTrack', {
+  ...
+  timelineEvents: [
+    { time:  1.0, callback: fn },
+    { time: 10.3, callback: fn },
+  ]
 })
+```
 
-track.on('play', function(){
-  frameRunner.add('fft', 'everyFrame', fft)
+You can also add and remove timeline events after the track is created:
+
+##### `Track.timelineEvent(time, callback)`
+
+##### `Track.removeTimelineEvent(time, callback)`
+
+
+Timeline event callbacks get the Track object as their `this` context.
+
+```js
+timelineTrack.timelineEvent(10, callback)
+
+function callback(){
+  let track = this
+  track.volume(1)
+  ...
+}
+```
+
+
+## Web Audio Track
+
+Same API with added functionality.
+
+```js
+import AudioMixer    from 'helios-libraries/libs/audio-mixer'
+import WebAudioTrack from 'helios-libraries/libs/web-audio-track'
+
+let audioMixer = new AudioMixer()
+
+let webAudioTrack = audioMixer.track('webAudioTrack', {
+  src: 'path/to/audio.file',
+  type:    WebAudioTrack,
+  nodes:   [
+    {
+      type: 'pan',
+      options: {
+        mode: 'stereo',
+        value: 0,
+      }
+    },
+    {
+      type: 'analysis',
+      options: {}
+    },
+  ]
 })
-
-function fft(){
-  var data = track.getAnalysis();
-  console.log(data.average)
-}
 ```
 
-## HTML5 Mode
+…some additional methods…
 
-Fallback mode for older browsers, and iOS 7. Trying to use Web Audio features like pan will fail gracefully, without errors (`return false`).
 
-#### Tracks
 
-In HTML5 mode, creating a track that already exists will change its source, unlike Web Audio mode where this will return an error. This allows you to circumvent the iOS requirement that media elements can only be played after a user taps 'play'—simply play all your tracks on that first tap. **NOTE** that you can only play one audio element at a time.
 
-```
-// Create all tracks at the start
-Mixer.createTrack('track1', {
-	source: 'a_file.mp3'
-});
-Mixer.createTrack('track2', {});
 
-// on iOS play button tap
-for(var i=0; i < Mixer.tracks.length; i++ ){
-	Mixer.tracks[i].play();
-}
+## Additional Functionality
 
-// If the track’s already been created, the mixer will swap its source
-Mixer.createTrack('track1', {
-	source:   'file.mp3',
-	autoplay:  true
-});
-```
-
-#### iOS 7
-
-iOS 6 supports the Web Audio API and it works pretty well. iOS 7 "supports" the Web Audio API, but it’s very unstable. Web apps that worked perfectly on iOS 6 will crash in under a minute on iOS 7. Unfortunately Apple won’t allow alternative web rendering engines, so this library falls back to HTML5 on iOS 7.
-
-#### iOS 8
-
-iOS 8 actually
-
-#### iOS Volume Control
-
-iOS does *not* support volume control for HTML5 audio elements. The reasoning is that the user should be able to control the volume with the OS-level volume control. Apparently in Apple-land nobody could ever possibly want to layer two tracks, or fade anything in or out, ever.
+- volume tween easing (Penner equations)

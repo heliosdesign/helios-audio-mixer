@@ -1,31 +1,55 @@
 {
   "name": "audio-mixer",
-  "version": "1.0.0",
-  "description": "**Bower** `helios-audio-mixer`",
-  "main": "helios-audio-mixer-html5.js",
+  "version": "0.5.0",
+  "description": "Helios Audio Mixer",
+  "main": "audioMixer.min.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "dist": "NODE_ENV=production npm run build",
+    "test": "ava --watch",
+    "test-verbose": "ava --watch --verbose",
+    "test-single": "ava --verbose"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/heliosdesign/helios-audio-mixer.git"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Iain M Campbell, Helios Design Labs",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/heliosdesign/helios-audio-mixer/issues"
   },
   "homepage": "https://github.com/heliosdesign/helios-audio-mixer",
   "devDependencies": {
-    "browserify": "^11.0.1",
-    "gulp": "^3.9.0",
-    "gulp-livereload": "^3.8.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-sourcemaps": "^1.5.2",
-    "gulp-uglify": "^1.4.0",
-    "gulp-util": "^3.0.6",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.4.0"
+    "ava": "^0.23.0",
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "browser-env": "^3.2.2",
+    "install": "^0.10.2",
+    "mock-raf": "^1.0.0",
+    "node-sass": "^4.6.0",
+    "npm": "^5.5.1",
+    "raf": "^3.4.0",
+    "sinon": "^4.1.2",
+    "uglifyjs-webpack-plugin": "^1.0.1",
+    "webpack": "^3.8.1",
+    "webpack-dev-server": "^2.9.4"
+  },
+  "ava": {
+    "files": [
+      "./test/**/*.test.js"
+    ],
+    "source": [
+      "src/**/*.js"
+    ],
+    "require": [
+      "babel-register",
+      "babel-polyfill",
+      "./test/helpers/browser-env.js"
+    ],
+    "babel": "inherit"
   }
 }

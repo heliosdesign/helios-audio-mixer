@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audio Mixer (HTML5)</title>
+
+  <style>
+    .dropzone {
+      display: block;
+      width: 300px;
+      height: 100px;
+      padding: 1em;
+      border: 1px solid #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+      .dropzone.is-over { background: #ddd; }
+
+    .controls {
+      display: flex;
+    }
+      .controls.is-disabled {
+        opacity: 0.5;
+        pointer-events: none;
+        }
+      .controls-control {
+        padding: 0.5em 1em;
+        border: 1px solid #000;
+        margin-right: 0.5em;
+        margin-top: 0.5em;
+        opacity: 0.6;
+      }
+        .controls-control:hover {
+          opacity: 1;
+          cursor: pointer;
+        }
+
+  </style>
+</head>
+<body>
+
+  <div class="dropzone">
+    <div class="dropzone-inner">Drop an audio file here</div>
+  </div>
+
+  <div class="controls is-disabled">
+    <div class="controls-control" onclick="control.play()">Play</div>
+    <div class="controls-control" onclick="control.pause()">Pause</div>
+  </div>
+
+<!--   <div class="stats">
+    <div class="stats-stat">
+      <div class="stats-stat-label"></div>
+      <div class="stats-stat-value"></div>
+    </div>
+    <div class="stats-stat">
+      <div class="stats-stat-label"></div>
+      <div class="stats-stat-value"></div>
+    </div>
+    <div class="stats-stat">
+      <div class="stats-stat-label"></div>
+      <div class="stats-stat-value"></div>
+    </div>
+    <div class="stats-stat">
+      <div class="stats-stat-label"></div>
+      <div class="stats-stat-value"></div>
+    </div>
+    <div class="stats-stat">
+      <div class="stats-stat-label"></div>
+      <div class="stats-stat-value"></div>
+    </div>
+  </div>
+ -->
+
+
+
+
+  <script src="../audioMixer.js"></script>
+  <script>
+    var mix = new audioMixer.default.Mixer()
+    var track
+
+    var control = {
+      play:  play,
+      pause: pause,
+    }
+
+
+    var dropzone = document.querySelector('.dropzone')
+    dropzone.addEventListener('drop', drop)
+    dropzone.addEventListener('dragover', dragover)
+    dropzone.addEventListener('dragend', dragend)
+
+    function dragover(e){
+      e.preventDefault()
+      this.classList.add('is-over')
+    }
+    function dragend(e){
+      e.preventDefault()
+      this.classList.remove('is-over')
+    }
+
+    function drop(e){
+      e.preventDefault()
+      console.log('drop')
+      if(e.dataTransfer.items){
+
+        for (var i = 0; i < e.dataTransfer.items.length; i++) {
+          var item = e.dataTransfer.items[i]
+          if (item.kind == "file") {
+            processFile(item.getAsFile())
+          }
+        }
+
+      } else {
+        for (var i = 0; i < e.dataTransfer.files.length; i++) {
+          processFile( e.dataTransfer.files[i] )
+        }
+
+      }
+    }
+
+    function processFile(file){
+      console.log('received', file.name)
+      var url = URL.createObjectURL(file)
+      createTrack(url)
+    }
+
+    function createTrack(src){
+      track = mix.track('test', {
+        src:      src,
+        autoplay: true,
+      })
+      track.on('canplaythrough', function(){
+        document.querySelector('.controls').classList.remove('is-disabled')
+      })
+      console.log(track)
+    }
+
+    /*
+
+      Control
+
+    */
+
+    function play(){
+      if(!track) return
+      track.play()
+    }
+
+    function pause(){
+      if(!track) return
+      track.pause()
+    }
+
+
+  </script>
+
+</body>
+</html>

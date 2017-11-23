@@ -1,34 +1,9 @@
-/*
 
-  Utils
-
-*/
-
-module.exports = {
-  extend:     extend,
-  constrain:  constrain,
-  timeFormat: timeFormat
-};
-
-
-function extend() {
-  var output = {}
-  var args = arguments
-  var l = args.length
-
-  for (var i = 0; i < l; i++)
-    for (var key in args[i])
-      if(args[i].hasOwnProperty(key))
-        output[key] = args[i][key];
-  return output;
+function normalize(value){
+  if(value > 1) return 1
+  if(value < 0) return 0
+  return value
 }
-
-function constrain(val, min, max) {
-  if(val < min) return min;
-  if(val > max) return max;
-  return val;
-}
-
 
 function timeFormat(seconds) {
   var m = Math.floor(seconds / 60) < 10 ? '0' + Math.floor(seconds / 60) : Math.floor(seconds / 60);
@@ -36,3 +11,8 @@ function timeFormat(seconds) {
   return m + ':' + s;
 }
 
+function lerp(start, end, now) {
+  return (1 - now) * start + now * end;
+}
+
+module.exports = { normalize, timeFormat, lerp }
