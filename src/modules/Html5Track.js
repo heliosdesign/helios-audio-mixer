@@ -17,6 +17,7 @@ class Html5Track extends BaseTrack {
       id:       '',
       src:      '',
       volume:   1,
+      muted:    false,
       start:    0,
       loop:     false,
       autoplay: false,
@@ -32,6 +33,7 @@ class Html5Track extends BaseTrack {
     track.el = document.createElement('audio')
 
     track.el.volume   = track.options.volume
+    track.el.muted    = track.options.muted
     track.el.loop     = track.options.loop
     track.el.autoplay = track.options.autoplay
 
@@ -137,6 +139,14 @@ class Html5Track extends BaseTrack {
       }
 
     })
+  }
+
+  muted(setTo){
+    let track = this
+    if(typeof setTo === 'boolean'){
+      track.el.muted = setTo
+    }
+    return track.el.muted
   }
 
 

@@ -1,10 +1,18 @@
+/*
+
+  Test event functionality, inherited from BaseTrack.
+  All track types should pass these tests.
+
+*/
 import test from 'ava'
 import sinon from 'sinon'
 
+// track types to test
 import BaseTrack from '../src/modules/BaseTrack'
 import Html5Track from '../src/modules/Html5Track'
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 
+// some track types require more params to initialize
 let trackTypes = {
   'BaseTrack': {
     track: BaseTrack,
@@ -24,7 +32,7 @@ let trackTypes = {
     params: {
       id: 'hi',
       src: 'hi',
-      context: {}, // dummy Web Audio Context, may need to mock this further
+      context: {}, // dummy web audio context
     },
   },
 }

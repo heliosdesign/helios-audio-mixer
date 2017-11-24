@@ -23,26 +23,15 @@ test('Create a track', t => {
   t.truthy( mix.track(id, { type: BaseTrack }) )
 })
 
-test('Retrieve a created track by track id', t => {
-  let mix = new AudioMixer()
-
-  let id = 'test'
-  let createdTrack = mix.track(id, { type: BaseTrack })
-
-  let retrievedTrack = mix.track(id)
-
-  t.is(createdTrack, retrievedTrack)
-})
-
 test('Create a track with a custom Track type', t => {
   let mix = new AudioMixer()
 
   // dummy track type for this test
-  let TestTrack = function(){}
+  let TestTrackType = function(){}
 
-  let testTrack = mix.track('test', { type: TestTrack })
+  let testTrack = mix.track('test', { type: TestTrackType })
 
-  t.truthy(testTrack instanceof TestTrack)
+  t.truthy(testTrack instanceof TestTrackType)
 })
 
 test('Create a track with arguments', t => {
@@ -89,6 +78,16 @@ test('Create a track that throws an error', t => {
 })
 
 
+test('Retrieve a created track by track id', t => {
+  let mix = new AudioMixer()
+
+  let id = 'test'
+  let createdTrack = mix.track(id, { type: BaseTrack })
+
+  let retrievedTrack = mix.track(id)
+
+  t.is(createdTrack, retrievedTrack)
+})
 
 test('Remove a track by id', t => {
   let mix = new AudioMixer()

@@ -41,7 +41,7 @@ track1.tweenVolume(0, 1)
 
 Getter/setter for audio tracks. Calling `track` with a new ID will return a new Track object, with the specified params.
 
-Call `track` with an existing ID will return the existing track, and apply whatever params have been specified.
+Call `track` with an existing ID will return the existing track. Specified parameters are ignored.
 
 ##### Track Params
 
@@ -51,6 +51,7 @@ All track params are optional—**except for `src`**.
 {
   src:  'path/to/audio.file',
   volume:   1,
+  muted:    false,
   start:    0,
   loop:     false,
   autoplay: false,

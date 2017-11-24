@@ -1,3 +1,8 @@
+/*
+
+  Additional tests for Buffer Source Track
+
+*/
 import test from 'ava'
 import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
@@ -71,6 +76,11 @@ test('load', async t => {
   eventSpies.forEach((spy, index) => {
     t.is(spy.called, true, events[index])
   })
+
+})
+
+test('calling load() multiple times doesn’t break anything', t => {
+  let ctx = new window.AudioContext()
 
 })
 

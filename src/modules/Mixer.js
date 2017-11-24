@@ -11,13 +11,14 @@ class Mixer {
     let mix = this
 
     mix.allTracks = [] // tracks as numbered array
-    mix.lookup    = {} // tracks as mix.lookup table: mix.lookup['trackname']
+    mix.lookup    = {} // tracks as lookup table: mix.lookup['trackname']
 
     mix.currentVolume = 1
 
-    // web audio context
-
-    if(window.AudioContext){
+    // create a web audio context:
+    // FF, Chrome, Edge unprefixed
+    // Safari prefixed
+    if(window.AudioContext || window.webkitAudioContext){
       this.context = (typeof window.AudioContext === 'function' ? new window.AudioContext() : new window.webkitAudioContext() )
     }
   }
@@ -39,7 +40,6 @@ class Mixer {
     // track already exists, return it
     if(mix.lookup[id]){
 
-      // TODO: apply params to an existing track???
       return mix.lookup[id]
 
     } else if(params){
@@ -48,6 +48,7 @@ class Mixer {
       let defaults = {
         id:       id,
         timeline: [],
+        mix:      mix,
         context:  mix.context,
         type:     Html5Track, // default to standard track type
       }

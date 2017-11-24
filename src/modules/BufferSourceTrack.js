@@ -52,9 +52,11 @@ class BufferSourceTrack extends BaseTrack {
 
   /*
 
-    buffer source mode requires the source file to be fully loaded,
-    so here we fetch it. Web Audio API has the same browser support
-    as fetch (no IE, not even 11).
+    Playing a track is a three step process:
+
+    1. Buffer source mode requires the source file to be fully loaded,
+       so here we fetch it. Web Audio API has the same browser support
+       as fetch (no IE, not even 11).
 
   */
   load(){
@@ -81,10 +83,14 @@ class BufferSourceTrack extends BaseTrack {
       .catch(e => track.trigger('error', e))
   }
 
+  /*
+
+    2. The BufferSource must be re-created every time we begin play
+
+  */
+
   create(){
     return new Promise(function(resolve, reject){
-
-      // must re-construct the buffer every time we begin play
       track.data.source = null
 
       let ctx = track.options.context
@@ -116,8 +122,16 @@ class BufferSourceTrack extends BaseTrack {
     })
   }
 
+  /*
+
+    3.
+
+  */
   play(){
     let track = this
+
+    // these ifs accomodate calling play() multiple times
+    // while waiting for the track to be set up
 
     if(!track.data.loaded){
       track.shouldPlayOnLoad = true
