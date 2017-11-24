@@ -6,6 +6,8 @@
 import BaseTrack from './BaseTrack'
 import utils from './utils'
 
+import nodes from './nodes/allNodes'
+
 class BufferSourceTrack extends BaseTrack {
   constructor(params){
     super(params)
@@ -122,9 +124,13 @@ class BufferSourceTrack extends BaseTrack {
     })
   }
 
+  createNodes(){
+
+  }
+
   /*
 
-    3.
+    4. Play!
 
   */
   play(){
@@ -199,11 +205,15 @@ class BufferSourceTrack extends BaseTrack {
 
   }
 
-  mute(){
+  volume(){
 
   }
 
-  unmute(){
+  tweenVolume(){
+
+  }
+
+  muted(){
 
   }
 

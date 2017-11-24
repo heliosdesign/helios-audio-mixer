@@ -1,6 +1,6 @@
 /*
 
-  Tests for HTML5 track specifically
+  Tests for functionality specific to HTML5Track
 
 */
 import test from 'ava'

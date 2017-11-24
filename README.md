@@ -211,27 +211,72 @@ _Requirements: HTML5 Media support_
 Uses an HTML5 `<audio>` element.
 
 
-### `BufferSourceTrack`
+### Web Audio API Tracks
 
 _Requirements: Web Audio API support_
 
-Web Audio API track, with support for pan, gain, and analysis nodes. Uses a Web Audio buffer source. Best for use with small audio files, as the entire file must be downloaded before playback can begin. If you want to use the Web Audio API for larger files, `MediaSourceTrack` can play media as it downloads.
+Web Audio tracks add functionality by chaining a variety of audio processing/analysis nodes. By default, a web audio track (as used in this library) has just one node which controls gain (volume).
+
+
+
+Method 1:
+
+```
+import PanNode2D from 'helios-audio-mixer'
+
+class CustomNode {
+  // ... see src/modules/nodes/allNodes.js for reference implementation
+}
+
+let WebAudioTrack = mix.track('id', {
+  src: 'audio.file',
+  nodes: [
+    new PanNode2D(panNodeParams),
+    new CustomNode(customParams),
+  ]
+})
+
+```
+
+Method 2:
+
+```
+class CustomNode {
+  // ... see src/modules/nodes/allNodes.js for reference implementation
+}
+
+mix.registerNode('custom', CustomNode)
+
+let WebAudioTrack = mix.track('id', {
+  src: 'audio.file',
+  nodes: {
+    'pan2d':  {},
+    'custom': {},
+  }
+})
+
+WebAudioTrack.nodes.custom.method()
+
+```
+
+
+
+#### `BufferSourceTrack`
+
+
+Uses a Web Audio buffer source. Best for use with small audio files, as the entire file must be downloaded before playback can begin. If you want to use the Web Audio API for larger files, `MediaSourceTrack` can play media as it downloads.
 
 If you want full audio mixer functionality (ie multiple tracks) on iOS, this track type makes things a lot easier. Media elements are subject to iOS rules about tap-to-play.
 
 
-### `MediaSourceTrack`
+#### `MediaSourceTrack`
 
-_Requirements: Web Audio API support_
-
-A Web Audio API track using an HTML5 `<audio>` element as input. Supports the full set of Web Audio nodes. Can stream files, so ideal for larger files.
+Uses an HTML5 `<audio>` element as input. Supports the full set of Web Audio nodes. Can stream files, so ideal for larger files.
 
 
-### `StreamSourceTrack`
+#### `StreamSourceTrack`
 
-_Requirements: Web Audio API support, …_
-
-Track using a MediaStream as input, ie a live mic input via `getUserMedia`.
+Uses a MediaStream as input, ie a live mic input via `getUserMedia`.
 
 
 
