@@ -68,19 +68,26 @@ test('load', async t => {
   })
 
   track.play()
+  track.play()
+  track.play()
+  track.play()
+  track.play()
 
   t.is(window.fetch.called, true)
 
+  track.play()
+  track.play()
+  track.play()
+
   await promise
+
+  track.play()
+  track.play()
+  track.play()
 
   eventSpies.forEach((spy, index) => {
     t.is(spy.called, true, events[index])
   })
-
-})
-
-test('calling load() multiple times doesn’t break anything', t => {
-  let ctx = new window.AudioContext()
 
 })
 
@@ -101,9 +108,58 @@ test('autoplay triggers play() call', async t => {
   t.is(track.play.called, true)
 })
 
-test('create buffer source', t => {
+test.cb('create', t => {
 
+  // mock unprefixed context
+  let ctx = new window.AudioContext()
+  ctx.createGain = function(){}
+  ctx.currentTime = 0
+
+  let bufferSource = {}
+  bufferSource.start = sinon.spy()
+  bufferSource.context = { currentTime: 0 }
+
+  ctx.createBufferSource = sinon.stub().returns(bufferSource)
+  let decodedBuffer = { duration: 1 }
+  ctx.decodeAudioData = function(audioData, callback){
+    callback(decodedBuffer)
+  }
+
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+  })
+
+  track.status.loaded = true
+  sinon.spy(track, 'create')
+  sinon.spy(track, 'createNodes')
+
+  // play
+
+  track.play()
+
+  t.is(track.create.called, true)
+  t.is(ctx.createBufferSource.called, true)
+
+  track.on('play', function(){
+    t.end()
+  })
 })
+
+
+
+// test('pause', t => {})
+
+// test('stop', t => {})
+
+
+
+
+
+
+
+
 
 
 

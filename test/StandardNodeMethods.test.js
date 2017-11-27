@@ -1,3 +1,9 @@
+/*
+
+  Standard Node Methods
+  (all nodes should pass this test)
+
+*/
 import test from 'ava'
 import sinon from 'sinon'
 
@@ -33,11 +39,11 @@ class mockPrefixedAudioContent {
 */
 let environments = [
   {
-    name:    'unprefixed',
+    name:   'unprefixed',
     context: mockUnprefixedAudioContext,
   },
   {
-    name:    'prefixed',
+    name:   'prefixed',
     context: mockPrefixedAudioContent,
   },
 ]

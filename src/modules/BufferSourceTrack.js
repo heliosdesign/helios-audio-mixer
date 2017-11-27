@@ -3,12 +3,12 @@
   Web Audio API: Buffer Source track
 
 */
-import BaseTrack from './BaseTrack'
+import WebAudioTrack from './WebAudioTrack'
 import utils from './utils'
 
 import nodes from './nodes/allNodes'
 
-class BufferSourceTrack extends BaseTrack {
+class BufferSourceTrack extends WebAudioTrack {
   constructor(params){
     super(params)
     let track = this
@@ -25,9 +25,22 @@ class BufferSourceTrack extends BaseTrack {
 
     track.options = Object.assign(defaults, params)
 
+    track.status = {
+      loading: false,
+      loaded:  false,
+
+      creating: false,
+      created:  false,
+
+      playing:  false,
+    }
+
     // internal flags and data
     track.data = {
+
+      // manual time tracking
       cachedTime: 0,
+      startTime:  0,
     }
 
     if(!track.options.context){
@@ -63,8 +76,8 @@ class BufferSourceTrack extends BaseTrack {
   */
   load(){
     let track = this
-    if(track.data.loading) return
-    track.data.loading = true
+    if(track.status.loading) return
+    track.status.loading = true
     track.trigger('loadstart')
 
     return window.fetch(track.options.src)
@@ -76,9 +89,9 @@ class BufferSourceTrack extends BaseTrack {
         track.trigger('canplaythrough')
 
         if(track.shouldPlayOnLoad || track.options.autoplay){
+          track.status.loading = false
+          track.status.loaded = true
           track.play()
-          track.data.loading = false
-          track.data.loaded = true
         }
 
       })
@@ -92,6 +105,11 @@ class BufferSourceTrack extends BaseTrack {
   */
 
   create(){
+    let track = this
+
+    if(track.status.creating) return
+    track.status.creating = true
+
     return new Promise(function(resolve, reject){
       track.data.source = null
 
@@ -101,33 +119,30 @@ class BufferSourceTrack extends BaseTrack {
       if(typeof ctx.createGain === 'function') {
 
         ctx.decodeAudioData(track.data.audioData, function(decodedBuffer){
-          if(status.ready) return;
+          if(!track.status.creating) return;
 
-          source           = ctx.createBufferSource();
-          var sourceBuffer = decodedBuffer;
-          source.buffer    = sourceBuffer;
+          track.data.source  = ctx.createBufferSource();
+          track.data.source.buffer = decodedBuffer;
 
+          track.status.creating = false
+          track.status.created = true
           resolve()
-        });
+        })
       }
 
       // Non-standard Webkit implementation (Safari, old Chrome)
       else if(typeof ctx.createGainNode === 'function') {
 
-        source = ctx.createBufferSource();
-        var sourceBuffer  = ctx.createBuffer(track.data.audioData, true);
-        source.buffer = sourceBuffer;
+        track.data.source = ctx.createBufferSource();
+        track.data.source.buffer = ctx.createBuffer(track.data.audioData, true);
 
+        track.status.creating = false
+        track.status.created = true
         resolve()
       }
 
     })
   }
-
-  createNodes(){
-
-  }
-
   /*
 
     4. Play!
@@ -139,35 +154,32 @@ class BufferSourceTrack extends BaseTrack {
     // these ifs accomodate calling play() multiple times
     // while waiting for the track to be set up
 
-    if(!track.data.loaded){
+    if(!track.status.loaded){
       track.shouldPlayOnLoad = true
       track.load()
       return
     }
 
-    if(track.data.status = 'playing')
+    if(track.status.playing){
       return track
+    }
 
     track.shouldPlayOnLoad = false
 
-    if(!track.data.creating){
-      track.data.creating = true
+    if(!track.status.created && !track.status.creating){
       track.create()
         .then(() => {
 
-          createNodes();
+          super.createNodes();
 
           let source = track.data.source
 
           // Apply Options
           source.loop = (track.options.loop) ? true : false;
-          // gain(track.options.volume);
-          // pan(track.options.pan);
 
-          // Play
-          // ~~~~
+          // set up timers
 
-          startTime = source.context.currentTime - track.data.cachedTime;
+          track.data.startTime = source.context.currentTime - track.data.cachedTime;
           var startFrom = track.data.cachedTime || 0;
 
           // prefer start() but fall back to deprecated noteOn()
@@ -177,17 +189,47 @@ class BufferSourceTrack extends BaseTrack {
             source.noteOn(startFrom);
           }
 
-          // setEndTimer();
+          track.setEndTimer();
 
-          track.data.creating = false
-          track.data.playing = true
-
-          events.trigger('play', track);
+          track.status.playing = true
+          super.trigger('play', track);
 
         })
     }
 
   }
+
+  setEndTimer(){
+    let track = this
+    let startFrom = track.data.cachedTime || 0;
+    let timerDuration = (track.data.source.buffer.duration - startFrom);
+
+    if(track.data.onendtimer){
+      clearTimeout(track.data.onendtimer);
+    }
+
+    track.data.onendtimer = setTimeout(track.ended, timerDuration * 1000);
+  }
+
+  ended() {
+    let track = this
+    if(track.options.loop){
+      super.trigger('loop', track)
+      track.pause(0)
+      track.play()
+    } else {
+      super.trigger('ended', track)
+    }
+  }
+
+
+
+  pause(){
+    // disable autoplay, if we've paused the track before it's had a chance to load
+    // if(track.data.)
+
+  }
+
 
   stop(){
 

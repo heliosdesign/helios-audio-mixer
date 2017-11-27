@@ -211,58 +211,7 @@ _Requirements: HTML5 Media support_
 Uses an HTML5 `<audio>` element.
 
 
-### Web Audio API Tracks
-
-_Requirements: Web Audio API support_
-
-Web Audio tracks add functionality by chaining a variety of audio processing/analysis nodes. By default, a web audio track (as used in this library) has just one node which controls gain (volume).
-
-
-
-Method 1:
-
-```
-import PanNode2D from 'helios-audio-mixer'
-
-class CustomNode {
-  // ... see src/modules/nodes/allNodes.js for reference implementation
-}
-
-let WebAudioTrack = mix.track('id', {
-  src: 'audio.file',
-  nodes: [
-    new PanNode2D(panNodeParams),
-    new CustomNode(customParams),
-  ]
-})
-
-```
-
-Method 2:
-
-```
-class CustomNode {
-  // ... see src/modules/nodes/allNodes.js for reference implementation
-}
-
-mix.registerNode('custom', CustomNode)
-
-let WebAudioTrack = mix.track('id', {
-  src: 'audio.file',
-  nodes: {
-    'pan2d':  {},
-    'custom': {},
-  }
-})
-
-WebAudioTrack.nodes.custom.method()
-
-```
-
-
-
 #### `BufferSourceTrack`
-
 
 Uses a Web Audio buffer source. Best for use with small audio files, as the entire file must be downloaded before playback can begin. If you want to use the Web Audio API for larger files, `MediaSourceTrack` can play media as it downloads.
 
@@ -287,35 +236,69 @@ Uses a MediaStream as input, ie a live mic input via `getUserMedia`.
 
 
 
-## Web Audio API Nodes
 
 
-```js
-import AudioMixer    from 'helios-libraries/libs/audio-mixer'
-import WebAudioTrack from 'helios-libraries/libs/web-audio-track'
 
-let audioMixer = new AudioMixer()
 
-let webAudioTrack = audioMixer.track('webAudioTrack', {
-  src: 'path/to/audio.file',
-  type:    WebAudioTrack,
-  nodes:   [
-    {
-      type: 'pan',
-      options: {
-        mode: 'stereo',
-        value: 0,
-      }
-    },
-    {
-      type: 'analysis',
-      options: {}
-    },
+
+## Web Audio API
+
+Web Audio tracks add functionality by chaining a variety of audio nodes. By default, a web audio track has just one node which controls gain (volume).
+
+### Nodes
+
+#### Creating nodes
+
+```
+let WebAudioTrack = mix.track('id', {
+  src: 'audio.file',
+  nodes: [ 'pan2d', 'analysis' ],
+})
+```
+
+```
+let WebAudioTrack = mix.track('id', {
+  src: 'audio.file',
+  nodes: [
+    'pan2d',
+    { type: 'analysis', options: {} },
   ]
 })
 ```
 
-…some additional methods…
+#### Accessing nodes
+
+```
+let pan = WebAudioTrack.node('pan2d')
+pan.method()
+```
+
+#### Creating custom nodes
+
+
+```
+class CustomNode {
+  // ... see src/modules/nodes/allNodes.js for reference implementation
+}
+
+mix.registerNode('custom', CustomNode)
+
+let WebAudioTrack = mix.track('id', {
+  src: 'audio.file',
+  nodes: [
+    'custom',
+    { type: 'custom', options: {} }
+  ],
+})
+```
+
+
+
+
+
+
+
+
 
 
 

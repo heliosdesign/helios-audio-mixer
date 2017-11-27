@@ -1,16 +1,28 @@
 /*
 
-  Web Audio API track
-
-  three valid source types:
-    - buffer  (BufferSource)
-    - element (MediaElementSource)
-    - stream  (MediaStreamSource)
+  Web Audio API track - base to be extended
 
 */
 import BaseTrack from './BaseTrack'
 import utils from './utils'
 
+class WebAudioTrack extends BaseTrack {
+  constructor(params){
+    super(params)
+    let track = this
+  }
+
+
+  createNodes(nodes){
+
+
+  }
+
+}
+
+
+
+/*
 class WebAudioTrack extends BaseTrack {
   constructor(params){
     super(params)
@@ -118,21 +130,10 @@ class WebAudioTrack extends BaseTrack {
 
 
 
-  /*
 
-    ###### ##    ###### ###  ### ###### ###  ## ######
-    ##     ##    ##     ######## ##     #### ##   ##
-    #####  ##    #####  ## ## ## #####  ## ####   ##
-    ##     ##    ##     ##    ## ##     ##  ###   ##
-    ###### ##### ###### ##    ## ###### ##   ##   ##
 
-  */
 
-  /*
 
-    Load Element Source
-
-  */
   loadElementSource(){
     let track = this
 
@@ -169,21 +170,12 @@ class WebAudioTrack extends BaseTrack {
 
   }
 
-  /*
 
-     #### ###### #####  ######  #####  ###  ###
-    ##      ##   ##  ## ##     ##   ## ########
-     ####   ##   #####  #####  ####### ## ## ##
-        ##  ##   ##  ## ##     ##   ## ##    ##
-    #####   ##   ##  ## ###### ##   ## ##    ##
 
-  */
 
-  /*
 
-    Load MediaStream Source
 
-  */
+
   loadMediaStreamSource(){
     let track = this
 
@@ -229,5 +221,7 @@ class WebAudioTrack extends BaseTrack {
 
   }
 }
+
+*/
 
 module.exports = WebAudioTrack

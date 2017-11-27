@@ -177,9 +177,9 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
 
-  test(trackType + ': start at a specific time', t => t.todo)
+  // test(trackType + ': start at a specific time', t => t.todo)
 
-  test(trackType + ': chain all non-getter function calls', t => t.todo)
+  // test(trackType + ': chain all non-getter function calls', t => t.todo)
 
 })
 
