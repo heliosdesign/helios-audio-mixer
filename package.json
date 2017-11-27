@@ -1,6 +1,6 @@
 {
   "name": "audio-mixer",
-  "version": "0.5.0",
+  "version": "0.5.0-alpha.1",
   "description": "Helios Audio Mixer",
   "main": "audioMixer.min.js",
   "scripts": {

@@ -7,11 +7,11 @@ import test from 'ava'
 import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
 
+import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
+
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 
-test.before(function(){
-  window.AudioContext = function(){}
-})
+
 
 test('instantiate', t => {
 
@@ -20,7 +20,7 @@ test('instantiate', t => {
     let errorTrack = new BufferSourceTrack({ src: 'asdf' })
   })
 
-  let ctx = new window.AudioContext()
+  let ctx = new MockUnprefixedAudioContext()
 
   // without a source
   t.throws(() => {
@@ -47,7 +47,7 @@ test('instantiate', t => {
 
 
 test('load', async t => {
-  let ctx = new window.AudioContext()
+  let ctx = new MockUnprefixedAudioContext()
 
   let audioData = {}
   let promise = Promise.resolve(audioData)
@@ -92,7 +92,7 @@ test('load', async t => {
 })
 
 test('autoplay triggers play() call', async t => {
-  let ctx = new window.AudioContext()
+  let ctx = new MockUnprefixedAudioContext()
   let promise = Promise.resolve({})
   window.fetch = sinon.stub().returns(promise)
   let track = new BufferSourceTrack({
@@ -109,21 +109,7 @@ test('autoplay triggers play() call', async t => {
 })
 
 test.cb('create', t => {
-
-  // mock unprefixed context
-  let ctx = new window.AudioContext()
-  ctx.createGain = function(){}
-  ctx.currentTime = 0
-
-  let bufferSource = {}
-  bufferSource.start = sinon.spy()
-  bufferSource.context = { currentTime: 0 }
-
-  ctx.createBufferSource = sinon.stub().returns(bufferSource)
-  let decodedBuffer = { duration: 1 }
-  ctx.decodeAudioData = function(audioData, callback){
-    callback(decodedBuffer)
-  }
+  let ctx = new MockUnprefixedAudioContext()
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -134,6 +120,7 @@ test.cb('create', t => {
   track.status.loaded = true
   sinon.spy(track, 'create')
   sinon.spy(track, 'createNodes')
+  sinon.spy(ctx, 'createBufferSource')
 
   // play
 
@@ -142,9 +129,7 @@ test.cb('create', t => {
   t.is(track.create.called, true)
   t.is(ctx.createBufferSource.called, true)
 
-  track.on('play', function(){
-    t.end()
-  })
+  track.on('play', function(){ t.end() })
 })
 
 
@@ -175,7 +160,7 @@ test.cb('create', t => {
 
 //   let src = 'path/to/audio/file'
 
-//   let ctx = new window.AudioContext()
+//   let ctx = new MockUnprefixedAudioContext()
 
 //   let eventListenerFunction
 //   let element = {
@@ -212,7 +197,7 @@ test.cb('create', t => {
 
 // test('load a media stream source', t => {
 //   let mediaStream = {}
-//   let ctx = new window.AudioContext()
+//   let ctx = new MockUnprefixedAudioContext()
 
 //   let track = new BufferSourceTrack({
 //     src:         mediaStream,

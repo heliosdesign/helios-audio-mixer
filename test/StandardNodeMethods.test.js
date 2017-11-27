@@ -7,29 +7,10 @@
 import test from 'ava'
 import sinon from 'sinon'
 
+import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
+import MockPrefixedAudioContext from './mocks/PrefixedAudioContext'
+
 import nodes from '../src/modules/nodes/allNodes'
-
-/*
-
-  Mocks
-
-*/
-
-let mockGainNode = {}
-
-// Edge, Chrome, FF
-class mockUnprefixedAudioContext {
-  constructor(params){}
-
-  createGainNode(){}
-}
-
-// safari
-class mockPrefixedAudioContent {
-  constructor(params){}
-
-  createGain(){}
-}
 
 
 /*
@@ -40,11 +21,11 @@ class mockPrefixedAudioContent {
 let environments = [
   {
     name:   'unprefixed',
-    context: mockUnprefixedAudioContext,
+    context: MockUnprefixedAudioContext,
   },
   {
     name:   'prefixed',
-    context: mockPrefixedAudioContent,
+    context: MockPrefixedAudioContext,
   },
 ]
 
