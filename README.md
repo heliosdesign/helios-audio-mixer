@@ -335,12 +335,49 @@ let WebAudioTrack = mix.track('id', {
 
 #### `GainNode`
 
-#### `PanNode2D`
+All Web Audio tracks have a gain node. You can access it through the `Track.volume()` method, as well as directly:
 
-#### `PanNode3D`
+```js
+let gainNode = track.node('GainNode')
+gainNode.gain(0.5)
+```
+
+#### `PannerNode2D`
+
+The Web Audio `PannerNode` interface is quite complicated. `PanNode2D` provides a simpler interface, which pans in a horizontal circle around the listener.
+
+```js
+let pan2d = track.node('PannerNode2D')
+pan2d.pan('front')
+pan2d.tweenPan(90, 1)
+```
+
+Pan can be expressed in degrees (0–360), or a direction (string):
+
+```js
+'front'    0
+'right'   90
+'back'   180
+'left'   270
+```
+
+#### `PannerNode`
+
+Thin wrapper for Web Audio API `PannerNode`.
+
+```js
+  
+```
 
 #### `AnalysisNode`
 
+FFT audio analysis.
+
+```js
+  
+  
+  
+```
 
 
 

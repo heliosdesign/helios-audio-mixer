@@ -29,7 +29,7 @@
 
 */
 import GainNode from './GainNode'
-import PanNode2D from './PanNode2D'
-import PanNode3D from './PanNode3D'
+import PannerNode2D from './PannerNode2D'
+import PannerNode from './PannerNode'
 
-export default { GainNode, PanNode2D, PanNode3D }
+export default { GainNode, PannerNode2D, PannerNode }
