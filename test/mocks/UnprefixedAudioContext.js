@@ -12,8 +12,8 @@ let dummyNode = { connect: sinon.spy() }
 
 class UnprefixedAudioContext {
   constructor(params){
-
     this.currentTime = (new Date()).getTime()
+    this.destination = {}
   }
 
   createGain(){ return dummyNode }
@@ -22,7 +22,9 @@ class UnprefixedAudioContext {
 
   createBufferSource(){
     let bufferSource = {}
+
     bufferSource.start = sinon.spy()
+    bufferSource.connect = sinon.spy()
     bufferSource.context = { currentTime: 0 }
 
     return bufferSource

@@ -170,12 +170,11 @@ class BufferSourceTrack extends WebAudioTrack {
     if(!track.status.created && !track.status.creating){
       track.create()
         .then(() => {
+          let source = track.data.source
 
           // build nodes
           let nodes = ['GainNode'].concat(track.options.nodes || [])
-          super.createNodes(nodes)
-
-          let source = track.data.source
+          super.createNodes(nodes, source)
 
           // Apply Options
           source.loop = (track.options.loop) ? true : false;

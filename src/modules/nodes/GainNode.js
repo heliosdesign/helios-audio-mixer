@@ -7,7 +7,7 @@
     gain:    1,
   })
 
-  g.connect(previousNode)
+  g.connect(toNode)
 
   g.gain(setTo) -> getter/setter
   g.muted(setTo) -> getter/setter
@@ -20,16 +20,14 @@ import u from '../utils'
 class GainNode {
   constructor(params){
     let ctx = params.context
-    this.gainNode = ctx.createGainNode ? ctx.createGainNode() : ctx.createGain()
+    this.node = ctx.createGainNode ? ctx.createGainNode() : ctx.createGain()
 
     this.gainValue = 1
     this.gain( typeof params.gain === 'number' ? params.gain : 1 )
-
   }
 
-  connect(previousNode){
-    previousNode.connect(this.gainNode)
-    return this.gainNode
+  connect(to){
+    this.node.connect(to)
   }
 
   gain(setTo){

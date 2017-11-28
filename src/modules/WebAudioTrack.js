@@ -20,6 +20,8 @@ class WebAudioTrack extends BaseTrack {
     }
     track.options = Object.assign(defaults, params)
 
+    track.data = {}
+
     // reference nodes by ???
     track.allNodes   = []
     track.nodeLookup = {}
@@ -31,14 +33,20 @@ class WebAudioTrack extends BaseTrack {
     input is an array
 
   */
-  createNodes(nodes){
+  createNodes(nodes, source){
     let track = this
-    console.log('createNodes')
+
+    if(!source){
+      throw new Error('Can’t create nodes without a valid source.')
+    } else if(!source.connect){
+      throw new Error('Can’t create nodes without a valid source.')
+    }
 
     let baseParams = {
       context: track.options.context
     }
 
+    let previousNode = source
     nodes.forEach(n => {
 
       // determine node type by duck typing
@@ -48,22 +56,57 @@ class WebAudioTrack extends BaseTrack {
         if(Nodes[n]){
 
           let node = new Nodes[n](baseParams)
+          track.allNodes.push(node)
+          track.nodeLookup[n] = node
+
+          previousNode.connect(node)
+          previousNode = node
 
         } else {
           throw new Error(`Node type ${n} does not exist.`)
         }
 
       } else if(typeof n === 'object'){
-        if( n.type && n.options ){
+        if( n.type ){
           // create predefined node with options
+
+          if(Nodes[n.type]){
+            if(!n.options) n.options = {}
+
+            let node = new Nodes[n.type]( Object.assign(baseParams, n.options) )
+            track.allNodes.push(node)
+            track.nodeLookup[n.type] = node
+
+            previousNode.connect(node)
+            previousNode = node
+
+          } else {
+            throw new Error(`Node type ${n.type} does not exist.`)
+          }
 
         } else if(n.connect) {
           // create custom node, this is a raw node object
+
+          track.allNodes.push(n)
+
+          previousNode.connect(n)
+          previousNode = n
+
         }
       }
 
     })
 
+    previousNode.connect(track.options.context.destination)
+
+  }
+
+  nodes(){
+    return this.allNodes
+  }
+
+  node(id){
+    return this.nodeLookup[id] || false
   }
 
 }

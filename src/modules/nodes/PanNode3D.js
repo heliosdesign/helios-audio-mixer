@@ -15,9 +15,8 @@ class PanNode3D {
     // additional setup here
   }
 
-  connect(previousNode){
-    previousNode.connect(this.node)
-    return this.node
+  connect(to){
+    this.node.connect(to)
   }
 }
 

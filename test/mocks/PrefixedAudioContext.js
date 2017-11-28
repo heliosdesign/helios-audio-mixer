@@ -1,6 +1,7 @@
 /*
 
-  safari (only)
+  Mock Webkit Prefixed Audio Context
+    safari (only)
 
 */
 import sinon from 'sinon'
@@ -8,7 +9,9 @@ import sinon from 'sinon'
 let dummyNode = { connect: sinon.spy() }
 
 class PrefixedAudioContent {
-  constructor(params){}
+  constructor(params){
+    this.destination = {}
+  }
 
   createGainNode(){ return dummyNode }
 
@@ -17,6 +20,7 @@ class PrefixedAudioContent {
   createBufferSource(){
     let bufferSource = {}
     bufferSource.start = sinon.spy()
+    bufferSource.connect = sinon.spy()
     bufferSource.context = { currentTime: 0 }
 
     return bufferSource
