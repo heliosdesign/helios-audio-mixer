@@ -8,6 +8,7 @@ import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
 
 import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
+import MockPrefixedAudioContext from './mocks/PrefixedAudioContext'
 
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 
@@ -108,7 +109,7 @@ test('autoplay triggers play() call', async t => {
   t.is(track.play.called, true)
 })
 
-test.cb('create', t => {
+test.cb('create (unprefixed)', t => {
   let ctx = new MockUnprefixedAudioContext()
 
   let track = new BufferSourceTrack({
@@ -117,22 +118,43 @@ test.cb('create', t => {
     sourceMode: 'buffer',
   })
 
-  track.status.loaded = true
-  sinon.spy(track, 'create')
-  sinon.spy(track, 'createNodes')
   sinon.spy(ctx, 'createBufferSource')
 
-  // play
+  track.create()
+    .then(() => {
+      t.is(ctx.createBufferSource.called, true)
+      t.truthy(track.data.source)
+      t.truthy(track.data.source.buffer)
+      t.end()
+    })
 
-  track.play()
+})
 
-  t.is(track.create.called, true)
-  t.is(ctx.createBufferSource.called, true)
+test.cb('create (prefixed)', t => {
+  let ctx = new MockPrefixedAudioContext()
 
-  track.on('play', function(){ t.end() })
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+  })
+
+  sinon.spy(ctx, 'createBufferSource')
+
+  track.create()
+    .then(() => {
+      t.is(ctx.createBufferSource.called, true)
+      t.truthy(track.data.source)
+      t.truthy(track.data.source.buffer)
+      t.end()
+    })
+
 })
 
 
+
+
+// test.cb('play (entire flow', t => {})
 
 // test('pause', t => {})
 

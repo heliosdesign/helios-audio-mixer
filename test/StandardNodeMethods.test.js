@@ -3,39 +3,31 @@
   Standard Node Methods
   (all nodes should pass this test)
 
+  - instantiate
+  - connect
+
+  that's it!
+
 */
 import test from 'ava'
 import sinon from 'sinon'
 
 import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
-import MockPrefixedAudioContext from './mocks/PrefixedAudioContext'
+import MockPrefixedAudioContext   from './mocks/PrefixedAudioContext'
 
 import nodes from '../src/modules/nodes/allNodes'
 
 
-/*
-
-  Environments
-
-*/
+// Test environments
 let environments = [
-  {
-    name:   'unprefixed',
+  { name:   'unprefixed',
     context: MockUnprefixedAudioContext,
   },
-  {
-    name:   'prefixed',
+  { name:   'prefixed',
     context: MockPrefixedAudioContext,
   },
 ]
 
-
-
-/*
-
-  Tests
-
-*/
 environments.forEach(env => {
 
   Object.keys(nodes).forEach(key => {
@@ -56,6 +48,9 @@ environments.forEach(env => {
       let n = node.connect(previousNode)
 
       t.is(previousNode.connect.called, true)
+
+      // connect() should return the node object
+      t.is(typeof n.connect === 'function', true)
     })
 
   })

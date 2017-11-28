@@ -8,13 +8,17 @@
 */
 import sinon from 'sinon'
 
+let dummyNode = { connect: sinon.spy() }
+
 class UnprefixedAudioContext {
   constructor(params){
 
     this.currentTime = (new Date()).getTime()
   }
 
-  createGain(){}
+  createGain(){ return dummyNode }
+
+  createPanner(){ return dummyNode }
 
   createBufferSource(){
     let bufferSource = {}

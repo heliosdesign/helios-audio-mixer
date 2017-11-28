@@ -40,8 +40,11 @@ class GainNode {
     return this.gain
   }
 
-  tweenGain(setTo, duration){
 
+  // tweenGain(0, 1, 'linear')
+  tweenGain(setTo, duration, rampType){
+    // rampType should default to exponential, not linear, for more
+    // even sounding crossfading (no volume dip in the middle)
   }
 
   muted(setTo){

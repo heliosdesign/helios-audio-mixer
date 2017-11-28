@@ -1,8 +1,8 @@
 # Audio Mixer
 
-Manage multiple HTML5 audio elements easily.
+Manage multiple audio tracks easily.
 
-Can be extended with Web Audio API functionality using the Web Audio addon (to do). Web Audio is mandatory on iOS, due to its extremely limited HTML5 media support.
+Powered by HTML5 media or, optionally, the Web Audio API. Note that Web Audio is mandatory on iOS, due to extremely limited HTML5 media support.
 
 All volume values are normalized, ie 0-1, and all time values are in seconds.
 
@@ -45,7 +45,7 @@ Call `track` with an existing ID will return the existing track. Specified param
 
 ##### Track Params
 
-All track params are optional—**except for `src`**.
+All track params are optional, **except for `src`**. These are the defaults:
 
 ```js
 {
@@ -92,14 +92,18 @@ Immediately removes a specified track, by `'track id'` or Track object.
 The AudioMixer’s volume setting acts like a master volume slider, independent of individual tracks. Track volume exists within the master volume envelope. If a track has a volume of 0.5 and the master volume is set to 0.5, it will play back at 0.25.
 
 
-### Track
+### Standard Track API
 
 ---
 
+All track types should support this functionality. Some track types may add additional functionality.
+
 All Track methods (except setters) return the Track object, so you can chain function calls, ie
 
-```
-mix.track('id').volume(1).currentTime(20)
+```js
+mix.track('id')
+  .volume(1)
+  .currentTime(20)
 ```
 
 #### Events
@@ -241,42 +245,77 @@ Uses a MediaStream as input, ie a live mic input via `getUserMedia`.
 
 
 
-## Web Audio API
+## Web Audio Tracks
 
-Web Audio tracks add functionality by chaining a variety of audio nodes. By default, a web audio track has just one node which controls gain (volume).
+Web Audio tracks wrap the Web Audio API in the HTML5 media interface, making it easier to control. As with all abstractions, some flexibility is lost.
 
-### Nodes
+Web Audio tracks gain functionality by chaining a audio nodes. By default, a web audio track has just one node which controls gain (volume). Some commonly used nodes (pan2d, pan3d, analysis) are included in this library. You can add your own nodes as well.
 
-#### Creating nodes
+### Creating Nodes
 
-```
-let WebAudioTrack = mix.track('id', {
-  src: 'audio.file',
-  nodes: [ 'pan2d', 'analysis' ],
-})
-```
+Web Audio tracks take a `nodes` parameter, which accepts an array of nodes. They'll be connected in the order you specify, with the default gain node coming first. The last node will be connected to the destination. This library only supports a single chain of nodes (for now!), although the Web Audio API allows more complex setups.
 
-```
+The `nodes` array can contain:
+
+- the name of a pre-defined node
+
+  ```js
+  nodes: [ 'GainNode', 'PanNode2D', 'PanNode3D', 'AnalysisNode' ]
+  ```
+- an object with the name of a pre-defined node and params
+
+  ```js
+  nodes: [ { type: 'PanNode2D', options: {} } ]
+  ```
+- a node object
+
+  ```js
+  let node = mix.context.createNodeType()
+  // ...
+  nodes: [ node ]
+  ```
+  
+All these types can be mixed, ie:
+
+```js
 let WebAudioTrack = mix.track('id', {
   src: 'audio.file',
   nodes: [
-    'pan2d',
+    'PanNode2D',
     { type: 'analysis', options: {} },
+    customNode,
   ]
 })
 ```
 
-#### Accessing nodes
+### Accessing nodes
 
-```
-let pan = WebAudioTrack.node('pan2d')
+```js
+let nodes = WebAudioTrack.nodes() // returns node array
+// nodes[0] 
+
+let pan = WebAudioTrack.node('PanNode2D')
 pan.method()
 ```
 
-#### Creating custom nodes
+If there are multiple nodes of the same type, accessing a node by name using `Track.node()` will return the last node of its type. Considering an alias system.
 
+### Custom nodes
 
+Creating a node using the vanilla JS Web Audio API:
+
+```js
+let customNode = mix.context.createNode()
+
+let track = mix.track('id', {
+  src: 'audio.file',
+  nodes: [ customNode, 'Pan3DNode' ],
+})
 ```
+
+Creating a custom class:
+
+```js
 class CustomNode {
   // ... see src/modules/nodes/allNodes.js for reference implementation
 }
@@ -286,11 +325,22 @@ mix.registerNode('custom', CustomNode)
 let WebAudioTrack = mix.track('id', {
   src: 'audio.file',
   nodes: [
-    'custom',
-    { type: 'custom', options: {} }
+    'custom',                       // default, no options
+    { type: 'custom', options: {} } // with options
   ],
 })
 ```
+
+### Node Types
+
+#### `GainNode`
+
+#### `PanNode2D`
+
+#### `PanNode3D`
+
+#### `AnalysisNode`
+
 
 
 
@@ -306,4 +356,4 @@ let WebAudioTrack = mix.track('id', {
 
 ## Features under Consideration
 
-- volume tween easing (Penner equations)
+- volume tween easing (Penner equations for HTML5, ramps for Web Audio)

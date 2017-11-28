@@ -21,6 +21,7 @@ class BufferSourceTrack extends WebAudioTrack {
       loop:     false,
       autoplay: false,
       context:  false,
+      nodes:    [],
     }
 
     track.options = Object.assign(defaults, params)
@@ -61,7 +62,7 @@ class BufferSourceTrack extends WebAudioTrack {
     ]
 
     if(track.options.autoplay){
-      track.load()
+      track.play()
     }
   }
 
@@ -170,7 +171,9 @@ class BufferSourceTrack extends WebAudioTrack {
       track.create()
         .then(() => {
 
-          super.createNodes();
+          // build nodes
+          let nodes = ['GainNode'].concat(track.options.nodes || [])
+          super.createNodes(nodes)
 
           let source = track.data.source
 

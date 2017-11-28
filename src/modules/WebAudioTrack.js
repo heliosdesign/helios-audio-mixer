@@ -6,15 +6,63 @@
 import BaseTrack from './BaseTrack'
 import utils from './utils'
 
+import Nodes from './nodes/allNodes'
+
 class WebAudioTrack extends BaseTrack {
   constructor(params){
     super(params)
     let track = this
+
+    let defaults = {
+      src:      '',
+      context:  false,
+      nodes:    [],
+    }
+    track.options = Object.assign(defaults, params)
+
+    // reference nodes by ???
+    track.allNodes   = []
+    track.nodeLookup = {}
   }
 
 
-  createNodes(nodes){
+  /*
 
+    input is an array
+
+  */
+  createNodes(nodes){
+    let track = this
+    console.log('createNodes')
+
+    let baseParams = {
+      context: track.options.context
+    }
+
+    nodes.forEach(n => {
+
+      // determine node type by duck typing
+      if(typeof n === 'string'){
+        // predefined node with all defaults, no options
+
+        if(Nodes[n]){
+
+          let node = new Nodes[n](baseParams)
+
+        } else {
+          throw new Error(`Node type ${n} does not exist.`)
+        }
+
+      } else if(typeof n === 'object'){
+        if( n.type && n.options ){
+          // create predefined node with options
+
+        } else if(n.connect) {
+          // create custom node, this is a raw node object
+        }
+      }
+
+    })
 
   }
 

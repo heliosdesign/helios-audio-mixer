@@ -7,14 +7,17 @@
 class PanNode2D {
   constructor(params){
     let ctx = params.context
-    this.myNode = {} //ctx.createNodeType ? ctx.createNodeType() : ctx.createType()
+
+    // the name of this function is the same for
+    // both prefixed and unprefixed audio contexts
+    this.node = ctx.createPanner()
 
     // additional setup here
   }
 
   connect(previousNode){
-    previousNode.connect(this.myNode)
-    return this.myNode
+    previousNode.connect(this.node)
+    return this.node
   }
 }
 
