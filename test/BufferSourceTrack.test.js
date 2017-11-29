@@ -7,8 +7,7 @@ import test from 'ava'
 import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
 
-import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
-import MockPrefixedAudioContext from './mocks/PrefixedAudioContext'
+import AudioContext from './mocks/AudioContext'
 
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 
@@ -21,7 +20,7 @@ test('instantiate', t => {
     let errorTrack = new BufferSourceTrack({ src: 'asdf' })
   })
 
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   // without a source
   t.throws(() => {
@@ -48,7 +47,7 @@ test('instantiate', t => {
 
 
 test.cb('load', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   // manually stub async functions so we can await them
   let audioData = {}
@@ -94,7 +93,7 @@ test.cb('load', t => {
 })
 
 test('play', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -127,7 +126,7 @@ test('play', t => {
 })
 
 test.cb('ended event', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -154,7 +153,7 @@ test.cb('ended event', t => {
 
 
 test.cb('pause', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -203,7 +202,7 @@ test.cb('pause', t => {
 })
 
 test('pause and restart at the right time', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -212,8 +211,6 @@ test('pause and restart at the right time', t => {
     autoplay:    false,
     autoload:    false,
   })
-
-  track.load = sinon.spy()
 
   track.status.ready = true
   track.data.decodedBuffer = { duration: 1 }
@@ -228,11 +225,24 @@ test('pause and restart at the right time', t => {
 
 })
 
-// test('stop', t => {})
+
+test('gain node', t => {
+  let ctx = new AudioContext.Unprefixed()
+
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+    autoplay:    false,
+    autoload:    false,
+  })
+
+  track.status.ready = true
+  track.data.decodedBuffer = { duration: 1 }
 
 
 
-
+})
 
 
 
@@ -252,7 +262,7 @@ test('pause and restart at the right time', t => {
 
 //   let src = 'path/to/audio/file'
 
-//   let ctx = new MockUnprefixedAudioContext()
+//   let ctx = new AudioContext.Unprefixed()
 
 //   let eventListenerFunction
 //   let element = {
@@ -289,7 +299,7 @@ test('pause and restart at the right time', t => {
 
 // test('load a media stream source', t => {
 //   let mediaStream = {}
-//   let ctx = new MockUnprefixedAudioContext()
+//   let ctx = new AudioContext.Unprefixed()
 
 //   let track = new BufferSourceTrack({
 //     src:         mediaStream,

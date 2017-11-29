@@ -12,8 +12,7 @@
 import test from 'ava'
 import sinon from 'sinon'
 
-import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
-import MockPrefixedAudioContext   from './mocks/PrefixedAudioContext'
+import AudioContext from './mocks/AudioContext'
 
 import nodes from '../src/modules/nodes/allNodes'
 
@@ -21,10 +20,10 @@ import nodes from '../src/modules/nodes/allNodes'
 // Test environments
 let environments = [
   { name:   'unprefixed',
-    context: MockUnprefixedAudioContext,
+    context: AudioContext.Unprefixed,
   },
   { name:   'prefixed',
-    context: MockPrefixedAudioContext,
+    context: AudioContext.Prefixed,
   },
 ]
 

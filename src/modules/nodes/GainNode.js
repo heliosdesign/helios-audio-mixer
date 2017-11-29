@@ -32,10 +32,10 @@ class GainNode {
 
   gain(setTo){
     if(typeof setTo === 'number'){
-      setTo = u.normalize(setTo, 0, 1)
+      this.node.gain.value = u.normalize(setTo, 0, 1)
     }
 
-    return this.gain
+    return this.node.gain.value
   }
 
 

@@ -133,9 +133,6 @@ Add an event that fires only once, ie on `canplaythrough`.
 
 ##### `Track.play()`
 ##### `Track.pause()`
-##### `Track.stop()`
-
-Stop also resets the track's current time to 0.
 
 ##### `Track.currentTime(time)`
 
@@ -274,7 +271,7 @@ The `nodes` array can contain:
   // ...
   nodes: [ node ]
   ```
-  
+
 All these types can be mixed, ie:
 
 ```js
@@ -292,7 +289,7 @@ let WebAudioTrack = mix.track('id', {
 
 ```js
 let nodes = WebAudioTrack.nodes() // returns node array
-// nodes[0] 
+// nodes[0]
 
 let pan = WebAudioTrack.node('PanNode2D')
 pan.method()
@@ -366,7 +363,7 @@ Pan can be expressed in degrees (0–360), or a direction (string):
 Thin wrapper for Web Audio API `PannerNode`.
 
 ```js
-  
+
 ```
 
 #### `AnalysisNode`
@@ -374,9 +371,9 @@ Thin wrapper for Web Audio API `PannerNode`.
 FFT audio analysis.
 
 ```js
-  
-  
-  
+
+
+
 ```
 
 

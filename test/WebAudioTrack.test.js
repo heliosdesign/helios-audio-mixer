@@ -5,15 +5,14 @@ import createMockRaf from 'mock-raf'
 
 import Nodes from '../src/modules/nodes/allNodes'
 
-import MockUnprefixedAudioContext from './mocks/UnprefixedAudioContext'
-import MockPrefixedAudioContext from './mocks/PrefixedAudioContext'
+import AudioContext from './mocks/AudioContext'
 
 import WebAudioTrack from '../src/modules/WebAudioTrack'
 
 
 
 test('create nodes (default gain node)', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new WebAudioTrack({
     src:        'asdf',
@@ -32,7 +31,7 @@ test('create nodes (default gain node)', t => {
 })
 
 test('create nodes (with parameters)', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new WebAudioTrack({
     src:        'asdf',
@@ -57,7 +56,7 @@ test('create nodes (with parameters)', t => {
 })
 
 test('passing invalid arguments to createNodes throws errors', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new WebAudioTrack({
     src:        'asdf',
@@ -79,7 +78,7 @@ test('passing invalid arguments to createNodes throws errors', t => {
 })
 
 test('retrieve nodes', t => {
-  let ctx = new MockUnprefixedAudioContext()
+  let ctx = new AudioContext.Unprefixed()
 
   let track = new WebAudioTrack({
     src:        'asdf',

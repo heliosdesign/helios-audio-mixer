@@ -22,6 +22,7 @@ class BufferSourceTrack extends WebAudioTrack {
       autoplay: false,
       autoload: true,
       context:  false,
+      mix:      false,
       nodes:    [],
     }
 
@@ -32,6 +33,7 @@ class BufferSourceTrack extends WebAudioTrack {
       shouldPlayOnLoad: false,
 
       playing:  false,
+      muted:    false,
     }
 
     // internal flags and data
@@ -237,6 +239,7 @@ class BufferSourceTrack extends WebAudioTrack {
     // disable autoplay, if we've paused the track before it's had a chance to load
     if(!track.status.playing && track.status.shouldPlayOnLoad){
       track.status.shouldPlayOnLoad = false
+      track.options.autoplay = false
       return track
     }
 
@@ -257,17 +260,16 @@ class BufferSourceTrack extends WebAudioTrack {
     return track
   }
 
-
-  stop(){
-
-  }
-
   currentTime(setTo) {
     let track = this
 
-    if(!track.status.ready) return 0
-
     if(typeof setTo === 'number') {
+
+      if(!track.status.ready){
+        console.warn(`Can’t set currentTime for track ${track.options.id} before it loads. Listen for the 'canplaythrough' or 'play' events.`)
+        return track
+      }
+
       if(track.status.playing) {
         // to seek a buffer track, we need to pause and play
         pause(setTo).play()
@@ -277,21 +279,59 @@ class BufferSourceTrack extends WebAudioTrack {
       return track
     }
 
-    if(!track.status.playing)
+    if(!track.status.ready || !track.status.playing)
       return track.data.cachedTime || 0
 
     return (track.data.source.context.currentTime - track.data.startTime) || 0
 
   }
-  formattedTime(){
 
+  formattedTime(includeDuration){
+    let track = this
+    if(includeDuration)
+      return utils.timeFormat(track.currentTime()) + '/' + utils.timeFormat(track.duration());
+    else
+      return utils.timeFormat(track.currentTime());
   }
 
   duration(){
+    let track = this
 
+    if(!track.status.ready){ return 0 }
+
+    return track.data.source.buffer.duration || 0
   }
 
-  volume(){
+  // for a buffer track, volume() is basically an alias for the gain node
+  volume(setTo){
+    let track = this
+
+    if(typeof setTo === 'number') {
+      setTo = utils.normalize(setTo)
+
+      if(track.status.muted) {
+        gainCache(setTo)    // cache the value
+        track.data.gain = 0
+      } else {
+        track.data.gain = setTo
+      }
+
+      if(status.playing){
+        let gainNode = track.node('GainNode')
+
+        if(gainNode)
+          gainNode.gain.value = track.data.gain * track.options.mix.volume()
+      }
+
+      // if element source, also adjust the media element,
+      // because the gain node is meaningless in this context
+      if(options.sourceMode === 'element')
+        element.volume = track.data.gain * track.options.mix.volume()
+
+      // setters should be chainable
+      events.trigger('gain', track);
+      return track;
+    }
 
   }
 
