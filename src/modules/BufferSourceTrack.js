@@ -60,7 +60,7 @@ class BufferSourceTrack extends WebAudioTrack {
     ]
 
     // load the source the right away, even if autoplay isn't set.
-    if(track.options.autoload){
+    if(track.options.autoload || track.options.autoplay){
       track.load()
     }
 
@@ -85,8 +85,13 @@ class BufferSourceTrack extends WebAudioTrack {
       return track
 
     if(!track.status.ready){
-      console.log('should play on load')
+
+      if(!track.options.autoload && !track.status.shouldPlayOnLoad){
+        track.load()
+      }
+
       track.status.shouldPlayOnLoad = true
+
       return track
     }
 
@@ -96,34 +101,35 @@ class BufferSourceTrack extends WebAudioTrack {
 
     */
 
-    let ctx    = track.options.context
-    let source = track.data.source
+    let ctx = track.options.context
 
     // the buffer needs to be re-created every time we play()
-    source  = ctx.createBufferSource()
-    source.buffer = track.data.decodedBuffer
+    track.data.source  = ctx.createBufferSource()
+    track.data.source.buffer = track.data.decodedBuffer
 
-    // source.loop = (track.options.loop) ? true : false;
+    // track.data.source.loop = (track.options.loop) ? true : false
 
     // as do the nodes
     let nodes = ['GainNode'].concat(track.options.nodes || [])
-    super.createNodes(nodes, source)
+    super.createNodes(nodes, track.data.source)
 
     // set up timers, for the ended event
-    track.data.startTime = source.context.currentTime - track.data.cachedTime
+    track.data.startTime = track.data.source.context.currentTime - track.data.cachedTime
     var startFrom = track.data.cachedTime || 0
 
     // prefer start() but fall back to older, deprecated noteOn()
-    if(typeof source.start === 'function'){
-      source.start(0, startFrom)
+    if(typeof track.data.source.start === 'function'){
+      track.data.source.start(0, startFrom)
     } else {
-      source.noteOn(startFrom)
+      track.data.source.noteOn(startFrom)
     }
 
     track.setEndTimer()
 
     track.status.playing = true
     super.trigger('play', track)
+
+    return track
 
   }
 
@@ -194,14 +200,14 @@ class BufferSourceTrack extends WebAudioTrack {
 
   setEndTimer(){
     let track = this
-    let startFrom = track.data.cachedTime || 0;
-    let timerDuration = (track.data.source.buffer.duration - startFrom);
+    let startFrom = track.data.cachedTime || 0
+    track.data.timerDuration = (track.data.source.buffer.duration - startFrom)
 
     if(track.data.onendtimer){
-      clearTimeout(track.data.onendtimer);
+      window.clearTimeout(track.data.onendtimer)
     }
 
-    track.data.onendtimer = setTimeout(track.ended, timerDuration * 1000);
+    track.data.onendtimer = window.setTimeout(track.ended.bind(track), track.data.timerDuration * 1000)
   }
 
   ended() {
@@ -225,12 +231,30 @@ class BufferSourceTrack extends WebAudioTrack {
 
 
 
-  pause(){
+  pause(pauseAtTime){
+    let track = this
+
     // disable autoplay, if we've paused the track before it's had a chance to load
     if(!track.status.playing && track.status.shouldPlayOnLoad){
       track.status.shouldPlayOnLoad = false
+      return track
     }
 
+    track.data.cachedTime = (typeof pauseAtTime === 'number' ? pauseAtTime : track.currentTime())
+
+    track.status.playing = false
+
+    if(track.data.onendtimer) window.clearTimeout(track.data.onendtimer)
+
+    // prefer stop(), fallback to deprecated noteOff()
+    if(typeof track.data.source.stop === 'function')
+      track.data.source.stop(0)
+    else if(typeof track.data.source.noteOff === 'function')
+      track.data.source.noteOff(0)
+
+    super.trigger('pause', track)
+
+    return track
   }
 
 
@@ -238,10 +262,27 @@ class BufferSourceTrack extends WebAudioTrack {
 
   }
 
-  currentTime(){
+  currentTime(setTo) {
+    let track = this
+
+    if(!track.status.ready) return 0
+
+    if(typeof setTo === 'number') {
+      if(track.status.playing) {
+        // to seek a buffer track, we need to pause and play
+        pause(setTo).play()
+      } else {
+        track.data.cachedTime = setTo
+      }
+      return track
+    }
+
+    if(!track.status.playing)
+      return track.data.cachedTime || 0
+
+    return (track.data.source.context.currentTime - track.data.startTime) || 0
 
   }
-
   formattedTime(){
 
   }

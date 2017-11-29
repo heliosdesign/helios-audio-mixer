@@ -78,6 +78,7 @@ test.cb('load', t => {
       t.is(window.fetch.called, true)
       t.is(track.data.audioData, audioData)
 
+      // track shouldn't autoplay
       t.is(track.play.called, false)
 
       t.is(track.status.ready, true)
@@ -92,74 +93,140 @@ test.cb('load', t => {
 
 })
 
-// test.cb('autoplay triggers play() call', t => {
-//   let ctx = new MockUnprefixedAudioContext()
+test('play', t => {
+  let ctx = new MockUnprefixedAudioContext()
 
-//   window.fetch = sinon.stub().returns(Promise.resolve())
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+    autoplay:    false,
+    autoload:    false,
+  })
 
-//   let decodePromise = Promise.resolve()
-//   ctx.decodeAudioData = sinon.stub().returns(decodePromise)
+  track.load = sinon.spy()
 
-//   let track = new BufferSourceTrack({
-//     src:        'asdf',
-//     context:     ctx,
-//     sourceMode: 'buffer',
-//     autoplay:    true,
-//   })
-//   sinon.spy(track, 'play')
+  track.play()
 
-//   track.on('canplaythrough', () => {
-//     t.is(track.play.called, true)
-//     t.end()
-//   })
+  t.is(track.load.called, true)
+  t.is(track.status.shouldPlayOnLoad, true)
 
-// })
+  // ********************************************************
 
-// test.cb('create (unprefixed)', t => {
-//   let ctx = new MockUnprefixedAudioContext()
+  track.status.ready = true
+  track.data.decodedBuffer = { duration: 1 }
 
-//   let track = new BufferSourceTrack({
-//     src:        'asdf',
-//     context:     ctx,
-//     sourceMode: 'buffer',
-//   })
+  let playSpy = sinon.spy()
+  track.on('play', playSpy)
 
-//   sinon.spy(ctx, 'createBufferSource')
+  track.play()
 
-//   track.create()
-//     .then(() => {
-//       t.is(ctx.createBufferSource.called, true)
-//       t.truthy(track.data.source)
-//       t.truthy(track.data.source.buffer)
-//       t.end()
-//     })
+  t.is(track.status.playing, true)
+  t.is(playSpy.called, true)
 
-// })
+})
 
-// test.cb('create (prefixed)', t => {
-//   let ctx = new MockPrefixedAudioContext()
+test.cb('ended event', t => {
+  let ctx = new MockUnprefixedAudioContext()
 
-//   let track = new BufferSourceTrack({
-//     src:        'asdf',
-//     context:     ctx,
-//     sourceMode: 'buffer',
-//   })
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+    autoplay:    false,
+    autoload:    false,
+  })
 
-//   sinon.spy(ctx, 'createBufferSource')
+  // fake load
+  track.status.ready = true
+  track.data.decodedBuffer = { duration: 0.1 }
 
-//   track.create()
-//     .then(() => {
-//       t.is(ctx.createBufferSource.called, true)
-//       t.truthy(track.data.source)
-//       t.truthy(track.data.source.buffer)
-//       t.end()
-//     })
+  track.play()
 
-// })
+  t.truthy(track.data.onendtimer)
+  t.is(track.data.timerDuration, 0.1)
 
-// test.cb('play (entire flow', t => {})
+  track.on('ended', function(){
+    t.end()
+  })
 
-// test('pause', t => {})
+})
+
+
+test.cb('pause', t => {
+  let ctx = new MockUnprefixedAudioContext()
+
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+    autoplay:    false,
+    autoload:    false,
+  })
+
+  track.load = sinon.spy()
+
+  // test shouldPlayOnLoad
+  track.play()
+  t.is(track.load.called, true)
+  t.is(track.status.shouldPlayOnLoad, true)
+
+  track.pause()
+  t.is(track.status.shouldPlayOnLoad, false)
+
+  // fake load, then pause for real
+  track.status.ready = true
+  track.data.decodedBuffer = { duration: 1 }
+
+  track.play()
+
+  let pauseSpy = sinon.spy()
+  track.on('pause', pauseSpy)
+
+  sinon.spy(window, 'clearTimeout')
+
+  setTimeout(() => {
+
+    track.data.source.context.currentTime = 0.1
+
+    track.pause()
+
+    t.is(window.clearTimeout.called, true)
+    t.is(track.status.playing, false)
+    t.is(pauseSpy.called, true)
+    t.is(track.data.cachedTime, 0.1)
+
+    t.end()
+
+  }, 100)
+
+})
+
+test('pause and restart at the right time', t => {
+  let ctx = new MockUnprefixedAudioContext()
+
+  let track = new BufferSourceTrack({
+    src:        'asdf',
+    context:     ctx,
+    sourceMode: 'buffer',
+    autoplay:    false,
+    autoload:    false,
+  })
+
+  track.load = sinon.spy()
+
+  track.status.ready = true
+  track.data.decodedBuffer = { duration: 1 }
+
+  track.play()
+
+  track.data.source.context.currentTime = 0.1
+  track.pause()
+
+  t.is(track.status.playing, false)
+  t.is(track.data.cachedTime, 0.1)
+
+})
 
 // test('stop', t => {})
 

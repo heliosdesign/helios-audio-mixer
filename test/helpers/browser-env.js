@@ -5,6 +5,3 @@ import createMockRaf from 'mock-raf'
 browserEnv()
 
 window.fetch = sinon.stub().returns( Promise.resolve() )
-
-let mockRaf = createMockRaf()
-window.requestAnimationFrame = mockRaf.raf
