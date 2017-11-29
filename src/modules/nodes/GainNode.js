@@ -34,7 +34,6 @@ class GainNode {
     if(typeof setTo === 'number'){
       this.node.gain.value = u.normalize(setTo, 0, 1)
     }
-
     return this.node.gain.value
   }
 

@@ -112,7 +112,8 @@ class BufferSourceTrack extends WebAudioTrack {
     // track.data.source.loop = (track.options.loop) ? true : false
 
     // as do the nodes
-    let nodes = ['GainNode'].concat(track.options.nodes || [])
+    let gainNode = { type: 'GainNode', options: { gain: track.data.gain } }
+    let nodes = [gainNode].concat(track.options.nodes || [])
     super.createNodes(nodes, track.data.source)
 
     // set up timers, for the ended event
@@ -305,41 +306,78 @@ class BufferSourceTrack extends WebAudioTrack {
   // for a buffer track, volume() is basically an alias for the gain node
   volume(setTo){
     let track = this
+    let gainNode = track.node('GainNode')
 
     if(typeof setTo === 'number') {
       setTo = utils.normalize(setTo)
 
       if(track.status.muted) {
-        gainCache(setTo)    // cache the value
+        track.data.gainCache = setTo // cache the value for when we unmute
         track.data.gain = 0
       } else {
         track.data.gain = setTo
       }
 
-      if(status.playing){
-        let gainNode = track.node('GainNode')
-
+      if(track.status.playing){
         if(gainNode)
-          gainNode.gain.value = track.data.gain * track.options.mix.volume()
+          gainNode.gain(track.options.mix ? track.data.gain * track.options.mix.volume() : track.data.gain)
       }
 
-      // if element source, also adjust the media element,
-      // because the gain node is meaningless in this context
-      if(options.sourceMode === 'element')
-        element.volume = track.data.gain * track.options.mix.volume()
+      return track
+    } else {
 
-      // setters should be chainable
-      events.trigger('gain', track);
-      return track;
+      // accurately report gain while we’re tweening it
+      if(track.status.playing)
+        if(gainNode)
+          track.data.gain = gainNode.gain()
+
+      return track.data.gain;
+
     }
 
   }
 
-  tweenVolume(){
+  tweenVolume(setTo, duration){
+    // first check for support
+    let gainNode = track.node('GainNode')
+    if(typeof gainNode.gain.exponentialRampToValueAtTime === 'function'){
+      return new Promise(function(resolve, reject){
+        setTo = utils.normalize(setTo)
+        if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
+
+        gainNode.gain.exponentialRampToValueAtTime(setTo, track.options.context.currentTime + duration)
+
+        setTimeout(() => resolve(), duration * 1000)
+      })
+    } else {
+      // fall back to requestAnimationFrame
+    }
 
   }
 
-  muted(){
+  muted(setTo){
+    let track = this
+
+    if(typeof setTo === 'boolean'){
+      if(setTo){
+
+        // mute: cache current gain, then set to 0
+        track.data.gainCache = track.data.gain
+        track.volume(0)
+        track.status.muted = true
+
+      } else {
+
+        // unmute
+        track.status.muted = false
+        track.volume(track.data.gainCache)
+
+      }
+      return track
+    } else {
+
+      return track.status.muted
+    }
 
   }
 

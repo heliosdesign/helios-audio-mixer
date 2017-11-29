@@ -10,6 +10,7 @@ import createMockRaf from 'mock-raf'
 import AudioContext from './mocks/AudioContext'
 
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
+import allNodes from '../src/modules/nodes/allNodes'
 
 
 
@@ -226,8 +227,10 @@ test('pause and restart at the right time', t => {
 })
 
 
-test('gain node', t => {
+test('volume', t => {
   let ctx = new AudioContext.Unprefixed()
+  let mixVolume = 1
+  let mix = { volume: function(){ return mixVolume } }
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -235,14 +238,41 @@ test('gain node', t => {
     sourceMode: 'buffer',
     autoplay:    false,
     autoload:    false,
+    mix:         mix,
   })
 
+  // set volume before track is ready
+  track.volume(0.5)
+  t.is(track.data.gain, 0.5)
+
+  // fake create track
   track.status.ready = true
-  track.data.decodedBuffer = { duration: 1 }
+  track.data.decodedBuffer = { duration: 100 }
 
+  track.play()
 
+  let gainNode = track.node('GainNode')
+  t.is(gainNode instanceof allNodes.GainNode, true)
+  t.is(gainNode.gain(), 0.5)
+
+  // set the gain while playing -> direct to the gain node
+  track.volume(0.25)
+  t.is(gainNode.gain(), 0.25)
+
+  // mute and unmute - should remember previous gain level
+  track.muted(true)
+  t.is(gainNode.gain(), 0)
+  t.is(track.status.muted, true)
+  t.is(track.muted(), true)
+
+  track.muted(false)
+  t.is(gainNode.gain(), 0.25)
+  t.is(track.status.muted, false)
+  t.is(track.muted(), false)
 
 })
+
+
 
 
 

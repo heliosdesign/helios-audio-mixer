@@ -7,8 +7,17 @@ import sinon from 'sinon'
 
 let dummyNode = { connect: sinon.spy() }
 
+class AudioParam {
+  constructor(_val){
+    this.value = _val
+
+    this.exponentialRampToValueAtTime = function(){}
+    this.linearRampToValueAtTime = function(){}
+  }
+}
+
 let gainNode = {
-  gain: { value: 1 },
+  gain: new AudioParam(1),
   connect: sinon.spy()
 }
 
