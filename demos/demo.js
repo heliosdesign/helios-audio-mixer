@@ -26,7 +26,10 @@ let interface = {
       m('h3', [ 'Audio Mixer Demo' ]),
 
       m('section.create', [
-        m(CreateTrack, { tracks: state.tracks })
+        m('.row', [
+          m('header', 'Create Track'),
+        ]),
+        m(CreateTrack, { mix: mix })
       ]),
 
       m('section.mix', [
@@ -40,9 +43,7 @@ let interface = {
           m('header', 'Tracks'),
         ]),
 
-        m('.row', [
-
-        ]),
+        m(TrackList, { mix: mix }),
 
       ]),
     ]

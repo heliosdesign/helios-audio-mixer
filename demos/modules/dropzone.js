@@ -18,7 +18,7 @@ let Dropzone = {
 
     function drop(e){
       e.preventDefault()
-      console.log('drop')
+      this.classList.remove('is-over')
       if(e.dataTransfer.items){
 
         for (var i = 0; i < e.dataTransfer.items.length; i++) {
@@ -37,7 +37,6 @@ let Dropzone = {
     }
 
     function processFile(file){
-      console.log('received', file.name)
       vnode.attrs.hook( URL.createObjectURL(file) )
     }
   },

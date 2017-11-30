@@ -3,20 +3,24 @@ let CreateTrack = {
   oninit: function(vnode){
     let state = this
 
+    let mix = vnode.attrs.mix
+
     let defaults = {
       id:   '',
       src:  '',
-      type: 'HTML5Track',
+      type: 'Html5Track',
       loop:     false,
       autoplay: false,
       muted:    false,
       // timeline: [],
     }
 
-    state.info = m.stream({})
+    state.options = m.stream({})
 
-    state.reset   = reset
-    state.set     = set
+    state.create = create
+    state.reset  = reset
+    state.set    = set
+    state.get    = get
 
     setup()
 
@@ -26,15 +30,27 @@ let CreateTrack = {
       reset()
     }
 
+    function create(){
+      let options = state.options()
+      console.log(options)
+      mix.track(options.id, options)
+    }
+
     function reset(){
-      state.info( Object.assign(defaults, {}) )
+      state.options( Object.assign({}, defaults) )
+      m.redraw()
     }
 
     function set(prop, val){
-      let info = state.info()
+      let info = state.options()
       info[prop] = val
-      state.info(info)
+      state.options(info)
       m.redraw()
+    }
+
+    function get(prop){
+      let info = state.options()
+      return info[prop]
     }
 
   },
@@ -42,22 +58,28 @@ let CreateTrack = {
   view: function(vnode){
     let state = this
     return [
-      m('.row', [
-        m('header', 'Create Track'),
-      ]),
 
       m('.row', [
+
+        // ********************************************************
+
         m('.col', [
+          m('header', '1. Source file'),
           m(Dropzone, { hook: state.set.bind(null, 'src') }),
 
         ]),
+
+        // ********************************************************
+
         m('.col', [
+          m('header', '2. Options'),
 
           m('.input', [
             m('label', { for: 'input-name' }, 'Id'),
             m('input', {
               id: 'input-name',
-              oninput: m.withAttr('value', state.set.bind(null,'id'))
+              value:   state.get('id'),
+              oninput: m.withAttr('value', state.set.bind(null, 'id')),
             }),
           ]),
 
@@ -67,7 +89,7 @@ let CreateTrack = {
               id: 'input-type',
               oninput: m.withAttr('value', state.set.bind(null,'type'))
             }, [
-              m('option', { value: 'HTML5Track' },   m.trust('&nbsp;&nbsp;HTML5')),
+              m('option', { value: 'Html5Track' },   m.trust('&nbsp;&nbsp;HTML5')),
               m('optgroup', { label: 'Web Audio:' }),
               m('option', { value: 'BufferSourceTrack' },  m.trust('&nbsp;&nbsp;Buffer Source')),
               m('option', { value: 'ElementSourceTrack' }, m.trust('&nbsp;&nbsp;Element Source')),
@@ -103,19 +125,27 @@ let CreateTrack = {
 
         ]),
 
+        // ********************************************************
 
-        m('.col', [
-          'Track options:',
+        m('.col.is-grow', [
+          m('header', ''),
           m('pre', [
-            JSON.stringify(state.info(), ' ', 2),
+            JSON.stringify(state.options(), ' ', 2),
           ]),
         ]),
+
+        // ********************************************************
+
+        m('.col', [
+          m('header', '3. Create!'),
+          m('button.mod-red',   { onclick: state.reset  }, 'Reset Track'),
+          m('button.mod-green', { onclick: state.create }, 'Create Track'),
+        ]),
+
+        // ********************************************************
+
       ]),
 
-      m('.row', [
-        m('button.mod-red', 'Reset Track'),
-        m('button.mod-green', 'Create Track'),
-      ]),
     ]
   }
 }

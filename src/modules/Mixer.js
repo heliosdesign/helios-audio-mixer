@@ -3,7 +3,7 @@
   Audio Mixer
 
 */
-import Html5Track from './Html5Track'
+import trackTypes from './trackTypes'
 import utils from './utils'
 
 class Mixer {
@@ -50,9 +50,15 @@ class Mixer {
         timeline: [],
         mix:      mix,
         context:  mix.context,
-        type:     Html5Track, // default to standard track type
+        type:     trackTypes.Html5Track, // default to standard track type
       }
       let options = Object.assign(defaults, params)
+
+      // should be able to pass track type as string
+      if(typeof options.type === 'string'){
+        if(trackTypes[options.type])
+          options.type = trackTypes[options.type]
+      }
 
       let track = new options.type(options)
 
