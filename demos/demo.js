@@ -32,10 +32,10 @@ let interface = {
         m(CreateTrack, { mix: mix })
       ]),
 
-      m('section.mix', [
-        m('header', 'Mix Controls'),
-        m(MixControls, { mix: mix })
-      ]),
+      // m('section.mix', [
+      //   m('header', 'Mix Controls'),
+      //   m(MixControls, { mix: mix })
+      // ]),
 
       m('section.tracks', [
 

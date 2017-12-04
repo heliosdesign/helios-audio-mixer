@@ -34,6 +34,7 @@ let CreateTrack = {
       let options = state.options()
       console.log(options)
       mix.track(options.id, options)
+      reset()
     }
 
     function reset(){
@@ -91,9 +92,9 @@ let CreateTrack = {
             }, [
               m('option', { value: 'Html5Track' },   m.trust('&nbsp;&nbsp;HTML5')),
               m('optgroup', { label: 'Web Audio:' }),
-              m('option', { value: 'BufferSourceTrack' },  m.trust('&nbsp;&nbsp;Buffer Source')),
-              m('option', { value: 'ElementSourceTrack' }, m.trust('&nbsp;&nbsp;Element Source')),
-              m('option', { value: 'StreamSourceTrack' },  m.trust('&nbsp;&nbsp;Stream Source')),
+              m('option', { value: 'BufferSourceTrack', disabled: true },  m.trust('&nbsp;&nbsp;Buffer Source')),
+              m('option', { value: 'ElementSourceTrack', disabled: true }, m.trust('&nbsp;&nbsp;Element Source')),
+              m('option', { value: 'StreamSourceTrack', disabled: true },  m.trust('&nbsp;&nbsp;Stream Source')),
             ]),
           ]),
 

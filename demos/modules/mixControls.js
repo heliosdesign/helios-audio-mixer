@@ -10,16 +10,16 @@ let MixControls = {
     return m('.mixcontrols', [
       // m('button.mixcontrols-control', { onclick: state.mix.pause }, 'Volume'),
 
-      m('.mixcontrols-volume', [
-        m('.mixcontrols-volume-label', '0'),
-        m('input[type="range"].mixcontrols-volume-input', {
+      m('.volumecontrol', [
+        m('.volumecontrol-label', '0'),
+        m('input[type="range"].volumecontrol-input', {
           value: 1000,
           min:   0,
           max:   1,
         }, [
 
         ]),
-        m('.mixcontrols-volume-label', '1'),
+        m('.volumecontrol-label', '1'),
       ]),
 
     ])

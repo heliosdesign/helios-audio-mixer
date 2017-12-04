@@ -55,7 +55,7 @@
     }
     .col:first-child { padding-left: 0; }
     .col:last-child  { padding-right: 0; }
-    .col.is-grow { flex-grow: 1; }
+    .col.is-grow { flex-grow: 1; overflow: hidden; }
 
     .input {
       display: flex;
@@ -88,16 +88,16 @@
 
     /*********************************************************/
 
-    .mixcontrols-volume {
+    .volumecontrol {
       display: flex;
       flex-direction: row;
     }
-    .mixcontrols-volume-label {
+    .volumecontrol-label {
 
     }
-    .mixcontrols-volume-input {
+    .volumecontrol-input {
       margin: 0 1em;
-      width: 200px;
+      width: 150px;
     }
 
     /*********************************************************/
@@ -120,6 +120,24 @@
           opacity: 1;
           cursor: pointer;
         }
+
+    /*********************************************************/
+
+    /* track list */
+    .tracks {}
+    .tracks-track {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .tracks-track-col { margin-right: 0.5em }
+    .tracks-track-col.mod-id {
+      width: 150px;
+      overflow: hidden;
+    }
+
+
 
   </style>
 </head>

@@ -1,3 +1,24 @@
+let formattedTime = {
+  oncreate: function(vnode){
+    let track = vnode.attrs.track
+
+    let hook
+    track.on('play', () => updateTime())
+    track.on('pause', () => cancelAnimationFrame(hook))
+
+    function updateTime(){
+      hook = requestAnimationFrame(updateTime)
+      vnode.dom.innerText = track.formattedTime()
+    }
+  },
+  view: function(vnode){
+    return m('.tracks-track-time', '00:00')
+  }
+}
+
+
+// ********************************************************
+
 let TrackList = {
   oninit: function(vnode){
     let state = this
@@ -6,17 +27,22 @@ let TrackList = {
 
     // DEBUG ********************************************************
 
-    mix.tracks = function(){
-      return [
-        {
-          options: {
-            id: 'asdf'
-          },
-          play: function(){},
-          pause: function(){},
-        }
-      ]
-    }
+    // mix.tracks = function(){
+    //   return [
+    //     {
+    //       options: {
+    //         id: 'asdf'
+    //       },
+    //       play: function(){},
+    //       pause: function(){},
+    //     },
+    //     {
+    //       options: {
+    //         id: 'asdf jkl asdf jkl'
+    //       },
+    //     }
+    //   ]
+    // }
 
     // ********************************************************
 
@@ -45,12 +71,32 @@ function TrackListTracks(vnode){
 
     return m('.tracks-track', [
 
-      m('.tracks-track-col', track.options.id),
+      m('.tracks-track-col.mod-id', track.options.id),
 
       m('.tracks-track-col', [
-        m('button', { onclick: track.pause }, '| |'),
-        m('button', { onclick: track.play }, m.trust('&#9655;')),
+        m('button', { onclick: () => track.pause() }, '| |'),
+        m('button', { onclick: () => track.play() }, m.trust('&#9655;')),
       ]),
+
+      m('.tracks-track-col', [
+        m(formattedTime, { track: track })
+      ]),
+
+      // m('.tracks-track-col', [
+
+      //   m('.volumecontrol', [
+      //     m('.volumecontrol-label', '0'),
+      //     m('input[type="range"].volumecontrol-input', {
+      //       value: 100,
+      //       min:   0,
+      //       max:   100,
+      //     }, [
+
+      //     ]),
+      //     m('.volumecontrol-label', '1'),
+      //   ]),
+
+      // ]),
 
     ])
   })
@@ -61,3 +107,8 @@ function TrackListEmpty(){
     'no tracks'
   ])
 }
+
+
+
+
+
