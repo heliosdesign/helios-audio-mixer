@@ -1,3 +1,9 @@
+## 1.0.0-alpha.1
+
+- complete rewrite in ES7/2015 to be more modular, easily extensible, and testable
+- all dependencies removed, this library will be completely standalone
+- HTML5 track only for now, buffer source in next release
+
 ## 0.4.5
 
 - fixed a bug where audio analysis would stop a few seconds into the track

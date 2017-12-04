@@ -1,0 +1,9 @@
+.*
+*.map
+
+/src
+*_old
+/test
+/node_modules
+_*
+
