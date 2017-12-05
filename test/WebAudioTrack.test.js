@@ -9,16 +9,16 @@ import AudioContext from './mocks/AudioContext'
 
 import WebAudioTrack from '../src/modules/WebAudioTrack'
 
+let options = {
+    src:        'asdf',
 
+    sourceMode: 'buffer',
+  }
 
 test('create nodes (default gain node)', t => {
-  let ctx = new AudioContext.Unprefixed()
+  let context = new AudioContext.Unprefixed()
 
-  let track = new WebAudioTrack({
-    src:        'asdf',
-    context:     ctx,
-    sourceMode: 'buffer',
-  })
+  let track = new WebAudioTrack(Object.assign(options, { context }))
 
   t.is(track.options.nodes instanceof Array, true)
 
@@ -31,13 +31,9 @@ test('create nodes (default gain node)', t => {
 })
 
 test('create nodes (with parameters)', t => {
-  let ctx = new AudioContext.Unprefixed()
+  let context = new AudioContext.Unprefixed()
 
-  let track = new WebAudioTrack({
-    src:        'asdf',
-    context:     ctx,
-    sourceMode: 'buffer',
-  })
+  let track = new WebAudioTrack(Object.assign(options, { context }))
 
   t.is(track.options.nodes instanceof Array, true)
 
@@ -45,7 +41,7 @@ test('create nodes (with parameters)', t => {
     'GainNode',
     { type: 'GainNode' },
     { type: 'GainNode', options: {} },
-    new Nodes.GainNode({ context: ctx }),
+    new Nodes.GainNode({ context }),
   ]
   let mockSource = { connect: sinon.spy() }
   track.createNodes( nodeArray, mockSource )
@@ -56,13 +52,9 @@ test('create nodes (with parameters)', t => {
 })
 
 test('passing invalid arguments to createNodes throws errors', t => {
-  let ctx = new AudioContext.Unprefixed()
+  let context = new AudioContext.Unprefixed()
 
-  let track = new WebAudioTrack({
-    src:        'asdf',
-    context:     ctx,
-    sourceMode: 'buffer',
-  })
+  let track = new WebAudioTrack(Object.assign(options, { context }))
 
   // no source
   t.throws(() => {
@@ -78,13 +70,9 @@ test('passing invalid arguments to createNodes throws errors', t => {
 })
 
 test('retrieve nodes', t => {
-  let ctx = new AudioContext.Unprefixed()
+  let context = new AudioContext.Unprefixed()
 
-  let track = new WebAudioTrack({
-    src:        'asdf',
-    context:     ctx,
-    sourceMode: 'buffer',
-  })
+  let track = new WebAudioTrack(Object.assign(options, { context }))
 
   let mockSource = { connect: sinon.spy() }
   let nodes = track.createNodes( ['GainNode'], mockSource )

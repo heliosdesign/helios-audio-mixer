@@ -1,6 +1,5 @@
 
 var mix = new audioMixer.default.Mixer()
-console.log(mix)
 
 /*
 

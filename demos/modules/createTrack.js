@@ -21,6 +21,8 @@ let CreateTrack = {
     state.reset  = reset
     state.set    = set
     state.get    = get
+    state.remove = remove
+    state.node   = node
 
     setup()
 
@@ -49,9 +51,35 @@ let CreateTrack = {
       m.redraw()
     }
 
+    function remove(prop){
+      let info = state.options()
+      delete info[prop]
+      state.options(info)
+      m.redraw()
+    }
+
     function get(prop){
       let info = state.options()
       return info[prop]
+    }
+
+    function node(type, setTo){
+      let options = state.options()
+      if(!options.nodes) return false
+
+      if(type){
+        if(typeof setTo === 'boolean'){
+          if(options.nodes.indexOf(type) === -1){
+            options.nodes.push(type)
+          } else {
+            options.nodes.splice(options.nodes.indexOf(type), 1)
+          }
+          state.options(options)
+        } else {
+          return options.nodes.indexOf(type) !== -1
+        }
+      }
+
     }
 
   },
@@ -88,40 +116,50 @@ let CreateTrack = {
             m('label', { for: 'input-type' }, 'Type'),
             m('select', {
               id: 'input-type',
-              oninput: m.withAttr('value', state.set.bind(null,'type'))
+              oninput: function(){
+                let value = this.value
+                console.log(value)
+
+                state.set('type', value)
+                if(value === 'Html5Track')
+                  state.remove('nodes')
+                else if(!state.get('nodes'))
+                  state.set('nodes', ['GainNode'])
+
+
+              },
+              value: state.get('type'),
             }, [
               m('option', { value: 'Html5Track' },   m.trust('&nbsp;&nbsp;HTML5')),
               m('optgroup', { label: 'Web Audio:' }),
               m('option', { value: 'BufferSourceTrack' },  m.trust('&nbsp;&nbsp;Buffer Source')),
-              m('option', { value: 'ElementSourceTrack', disabled: true }, m.trust('&nbsp;&nbsp;Element Source')),
+              m('option', { value: 'ElementSourceTrack' }, m.trust('&nbsp;&nbsp;Element Source')),
               m('option', { value: 'StreamSourceTrack', disabled: true },  m.trust('&nbsp;&nbsp;Stream Source')),
             ]),
           ]),
 
-          m('.input', [
-            m('label', { for: 'input-loop' }, 'Loop'),
-            m('input', {
-              id: 'input-loop',
-              type: 'checkbox',
-              onclick: m.withAttr('checked', state.set.bind(null, 'loop'))
-            }),
-          ]),
+          checkbox.call(state, 'loop'),
+          checkbox.call(state, 'autoplay'),
+          checkbox.call(state, 'muted'),
 
-          m('.input', [
-            m('label', { for: 'input-autoplay' }, 'Autoplay'),
-            m('input', {
-              id: 'input-autoplay',
-              type: 'checkbox',
-              onclick: m.withAttr('checked', state.set.bind(null, 'autoplay'))
-            }),
-          ]),
-          m('.input', [
-            m('label', { for: 'input-muted' }, 'Muted'),
-            m('input', {
-              id: 'input-muted',
-              type: 'checkbox',
-              onclick: m.withAttr('checked', state.set.bind(null, 'muted'))
-            }),
+          m('div', { style: { display: state.get('type') === 'Html5Track' ? 'none' : 'block' }}, [
+            m('h4', 'nodes'),
+
+            m('.input', [
+              m('label', { for: 'input-node-GainNode' }, 'GainNode'),
+              m('input', {
+                id: 'input-node-GainNode',
+                type: 'checkbox',
+                checked: true,
+                disabled: true,
+                // onclick: m.withAttr('checked', state.node.bind(null, 'GainNode')),
+                // checked: state.get(id),
+              }),
+            ]),
+
+            nodeCheckbox.call(state, 'PanNode2D')
+
+
           ]),
 
         ]),
@@ -149,4 +187,30 @@ let CreateTrack = {
 
     ]
   }
+}
+
+function checkbox(id){
+  let state = this
+  return m('.input', [
+    m('label', { for: 'input-'+id }, id),
+    m('input', {
+      id: 'input-'+id,
+      type: 'checkbox',
+      onclick: m.withAttr('checked', state.set.bind(null, id)),
+      checked: state.get(id),
+    }),
+  ]);
+}
+
+function nodeCheckbox(id){
+  let state = this
+  return m('.input', [
+    m('label', { for: 'input-node-'+id }, id),
+    m('input', {
+      id: 'input-node-'+id,
+      type: 'checkbox',
+      onclick: m.withAttr('checked', state.node.bind(null, id)),
+      checked: state.node(id),
+    }),
+  ])
 }

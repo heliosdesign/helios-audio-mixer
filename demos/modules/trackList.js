@@ -22,29 +22,7 @@ let formattedTime = {
 let TrackList = {
   oninit: function(vnode){
     let state = this
-
     let mix = vnode.attrs.mix
-
-    // DEBUG ********************************************************
-
-    // mix.tracks = function(){
-    //   return [
-    //     {
-    //       options: {
-    //         id: 'asdf'
-    //       },
-    //       play: function(){},
-    //       pause: function(){},
-    //     },
-    //     {
-    //       options: {
-    //         id: 'asdf jkl asdf jkl'
-    //       },
-    //     }
-    //   ]
-    // }
-
-    // ********************************************************
 
   },
   view: function(vnode){
@@ -67,7 +45,6 @@ let TrackList = {
 function TrackListTracks(vnode){
   let state = this
   return vnode.attrs.mix.tracks().map(track => {
-    console.log(track)
 
     return m('.tracks-track', [
 

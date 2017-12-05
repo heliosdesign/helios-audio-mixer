@@ -114,8 +114,7 @@ class BufferSourceTrack extends WebAudioTrack {
 
     // as do the nodes
     let gainNode = { type: 'GainNode', options: { gain: track.data.gain } }
-    let nodes = [gainNode].concat(track.options.nodes || [])
-    super.createNodes(nodes, track.data.source)
+    super.createNodes([gainNode, ...track.options.nodes], track.data.source)
 
     // set up timers, for the ended event
     track.data.startTime = track.data.source.context.currentTime - track.data.cachedTime

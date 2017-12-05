@@ -1,3 +1,8 @@
+/*
+
+  file drop or getusermedia
+
+*/
 let Dropzone = {
 
   oncreate: function(vnode){
