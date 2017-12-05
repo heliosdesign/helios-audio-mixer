@@ -5,7 +5,6 @@
 */
 import sinon from 'sinon'
 
-let dummyNode = { connect: sinon.spy() }
 
 class AudioParam {
   constructor(_val){
@@ -14,6 +13,10 @@ class AudioParam {
     this.exponentialRampToValueAtTime = function(){}
     this.linearRampToValueAtTime = function(){}
   }
+}
+
+let dummyNode = {
+  connect: sinon.spy() ,
 }
 
 let gainNode = {

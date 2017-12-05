@@ -14,10 +14,6 @@ class PanNode2D {
 
     // additional setup here
   }
-
-  connect(to){
-    this.node.connect(to)
-  }
 }
 
 export default PanNode2D

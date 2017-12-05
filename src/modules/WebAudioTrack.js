@@ -42,12 +42,12 @@ class WebAudioTrack extends BaseTrack {
       throw new Error('Can’t create nodes without a valid source.')
     }
 
-    let baseParams = {
-      context: track.options.context
-    }
-
     let previousNode = source
     nodes.forEach(n => {
+
+      let baseParams = {
+        context: track.options.context
+      }
 
       // determine node type by duck typing
       if(typeof n === 'string'){
@@ -55,12 +55,12 @@ class WebAudioTrack extends BaseTrack {
 
         if(Nodes[n]){
 
-          let node = new Nodes[n](baseParams)
-          track.allNodes.push(node)
-          track.nodeLookup[n] = node
+          let newNode = new Nodes[n](baseParams)
+          track.allNodes.push(newNode)
+          track.nodeLookup[n] = newNode
 
-          previousNode.connect(node)
-          previousNode = node
+          previousNode.connect(newNode.node)
+          previousNode = newNode.node
 
         } else {
           throw new Error(`Node type ${n} does not exist.`)
@@ -69,16 +69,16 @@ class WebAudioTrack extends BaseTrack {
       } else if(typeof n === 'object'){
         if( n.type ){
           // create predefined node with options
+          let nodeType = Nodes[n.type]
 
-          if(Nodes[n.type]){
-            if(!n.options) n.options = {}
+          if(nodeType){
+            let newNode = new nodeType( Object.assign(baseParams, n.options) )
 
-            let node = new Nodes[n.type]( Object.assign(baseParams, n.options) )
-            track.allNodes.push(node)
-            track.nodeLookup[n.type] = node
+            track.allNodes.push(newNode)
+            track.nodeLookup[n.type] = newNode
 
-            previousNode.connect(node)
-            previousNode = node
+            previousNode.connect(newNode.node)
+            previousNode = newNode.node
 
           } else {
             throw new Error(`Node type ${n.type} does not exist.`)

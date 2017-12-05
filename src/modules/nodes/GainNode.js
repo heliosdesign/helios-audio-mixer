@@ -7,7 +7,7 @@
     gain:    1,
   })
 
-  g.connect(toNode)
+  g.node -> the web audio node object
 
   g.gain(setTo) -> getter/setter
   g.muted(setTo) -> getter/setter

@@ -5,7 +5,7 @@
   "main": "audioMixer.min.js",
   "scripts": {
     "build": "webpack",
-    "watch": "webpack --watch",
+    "start": "npm run build && webpack-dev-server -d --hot --config webpack.config.js --watch",
     "dist": "NODE_ENV=production npm run build",
     "test": "ava --watch",
     "test-verbose": "ava --watch --verbose",

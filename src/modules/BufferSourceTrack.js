@@ -38,6 +38,7 @@ class BufferSourceTrack extends WebAudioTrack {
 
     // internal flags and data
     track.data = {
+      gain: track.options.volume,
 
       // manual time tracking
       cachedTime: 0,
@@ -106,7 +107,7 @@ class BufferSourceTrack extends WebAudioTrack {
     let ctx = track.options.context
 
     // the buffer needs to be re-created every time we play()
-    track.data.source  = ctx.createBufferSource()
+    track.data.source = ctx.createBufferSource()
     track.data.source.buffer = track.data.decodedBuffer
 
     // track.data.source.loop = (track.options.loop) ? true : false
@@ -139,7 +140,9 @@ class BufferSourceTrack extends WebAudioTrack {
   /*
 
     Buffer source mode requires the source file to be fully loaded
-    and decoded before it can be play, so here we fetch it.
+    and decoded before it can be play, so here we fetch it as an
+    array buffer (because it needs to be in raw binary format to be
+    decoded).
 
     Web Audio API has the same browser support as fetch (no IE,
     not even 11), so we can use this delightful method.
@@ -152,6 +155,7 @@ class BufferSourceTrack extends WebAudioTrack {
     super.trigger('loadstart')
 
     return window.fetch(track.options.src)
+      .then(res => res.arrayBuffer())
       .then(audioData => {
         track.data.audioData = audioData
 
@@ -379,6 +383,12 @@ class BufferSourceTrack extends WebAudioTrack {
       return track.status.muted
     }
 
+  }
+
+  destroy(){
+    let track = this
+
+    track.pause()
   }
 
 }

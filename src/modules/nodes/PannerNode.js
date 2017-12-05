@@ -15,9 +15,6 @@ class PanNode3D {
     // additional setup here
   }
 
-  connect(to){
-    this.node.connect(to)
-  }
 }
 
 export default PanNode3D

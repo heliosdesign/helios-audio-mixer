@@ -44,7 +44,7 @@ let config = {
 
 
   devServer: {
-    contentBase: path.resolve(__dirname, './demo'),
+    contentBase: path.resolve(__dirname, './demos'),
     historyApiFallback: true,
     inline: true,
     open: true

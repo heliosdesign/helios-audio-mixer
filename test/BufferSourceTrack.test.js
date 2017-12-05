@@ -50,9 +50,10 @@ test('instantiate', t => {
 test.cb('load', t => {
   let ctx = new AudioContext.Unprefixed()
 
-  // manually stub async functions so we can await them
+
   let audioData = {}
-  window.fetch = sinon.stub().returns( Promise.resolve(audioData) )
+  window.fetch = window.fetch.bind(null, audioData)
+  sinon.spy(window, 'fetch')
 
   let track = new BufferSourceTrack({
     src:        'asdf',

@@ -98,6 +98,10 @@ function TrackListTracks(vnode){
 
       // ]),
 
+      m('.tracks-track-col', [
+        m('button', { onclick: () => { vnode.attrs.mix.remove(track) } }, m.trust('&#10005;')),
+      ]),
+
     ])
   })
 }
