@@ -3,7 +3,10 @@
   file drop or getusermedia
 
 */
-let Dropzone = {
+const m = require('mithril')
+const Stream = require('mithril/stream')
+
+module.exports = {
 
   oncreate: function(vnode){
     let state = this

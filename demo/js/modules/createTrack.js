@@ -1,4 +1,9 @@
-let CreateTrack = {
+const m = require('mithril')
+const Stream = require('mithril/stream')
+
+const Dropzone = require('modules/dropzone')
+
+module.exports = {
 
   oninit: function(vnode){
     let state = this
@@ -15,7 +20,7 @@ let CreateTrack = {
       // timeline: [],
     }
 
-    state.options = m.stream({})
+    state.options = Stream({})
 
     state.create = create
     state.reset  = reset

@@ -1,3 +1,6 @@
+const m = require('mithril')
+const Stream = require('mithril/stream')
+
 let formattedTime = {
   oncreate: function(vnode){
     let track = vnode.attrs.track
@@ -19,7 +22,7 @@ let formattedTime = {
 
 // ********************************************************
 
-let TrackList = {
+module.exports = {
   oninit: function(vnode){
     let state = this
     let mix = vnode.attrs.mix

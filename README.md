@@ -22,12 +22,20 @@ track1.tweenVolume(0, 1)
   .then(track => audioMixer.remove(track))
 ```
 
+## Demo
+
+Run `npm install` then `npm run demo`.
 
 
+## Development
 
+The library is bundled using webpack, and tested using Ava.
 
+`npm start` bundles the library for development using `webpack-dev-server`.
 
+`npm dist` bundles the library for production.
 
+`npm test` runs Ava in watch mode. Also try `test-verbose` and `test-single`.
 
 
 
