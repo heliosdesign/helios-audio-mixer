@@ -8,53 +8,52 @@ import test from 'ava'
 import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
 
-import Html5Track from '../src/modules/Html5Track'
-
+import AudioContext from './mocks/AudioContext'
+import Tracks from '../src/modules/trackTypes'
 
 
 
 let trackId  = 'track'
 let trackSrc = 'file.ext'
 
+
 let trackTypes = {
   'Html5Track': {
-    track: Html5Track,
-    params: {
+    track: Tracks.Html5Track,
+    options: {
       id:  trackId,
       src: trackSrc,
+    }
+  },
+  'ElementSourceTrack': {
+    track: Tracks.ElementSourceTrack,
+    options: {
+      id:  trackId,
+      src: trackSrc,
+      context: new AudioContext.Unprefixed(),
+    }
+  },
+  'BufferSourceTrack': {
+    track: Tracks.BufferSourceTrack,
+    options: {
+      id:  trackId,
+      src: trackSrc,
+      context: new AudioContext.Unprefixed(),
     }
   },
 }
 
 Object.keys(trackTypes).forEach(trackType => {
   let Track = trackTypes[trackType].track
-  let params = trackTypes[trackType].params
+  let options = trackTypes[trackType].options
 
-  test(trackType + ': Initialize track', t => {
-    let track = new Track(params)
+  test(`${trackType}: Initialize track`, t => {
+    let track = new Track(options)
     t.is(track instanceof Track, true)
   })
 
-  let methods = ['play', 'pause']
-  methods.forEach(method => {
-    test(trackType + ': ' + method + ' a track', t => {
-      let track = new Track(params)
-
-      let el = track.el
-      el[method] = sinon.stub(el, method)
-
-      track[method]()
-
-      t.is(track.el[method].called, true)
-    })
-  })
-
-
   test(trackType + ': trigger arbitrary event', t => {
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
     let eventName = 'asdfjkl'
     let callback = sinon.spy()
     let eventData = {}
@@ -68,10 +67,7 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
   test(trackType + ': set the volume', t => {
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
 
     let volumeLevel = 0.5
 
@@ -79,7 +75,6 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.volume(volumeLevel)
     t.is(track.volume(), volumeLevel)
-    t.is(track.el.volume, volumeLevel)
 
     let negativeVolumeLevel = -1
     track.volume(negativeVolumeLevel)
@@ -92,10 +87,7 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
   test(trackType + ': set the current time', t => {
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
 
     let time = 1.3
 
@@ -103,14 +95,10 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.currentTime(time)
     t.is(track.currentTime(), time)
-    t.is(track.el.currentTime, time)
   })
 
   test(trackType + ': get a formatted time', t => {
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
 
     let stub = sinon.stub(track, 'duration').returns(180)
 
@@ -126,14 +114,11 @@ Object.keys(trackTypes).forEach(trackType => {
     let mockRaf = createMockRaf()
     window.requestAnimationFrame = mockRaf.raf
 
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
 
     track.tweenVolume(0, 1)
       .then(() => {
-        t.is( track.el.volume, 0 )
+        t.is( track.volume(), 0 )
         t.end()
       })
 
@@ -145,16 +130,13 @@ Object.keys(trackTypes).forEach(trackType => {
     window.requestAnimationFrame = mockRaf.raf
     window.cancelAnimationFrame = mockRaf.cancel
 
-    let track = new Track({
-      id:  'track',
-      src: 'file.ext',
-    })
+    let track = new Track(options)
 
     track.tweenVolume(0.5, 1)
 
     track.tweenVolume(0, 1)
       .then(() => {
-        t.is( track.el.volume, 0 )
+        t.is( track.volume(), 0 )
         t.end()
       })
 
@@ -162,18 +144,22 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
   test(trackType + ': mute and unmute', t => {
-    let track = new Track({
-      id: 'track',
-      src: 'file.ext',
-      muted: true
-    })
-
-    t.is(track.muted(), true)
-
-    track.muted(false)
-
+    let track = new Track(options)
     t.is(track.muted(), false)
 
+    let track2 = new Track(Object.assign(options, { muted: true }))
+
+    t.is(track2.muted(), true)
+
+    track2.muted(false)
+
+    t.is(track2.muted(), false)
+
+  })
+
+  test(`${trackType}: return paused status`, t => {
+    let track = new Track(Object.assign(options, { autoplay: false }))
+    t.is(track.paused(), true)
   })
 
 

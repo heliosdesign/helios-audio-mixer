@@ -1,0 +1,138 @@
+*
+  box-sizing: border-box
+
+html
+  font-family: sans-serif
+  font-size: 13px
+
+.container
+  width: 100%
+  max-width: 1200px
+
+section
+  display: block
+  width: 100%
+  padding: 1rem
+  margin-bottom: 1rem
+  border: 1px solid #eee
+
+header
+  font-weight: bold
+  margin-bottom: 1em
+
+button
+  padding: 0.5em 1em 0.6em 1em
+  margin-right: 1em
+  margin-top: 0.5em
+  margin-bottom: 0.5em
+  background: #eee
+  border: 1px solid #555
+  border-radius: 3px
+  cursor: pointer
+
+  &:hover
+    background: #555
+    color: #fff
+
+  &.mod-red
+    background: #ffd9d9
+  &.mod-green
+    background: #d0ffd0
+
+h3
+  margin: 1rem
+
+/********************************************************/
+
+.row
+  width: 100%
+  display: flex
+  flex-direction: row
+
+.col
+  padding: 0 0.5em
+  display: flex
+  flex-direction: column
+  &:first-child
+    padding-left: 0
+  &:last-child
+    padding-right: 0
+  &.is-grow
+    flex-grow: 1
+    overflow: hidden
+
+.input
+  display: flex
+  flex-direction: row
+  justify-content: space-between
+  margin-bottom: 0.5em
+  label
+    font-size: 0.9em
+    padding-bottom: 0.3em
+    padding-right: 2em
+  input, select
+    width: 15rem
+
+/********************************************************/
+
+.dropzone
+  display: block
+  width: 300px
+  height: 100px
+  padding: 1em
+  border: 1px solid #aaa
+  display: flex
+  align-items: center
+  justify-content: center
+  &.is-over
+    background: #ddd
+
+/********************************************************/
+
+.volumecontrol
+  display: flex
+  flex-direction: row
+
+.volumecontrol-label
+
+.volumecontrol-input
+  margin: 0 1em
+  width: 150px
+
+/********************************************************/
+
+.controls
+  display: flex
+  &.is-disabled
+    opacity: 0.5
+    pointer-events: none
+
+.controls-control
+  padding: 0.5em 1em
+  border: 1px solid #000
+  margin-right: 0.5em
+  margin-top: 0.5em
+  opacity: 0.6
+  &:hover
+    opacity: 1
+    cursor: pointer
+
+/********************************************************/
+
+/* track list */
+
+.tracks
+
+.tracks-track
+  display: flex
+  flex-direction: row
+  justify-content: flex-start
+  align-items: center
+
+.tracks-track-col
+  margin-right: 0.5em
+  &.mod-id
+    width: 150px
+    overflow: hidden
+
+

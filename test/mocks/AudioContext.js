@@ -16,13 +16,15 @@ class AudioParam {
 }
 
 let dummyNode = {
-  connect: sinon.spy() ,
+  connect: sinon.spy()
 }
 
 let gainNode = {
   gain: new AudioParam(1),
   connect: sinon.spy()
 }
+
+let mediaElementSource = { connect: sinon.spy() }
 
 
 /*
@@ -54,6 +56,10 @@ class Unprefixed {
     let decodedBuffer = { duration: 1 }
     callback(decodedBuffer)
   }
+
+  createMediaElementSource(){
+    return mediaElementSource
+  }
 }
 
 
@@ -80,9 +86,13 @@ class Prefixed {
     return bufferSource
   }
 
-  createBuffer(audioData, ){
+  createBuffer(audioData){
     let decodedBuffer = { duration: 1 }
     return decodedBuffer
+  }
+
+  createMediaElementSource(){
+    return mediaElementSource
   }
 
 }

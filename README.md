@@ -22,6 +22,21 @@ track1.tweenVolume(0, 1)
   .then(track => audioMixer.remove(track))
 ```
 
+## Demo
+
+Run `npm install` then `npm run demo`.
+
+
+## Development
+
+The library is bundled using webpack, and tested using Ava.
+
+`npm start` bundles the library for development using `webpack-dev-server`.
+
+`npm dist` bundles the library for production.
+
+`npm test` runs Ava in watch mode. Also try `test-verbose` and `test-single`.
+
 
 
 
@@ -92,6 +107,15 @@ Immediately removes a specified track, by `'track id'` or Track object.
 The AudioMixer’s volume setting acts like a master volume slider, independent of individual tracks. Track volume exists within the master volume envelope. If a track has a volume of 0.5 and the master volume is set to 0.5, it will play back at 0.25.
 
 
+
+
+
+
+
+
+
+
+
 ### Standard Track API
 
 ---
@@ -157,6 +181,10 @@ Fade to a volume over time. Returns a promise, not the track object.
 ```js
 track.tweenVolume(1, 10.5).then()
 ```
+
+##### `Track.muted(set)`
+
+Getter/setter for track muted status.
 
 
 ### Timeline Events

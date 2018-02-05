@@ -39,8 +39,6 @@ class Html5Track extends BaseTrack {
 
     track.el.src = track.options.src
 
-    // events
-
     let eventNames = [
       'loadstart', 'loadedmetadata',
       'canplay', 'canplaythrough',
@@ -49,6 +47,7 @@ class Html5Track extends BaseTrack {
       'seeking', 'seeked',
       'error',
     ];
+
     eventNames.forEach(eventName => {
       track.el.addEventListener(eventName, super.trigger.bind(track, eventName, false))
     })
@@ -147,6 +146,16 @@ class Html5Track extends BaseTrack {
       track.el.muted = setTo
     }
     return track.el.muted
+  }
+
+  paused(){
+    let track = this
+    return track.el.paused
+  }
+
+  destroy(){
+    let track = this
+    track.pause()
   }
 
 

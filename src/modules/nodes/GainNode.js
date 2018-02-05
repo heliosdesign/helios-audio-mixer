@@ -19,8 +19,8 @@ import u from '../utils'
 
 class GainNode {
   constructor(params){
-    let ctx = params.context
-    this.node = ctx.createGainNode ? ctx.createGainNode() : ctx.createGain()
+    this.ctx = params.context
+    this.node = this.ctx.createGainNode ? this.ctx.createGainNode() : this.ctx.createGain()
 
     this.gainValue = 1
     this.gain( typeof params.gain === 'number' ? params.gain : 1 )
@@ -32,7 +32,23 @@ class GainNode {
 
   gain(setTo){
     if(typeof setTo === 'number'){
-      this.node.gain.value = u.normalize(setTo, 0, 1)
+      /*
+
+        'AudioParam value setter will become equivalent to AudioParam.setValueAtTime() in (Chrome) M65'
+
+        Apparently, it's bad form to set gain.value directly now, ie
+        'this.node.gain.value = u.normalize(setTo, 0, 1)'
+
+        Recommended behaviour now is ,
+
+        - https://www.chromestatus.com/features/5287995770929152
+        - https://github.com/mrdoob/three.js/pull/11133
+
+      */
+
+      // setTargetAtTime( value, start time (clamped to current time), time constant )
+      this.node.gain.setTargetAtTime(u.normalize(setTo, 0, 1), 0, 0)
+
     }
     return this.node.gain.value
   }

@@ -33,7 +33,7 @@ class BufferSourceTrack extends WebAudioTrack {
       shouldPlayOnLoad: false,
 
       playing:  false,
-      muted:    false,
+      muted:    track.options.muted || false,
     }
 
     // internal flags and data
@@ -114,10 +114,8 @@ class BufferSourceTrack extends WebAudioTrack {
 
     // as do the nodes
     let gainNode = { type: 'GainNode', options: { gain: track.data.gain } }
-    let nodes = [gainNode].concat(track.options.nodes || [])
-    super.createNodes(nodes, track.data.source)
+    super.createNodes([gainNode, ...track.options.nodes], track.data.source)
 
-    // set up timers, for the ended event
     track.data.startTime = track.data.source.context.currentTime - track.data.cachedTime
     var startFrom = track.data.cachedTime || 0
 
@@ -270,17 +268,14 @@ class BufferSourceTrack extends WebAudioTrack {
 
     if(typeof setTo === 'number') {
 
-      if(!track.status.ready){
-        console.warn(`Can’t set currentTime for track ${track.options.id} before it loads. Listen for the 'canplaythrough' or 'play' events.`)
-        return track
-      }
-
       if(track.status.playing) {
         // to seek a buffer track, we need to pause and play
         pause(setTo).play()
       } else {
+        // if we're paused or not loaded yet, cache the time
         track.data.cachedTime = setTo
       }
+
       return track
     }
 
@@ -342,20 +337,56 @@ class BufferSourceTrack extends WebAudioTrack {
   }
 
   tweenVolume(setTo, duration){
-    // first check for support
-    let gainNode = track.node('GainNode')
-    if(typeof gainNode.gain.exponentialRampToValueAtTime === 'function'){
-      return new Promise(function(resolve, reject){
-        setTo = utils.normalize(setTo)
-        if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
+    let track = this
 
-        gainNode.gain.exponentialRampToValueAtTime(setTo, track.options.context.currentTime + duration)
-
-        setTimeout(() => resolve(), duration * 1000)
-      })
-    } else {
-      // fall back to requestAnimationFrame
+    // remove existing volume tween
+    if(track.volumeTween){
+      window.cancelAnimationFrame(track.volumeTween)
     }
+
+    // if we're playing, we can use the native value ramp method
+    let gainNode = track.node('GainNode')
+    if(gainNode){
+      if(typeof gainNode.gain.exponentialRampToValueAtTime === 'function'){
+        return new Promise(function(resolve, reject){
+          setTo = utils.normalize(setTo)
+          if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
+
+          gainNode.gain.exponentialRampToValueAtTime(setTo, track.options.context.currentTime + duration)
+
+          setTimeout(() => resolve(), duration * 1000)
+        })
+      }
+    }
+
+    // if we're not playing or haven't loaded yet,
+    // fall back to requestAnimationFrame
+    return new Promise(function(resolve, reject){
+
+      let fps = 60 // requestAnimationFrame
+      let durationInFrames = Math.round(duration * fps)
+      let frameCount       = Math.round(duration * fps)
+      let startVolume      = track.volume()
+      let endVolume        = utils.normalize(setTo)
+
+      tick()
+
+      function tick(){
+        if(frameCount <= 0){
+          track.volume(endVolume)
+          resolve(track)
+        } else {
+          track.volumeTween = window.requestAnimationFrame(tick)
+        }
+
+        frameCount -= 1
+        let progress = (1 - (frameCount / durationInFrames))
+        let v = utils.lerp(startVolume, endVolume, progress)
+        track.volume( v )
+      }
+
+    })
+
 
   }
 
@@ -363,7 +394,7 @@ class BufferSourceTrack extends WebAudioTrack {
     let track = this
 
     if(typeof setTo === 'boolean'){
-      if(setTo){
+      if(setTo === true){
 
         // mute: cache current gain, then set to 0
         track.data.gainCache = track.data.gain
@@ -378,11 +409,14 @@ class BufferSourceTrack extends WebAudioTrack {
 
       }
       return track
-    } else {
-
-      return track.status.muted
     }
 
+    return track.status.muted
+  }
+
+  paused(){
+    let track = this
+    return !track.status.playing
   }
 
   destroy(){

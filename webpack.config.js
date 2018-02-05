@@ -1,13 +1,14 @@
 const path = require('path')
 const webpack = require('webpack')
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin')
 
 const packageInfo = require('./package.json')
 
 const environment  = process.env.NODE_ENV || 'development'
 const isProduction = environment === 'production'
 
-let config = {
+let libraryConfig = {
 
   entry: {
     'audioMixer': './src/index.js',
@@ -42,20 +43,12 @@ let config = {
     })
   ],
 
-
-  devServer: {
-    contentBase: path.resolve(__dirname, './demos'),
-    historyApiFallback: true,
-    inline: true,
-    open: true
-  },
-
   devtool: isProduction ? 'source-map' : 'eval-source-map',
 
 }
 
 if (isProduction) {
-  config.plugins.push(
+  libraryConfig.plugins.push(
 
     // need to enable source maps per https://github.com/webpack/webpack/issues/2704
     new webpack.optimize.UglifyJsPlugin({ sourceMap: true }),
@@ -70,4 +63,5 @@ if (isProduction) {
   )
 }
 
-module.exports = config
+
+module.exports = libraryConfig
