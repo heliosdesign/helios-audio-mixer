@@ -153,6 +153,11 @@ class Html5Track extends BaseTrack {
     return track.el.paused
   }
 
+  destroy(){
+    let track = this
+    track.pause()
+  }
+
 
 }
 

@@ -3,21 +3,26 @@ const Stream = require('mithril/stream')
 
 let formattedTime = {
   oncreate: function(vnode){
+    let state = this
     let track = vnode.attrs.track
 
-    let hook
     track.on('play', () => updateTime())
-    track.on('pause', () => cancelAnimationFrame(hook))
+    track.on('pause', () => cancelAnimationFrame(state.hook))
 
     function updateTime(){
-      hook = requestAnimationFrame(updateTime)
+      state.hook = requestAnimationFrame(updateTime)
       vnode.dom.innerText = track.formattedTime()
     }
+  },
+  onremove: function(vnode){
+    let state = this
+    cancelAnimationFrame(state.hook)
   },
   view: function(vnode){
     return m('.tracks-track-time', '00:00')
   }
 }
+
 
 // ********************************************************
 
@@ -71,9 +76,7 @@ function TrackListTracks(vnode){
       ]),
 
       m('.tracks-track-col', [
-
         volumeControl.call(track)
-
       ]),
 
       // analysis.call(track)
@@ -98,7 +101,7 @@ function volumeControl(){
       max:   100,
       onchange: (e) => track.volume( e.target.value / 100 )
     }),
-    m('.volumecontrol-label', track.volume() * 100 + '%'),
+    m('.volumecontrol-label', Math.round(track.volume() * 100) + '%'),
   ])
 }
 
