@@ -172,8 +172,11 @@ class ElementSourceTrack extends WebAudioTrack {
   destroy(){
     let track = this
     track.pause()
+  }
 
-
+  paused(){
+    let track = this
+    return track.el.paused
   }
 
 }

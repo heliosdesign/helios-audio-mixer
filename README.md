@@ -39,6 +39,13 @@ The library is bundled using webpack, and tested using Ava.
 
 
 
+
+
+
+
+
+
+
 ## API
 
 ### AudioMixer
@@ -98,6 +105,15 @@ Immediately removes a specified track, by `'track id'` or Track object.
 #### `AudioMixer.volume(0-1)`
 
 The AudioMixer’s volume setting acts like a master volume slider, independent of individual tracks. Track volume exists within the master volume envelope. If a track has a volume of 0.5 and the master volume is set to 0.5, it will play back at 0.25.
+
+
+
+
+
+
+
+
+
 
 
 ### Standard Track API
@@ -165,6 +181,10 @@ Fade to a volume over time. Returns a promise, not the track object.
 ```js
 track.tweenVolume(1, 10.5).then()
 ```
+
+##### `Track.muted(set)`
+
+Getter/setter for track muted status.
 
 
 ### Timeline Events

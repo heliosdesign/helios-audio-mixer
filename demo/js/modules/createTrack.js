@@ -179,7 +179,7 @@ module.exports = {
 
         m('.col', [
           m('header', '3. Create!'),
-          m('button.mod-red',   { onclick: state.reset  }, 'Reset Track'),
+          m('button.mod-red',   { onclick: state.reset  }, 'Reset Options'),
           m('button.mod-green', { onclick: state.create }, 'Create Track'),
         ]),
 

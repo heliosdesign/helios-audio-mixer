@@ -148,6 +148,11 @@ class Html5Track extends BaseTrack {
     return track.el.muted
   }
 
+  paused(){
+    let track = this
+    return track.el.paused
+  }
+
 
 }
 

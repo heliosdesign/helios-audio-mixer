@@ -13,6 +13,32 @@ let Interface = {
 }
 
 var mix = new audioMixer.default.Mixer()
+window.mix = mix
+
+// dummyTracks()
+
+// DUMMY
+function dummyTracks(){
+  mix.tracks = function(){
+    return [
+      {
+        options: { id: 'test a' },
+        paused: () => true,
+        play: () => true,
+        on: () => true,
+        gain: () => 1,
+      },
+      {
+        options: { id: 'test b' },
+        paused: () => true,
+        play: () => true,
+        on: () => true,
+        gain: () => 1,
+      }
+    ]
+  }
+}
+
 
 m.mount(document.querySelector('.container'), Interface)
 
@@ -58,37 +84,3 @@ function view(vnode){
   ]
 
 }
-
-// var control = {
-//   play:  play,
-//   pause: pause,
-// }
-
-// function createTrack(src){
-//   track = mix.track('test', {
-//     src:      src,
-//     autoplay: true,
-//   })
-//   track.on('canplaythrough', function(){
-//     document.querySelector('.controls').classList.remove('is-disabled')
-//   })
-//   console.log(track)
-// }
-
-// /*
-
-//   Control
-
-// */
-
-// function play(){
-//   if(!track) return
-//   track.play()
-// }
-
-// function pause(){
-//   if(!track) return
-//   track.pause()
-// }
-
-

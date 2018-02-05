@@ -23,14 +23,21 @@ header
 button
   padding: 0.5em 1em 0.6em 1em
   margin-right: 1em
-  margin-top: 1em
+  margin-top: 0.5em
+  margin-bottom: 0.5em
   background: #eee
   border: 1px solid #555
   border-radius: 3px
+  cursor: pointer
+
   &:hover
     background: #555
     color: #fff
-    cursor: pointer
+
+  &.mod-red
+    background: #ffd9d9
+  &.mod-green
+    background: #d0ffd0
 
 h3
   margin: 1rem
@@ -127,3 +134,5 @@ h3
   &.mod-id
     width: 150px
     overflow: hidden
+
+

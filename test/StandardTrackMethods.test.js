@@ -33,6 +33,14 @@ let trackTypes = {
       context: new AudioContext.Unprefixed(),
     }
   },
+  // 'BufferSourceTrack': {
+  //   track: Tracks.BufferSourceTrack,
+  //   options: {
+  //     id:  trackId,
+  //     src: trackSrc,
+  //     context: new AudioContext.Unprefixed(),
+  //   }
+  // },
 }
 
 Object.keys(trackTypes).forEach(trackType => {
@@ -161,6 +169,11 @@ Object.keys(trackTypes).forEach(trackType => {
 
     t.is(track.muted(), false)
 
+  })
+
+  test(`${trackType}: return paused status`, t => {
+    let track = new Track(Object.assign(options, { autoplay: false }))
+    t.is(track.paused(), true)
   })
 
 

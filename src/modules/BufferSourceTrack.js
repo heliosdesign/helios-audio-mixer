@@ -384,6 +384,11 @@ class BufferSourceTrack extends WebAudioTrack {
 
   }
 
+  paused(){
+    let track = this
+    return !track.status.playing
+  }
+
   destroy(){
     let track = this
 

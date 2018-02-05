@@ -19,7 +19,6 @@ let formattedTime = {
   }
 }
 
-
 // ********************************************************
 
 module.exports = {
@@ -33,15 +32,8 @@ module.exports = {
     let mix = vnode.attrs.mix
 
     return m('.tracks', [
-      m('.tracks-track', [
-
-      ]),
-
       mix.tracks().length ? TrackListTracks.call(state, vnode) : TrackListEmpty()
-
-
     ])
-
   }
 }
 
@@ -54,45 +46,75 @@ function TrackListTracks(vnode){
       m('.tracks-track-col.mod-id', track.options.id),
 
       m('.tracks-track-col', [
-        m('button', { onclick: () => track.pause() }, '| |'),
-        m('button', { onclick: () => track.play() }, m.trust('&#9655;')),
-      ]),
-
-      m('.tracks-track-col', [
         m(formattedTime, { track: track })
       ]),
 
-      // m('.tracks-track-col', [
+      // track controls
+      m('.tracks-track-col', [
+        m('button', {
+          style: { display: track.paused() ? 'none' : 'block' },
+          onclick: () => track.pause()
+        }, '| |'),
 
-      //   m('.volumecontrol', [
-      //     m('.volumecontrol-label', '0'),
-      //     m('input[type="range"].volumecontrol-input', {
-      //       value: 100,
-      //       min:   0,
-      //       max:   100,
-      //     }, [
+        m('button', {
+          style: { display: track.paused() ? 'block' : 'none' },
+          onclick: () => track.play()
+        }, m.trust('&#9655;')),
+      ]),
 
-      //     ]),
-      //     m('.volumecontrol-label', '1'),
-      //   ]),
-
-      // ]),
 
       m('.tracks-track-col', [
-        m('button', { onclick: () => { vnode.attrs.mix.remove(track) } }, m.trust('&#10005;')),
+        m('button', { onclick: () => {
+          console.log('remove', track.options.id)
+          vnode.attrs.mix.remove(track)
+        } }, m.trust('&#10005;')),
       ]),
+
+      m('.tracks-track-col', [
+
+        volumeControl.call(track)
+
+      ]),
+
+      // analysis.call(track)
 
     ])
   })
 }
 
 function TrackListEmpty(){
-  return m('.tracks-track', [
-    'no tracks'
+  return m('.tracks-track', ['no tracks'])
+}
+
+
+
+function volumeControl(){
+  let track = this
+  return m('.volumecontrol', [
+    m('.volumecontrol-label', 'Volume:'),
+    m('input[type="range"].volumecontrol-input', {
+      value: track.volume() * 100,
+      min:   0,
+      max:   100,
+      onchange: (e) => track.volume( e.target.value / 100 )
+    }),
+    m('.volumecontrol-label', track.volume() * 100 + '%'),
   ])
 }
 
 
+// ********************************************************
+
+// TO DO
+
+// ********************************************************
+
+function analysis(){
+  let track = this
+  return m('.tracks-track-col', [
+    'analysis'
+  ])
+}
 
 
 
