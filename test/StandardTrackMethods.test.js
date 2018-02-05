@@ -33,39 +33,24 @@ let trackTypes = {
       context: new AudioContext.Unprefixed(),
     }
   },
-  // 'BufferSourceTrack': {
-  //   track: Tracks.BufferSourceTrack,
-  //   options: {
-  //     id:  trackId,
-  //     src: trackSrc,
-  //     context: new AudioContext.Unprefixed(),
-  //   }
-  // },
+  'BufferSourceTrack': {
+    track: Tracks.BufferSourceTrack,
+    options: {
+      id:  trackId,
+      src: trackSrc,
+      context: new AudioContext.Unprefixed(),
+    }
+  },
 }
 
 Object.keys(trackTypes).forEach(trackType => {
   let Track = trackTypes[trackType].track
   let options = trackTypes[trackType].options
 
-  test(trackType + ': Initialize track', t => {
+  test(`${trackType}: Initialize track`, t => {
     let track = new Track(options)
     t.is(track instanceof Track, true)
   })
-
-  let methods = ['play', 'pause']
-  methods.forEach(method => {
-    test(trackType + ': ' + method + ' a track', t => {
-      let track = new Track(options)
-
-      let el = track.el
-      el[method] = sinon.stub(el, method)
-
-      track[method]()
-
-      t.is(track.el[method].called, true)
-    })
-  })
-
 
   test(trackType + ': trigger arbitrary event', t => {
     let track = new Track(options)
@@ -90,7 +75,6 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.volume(volumeLevel)
     t.is(track.volume(), volumeLevel)
-    t.is(track.el.volume, volumeLevel)
 
     let negativeVolumeLevel = -1
     track.volume(negativeVolumeLevel)
@@ -111,7 +95,6 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.currentTime(time)
     t.is(track.currentTime(), time)
-    t.is(track.el.currentTime, time)
   })
 
   test(trackType + ': get a formatted time', t => {
@@ -135,7 +118,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.tweenVolume(0, 1)
       .then(() => {
-        t.is( track.el.volume, 0 )
+        t.is( track.volume(), 0 )
         t.end()
       })
 
@@ -153,7 +136,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
     track.tweenVolume(0, 1)
       .then(() => {
-        t.is( track.el.volume, 0 )
+        t.is( track.volume(), 0 )
         t.end()
       })
 
@@ -161,13 +144,16 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
   test(trackType + ': mute and unmute', t => {
-    let track = new Track(Object.assign(options, { muted: true }))
-
-    t.is(track.muted(), true)
-
-    track.muted(false)
-
+    let track = new Track(options)
     t.is(track.muted(), false)
+
+    let track2 = new Track(Object.assign(options, { muted: true }))
+
+    t.is(track2.muted(), true)
+
+    track2.muted(false)
+
+    t.is(track2.muted(), false)
 
   })
 
