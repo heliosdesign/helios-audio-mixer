@@ -40,8 +40,8 @@ let config = {
   },
 
   plugins: [
-    // // Used to convert the CSS/SASS into an actual file instead of inlining
-    // new ExtractTextWebpackPlugin(`./demo/style.css`),
+    // Used to convert the CSS/SASS into an actual file instead of inlining
+    new ExtractTextWebpackPlugin(`style.css`),
   ],
 
 

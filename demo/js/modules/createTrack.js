@@ -130,8 +130,6 @@ module.exports = {
                   state.remove('nodes')
                 else if(!state.get('nodes'))
                   state.set('nodes', ['GainNode'])
-
-
               },
               value: state.get('type'),
             }, [
@@ -172,8 +170,7 @@ module.exports = {
         // ********************************************************
 
         m('.col.is-grow', [
-          m('header', ''),
-          m('pre', [
+          m('pre.options', [
             JSON.stringify(state.options(), ' ', 2),
           ]),
         ]),
