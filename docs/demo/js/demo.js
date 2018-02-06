@@ -60,6 +60,12 @@ function view(vnode){
 
     m('h3', [ 'Audio Mixer Demo' ]),
 
+    m('h4', [
+      m('a', { href: 'https://github.com/heliosdesign/helios-audio-mixer' }, [
+        'https://github.com/heliosdesign/helios-audio-mixer'
+      ]),
+    ]),
+
     m('section.create', [
       m('.row', [
         m('header', 'Create Track'),
