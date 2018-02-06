@@ -12,6 +12,7 @@ class AudioParam {
 
     this.exponentialRampToValueAtTime = function(){}
     this.linearRampToValueAtTime = function(){}
+    this.setTargetAtTime = function(){}
   }
 }
 

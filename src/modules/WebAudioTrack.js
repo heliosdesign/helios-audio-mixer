@@ -44,6 +44,9 @@ class WebAudioTrack extends BaseTrack {
       throw new Error('Can’t create nodes without a valid source.')
     }
 
+    // clear previous set of nodes (we recreate nodes every time we play)
+    track.allNodes = []
+
     let previousNode = source
     nodes.forEach(n => {
 

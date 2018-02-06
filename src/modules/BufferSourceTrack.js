@@ -344,19 +344,11 @@ class BufferSourceTrack extends WebAudioTrack {
       window.cancelAnimationFrame(track.volumeTween)
     }
 
-    // if we're playing, we can use the native value ramp method
+    // if we're playing, we can use the gain node's native value ramp method
     let gainNode = track.node('GainNode')
     if(gainNode){
-      if(typeof gainNode.gain.exponentialRampToValueAtTime === 'function'){
-        return new Promise(function(resolve, reject){
-          setTo = utils.normalize(setTo)
-          if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
-
-          gainNode.gain.exponentialRampToValueAtTime(setTo, track.options.context.currentTime + duration)
-
-          setTimeout(() => resolve(), duration * 1000)
-        })
-      }
+      gainNode.tweenGain(setTo, duration)
+      return u.timeoutPromise(duration * 1000)
     }
 
     // if we're not playing or haven't loaded yet,

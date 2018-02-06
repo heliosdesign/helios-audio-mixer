@@ -22,7 +22,6 @@ class GainNode {
     this.ctx = params.context
     this.node = this.ctx.createGainNode ? this.ctx.createGainNode() : this.ctx.createGain()
 
-    this.gainValue = 1
     this.gain( typeof params.gain === 'number' ? params.gain : 1 )
   }
 
@@ -32,6 +31,8 @@ class GainNode {
 
   gain(setTo){
     if(typeof setTo === 'number'){
+
+      console.log('gain', setTo)
       /*
 
         'AudioParam value setter will become equivalent to AudioParam.setValueAtTime() in (Chrome) M65'
@@ -39,7 +40,7 @@ class GainNode {
         Apparently, it's bad form to set gain.value directly now, ie
         'this.node.gain.value = u.normalize(setTo, 0, 1)'
 
-        Recommended behaviour now is ,
+        Recommended behaviour now is to use setTargetAtTime.
 
         - https://www.chromestatus.com/features/5287995770929152
         - https://github.com/mrdoob/three.js/pull/11133
@@ -47,7 +48,7 @@ class GainNode {
       */
 
       // setTargetAtTime( value, start time (clamped to current time), time constant )
-      this.node.gain.setTargetAtTime(u.normalize(setTo, 0, 1), 0, 0)
+      this.node.gain.setTargetAtTime(u.normalize(setTo), this.ctx.currentTime, 0)
 
     }
     return this.node.gain.value
@@ -55,9 +56,16 @@ class GainNode {
 
 
   // tweenGain(0, 1, 'linear')
-  tweenGain(setTo, duration, rampType){
-    // rampType should default to exponential, not linear, for more
-    // even sounding crossfading (no volume dip in the middle)
+  tweenGain(setTo, duration){
+    // using an exponential ramp (not linear) for a more even crossfade
+    // (linear creates a volume dip in the middle)
+
+    if(typeof this.node.gain.exponentialRampToValueAtTime === 'function'){
+      setTo = u.normalize(setTo)
+      if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
+
+      this.node.gain.exponentialRampToValueAtTime(setTo, this.ctx.currentTime + duration)
+    }
   }
 
   muted(setTo){

@@ -129,7 +129,7 @@ module.exports = {
                 if(value === 'Html5Track')
                   state.remove('nodes')
                 else if(!state.get('nodes'))
-                  state.set('nodes', ['GainNode'])
+                  state.set('nodes', [])
               },
               value: state.get('type'),
             }, [
@@ -160,7 +160,7 @@ module.exports = {
               }),
             ]),
 
-            nodeCheckbox.call(state, 'PanNode2D')
+            nodeCheckbox.call(state, 'PannerNode2D')
 
 
           ]),

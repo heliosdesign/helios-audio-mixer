@@ -285,12 +285,12 @@ The `nodes` array can contain:
 - the name of a pre-defined node
 
   ```js
-  nodes: [ 'GainNode', 'PanNode2D', 'PanNode3D', 'AnalysisNode' ]
+  nodes: [ 'GainNode', 'PannerNode2D', 'PannerNode3D', 'AnalysisNode' ]
   ```
 - an object with the name of a pre-defined node and params
 
   ```js
-  nodes: [ { type: 'PanNode2D', options: {} } ]
+  nodes: [ { type: 'PannerNode2D', options: {} } ]
   ```
 - a node object
 
@@ -306,7 +306,7 @@ All these types can be mixed, ie:
 let WebAudioTrack = mix.track('id', {
   src: 'audio.file',
   nodes: [
-    'PanNode2D',
+    'PannerNode2D',
     { type: 'analysis', options: {} },
     customNode,
   ]
@@ -319,7 +319,7 @@ let WebAudioTrack = mix.track('id', {
 let nodes = WebAudioTrack.nodes() // returns node array
 // nodes[0]
 
-let pan = WebAudioTrack.node('PanNode2D')
+let pan = WebAudioTrack.node('PannerNode2D')
 pan.method()
 ```
 
@@ -369,7 +369,7 @@ gainNode.gain(0.5)
 
 #### `PannerNode2D`
 
-The Web Audio `PannerNode` interface is quite complicated. `PanNode2D` provides a simpler interface, which pans in a horizontal circle around the listener.
+The Web Audio `PannerNode` interface is quite complicated. `PannerNode2D` provides a simpler interface, which pans in a horizontal circle around the listener.
 
 ```js
 let pan2d = track.node('PannerNode2D')
@@ -386,9 +386,11 @@ Pan can be expressed in degrees (0–360), or a direction (string):
 'left'   270
 ```
 
+Front and back (0 and 180) sound exactly the same on a two-speaker setup, ie headphones, but it's often useful when working with environmental audio to be able to with with polar coords so we accept the entire 0-360 degree range.
+
 #### `PannerNode`
 
-Thin wrapper for Web Audio API `PannerNode`.
+Thin wrapper for Web Audio API `PannerNode`, in all its complexity.
 
 ```js
 

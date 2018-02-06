@@ -15,4 +15,10 @@ function lerp(start, end, now) {
   return (1 - now) * start + now * end;
 }
 
+function timeoutPromise(duration){
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), duration)
+  })
+}
+
 module.exports = { normalize, timeFormat, lerp }

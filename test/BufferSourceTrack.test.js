@@ -13,6 +13,12 @@ import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 import allNodes from '../src/modules/nodes/allNodes'
 
 
+function timeoutPromise(duration){
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), duration)
+  })
+}
+
 
 test('instantiate', t => {
 
@@ -228,7 +234,7 @@ test('pause and restart at the right time', t => {
 })
 
 
-test('volume', t => {
+test('volume', async t => {
   let ctx = new AudioContext.Unprefixed()
   let mixVolume = 1
   let mix = { volume: function(){ return mixVolume } }
@@ -254,6 +260,8 @@ test('volume', t => {
 
   let gainNode = track.node('GainNode')
   t.is(gainNode instanceof allNodes.GainNode, true)
+
+  await timeoutPromise(500)
   t.is(gainNode.gain(), 0.5)
 
   // set the gain while playing -> direct to the gain node
