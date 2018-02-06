@@ -7,6 +7,7 @@
     "build": "webpack",
     "start": "npm run build && webpack-dev-server -d --hot --config webpack.config.js --watch",
     "demo": "npm run build && webpack-dev-server -d --hot --config webpack-demo.config.js --watch",
+    "build-demo": "webpack --config webpack-demo.config.js",
     "dist": "NODE_ENV=production npm run build",
     "test": "ava --watch",
     "test-verbose": "ava --watch --verbose",

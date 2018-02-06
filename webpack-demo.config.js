@@ -7,18 +7,20 @@ const path = require('path')
 const webpack = require('webpack')
 const ExtractTextWebpackPlugin = require('extract-text-webpack-plugin')
 
+let basePath = './docs/demo'
+
 let config = {
 
   entry: {
-    'bundle': './demo/js/demo.js',
+    'bundle': basePath + '/js/demo.js',
   },
   output: {
-    path: path.resolve(__dirname, 'demo'),
+    path: path.resolve(__dirname, basePath),
     filename: 'bundle.js',
   },
 
   resolve: {
-    modules: [path.resolve(__dirname, './demo/js'), 'node_modules'],
+    modules: [path.resolve(__dirname, basePath + '/js'), 'node_modules'],
   },
 
   module: {
@@ -46,7 +48,7 @@ let config = {
 
 
   devServer: {
-    contentBase: path.resolve(__dirname, './demo'),
+    contentBase: path.resolve(__dirname, basePath),
     historyApiFallback: true,
     inline: true,
     open: true

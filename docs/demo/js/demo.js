@@ -3,7 +3,7 @@ const Stream = require('mithril/stream')
 
 const style = require('../style.sass')
 
-const audioMixer = require('../../audioMixer')
+const audioMixer = require('../../../audioMixer')
 
 const CreateTrack = require('modules/createTrack')
 const TrackList = require('modules/trackList')
