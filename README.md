@@ -24,7 +24,7 @@ track1.tweenVolume(0, 1)
 
 ## Demo
 
-Run `npm install` then `npm run demo`.
+Run `npm install` then `npm run demo`. If you want to make changes to the library while you're running webpack for the demo, run `npm build` in another terminal.
 
 
 ## Development
@@ -33,7 +33,7 @@ The library is bundled using webpack, and tested using Ava.
 
 `npm start` bundles the library for development using `webpack-dev-server`.
 
-`npm dist` bundles the library for production.
+`npm run dist` bundles the library for production.
 
 `npm test` runs Ava in watch mode. Also try `test-verbose` and `test-single`.
 

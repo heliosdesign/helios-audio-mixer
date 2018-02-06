@@ -84,6 +84,7 @@ class Html5Track extends BaseTrack {
   }
 
   duration(){
+    let track = this
     return track.el.duration
   }
 

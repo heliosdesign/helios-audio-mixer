@@ -26,14 +26,14 @@ function dummyTracks(){
         paused: () => true,
         play: () => true,
         on: () => true,
-        gain: () => 1,
+        volume: () => 1,
       },
       {
         options: { id: 'test b' },
         paused: () => true,
         play: () => true,
         on: () => true,
-        gain: () => 1,
+        volume: () => 1,
       }
     ]
   }
