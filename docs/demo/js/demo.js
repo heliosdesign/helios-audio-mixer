@@ -1,3 +1,8 @@
+/*
+
+  Audio Mixer Demo Page
+
+*/
 const m = require('mithril')
 const Stream = require('mithril/stream')
 
@@ -8,50 +13,34 @@ const audioMixer = require('../../../audioMixer')
 const CreateTrack = require('modules/createTrack')
 const TrackList = require('modules/trackList')
 
-let Interface = {
-  view, oninit
-}
 
 var mix = new audioMixer.default.Mixer()
 window.mix = mix
 
-// dummyTracks()
+// dummyTracks() // <-- uncomment to pre-populate track list with dummy tracks
 
-// DUMMY
-function dummyTracks(){
-  mix.tracks = function(){
-    return [
-      {
-        options: { id: 'test a' },
-        paused: () => true,
-        play: () => true,
-        on: () => true,
-        volume: () => 1,
-      },
-      {
-        options: { id: 'test b' },
-        paused: () => true,
-        play: () => true,
-        on: () => true,
-        volume: () => 1,
-      }
-    ]
-  }
-}
-
-
+let Interface = { view }
 m.mount(document.querySelector('.container'), Interface)
 
 
-function oninit(vnode){
-  let state = this
+// ********************************************************
 
-  state.tracks = Stream([])
-
-  state.processFile = function(src){
-    console.log(src)
+let dummyTrack = function(){
+  return {
+    options: { id: 'test a' },
+    paused: () => true,
+    play:   () => true,
+    on:     () => true,
+    volume: () => 1,
   }
 }
+function dummyTracks(){
+  mix.tracks = function(){
+    return [ dummyTrack(), dummyTrack() ]
+  }
+}
+
+// ********************************************************
 
 function view(vnode){
   let state = this
@@ -72,11 +61,6 @@ function view(vnode){
       ]),
       m(CreateTrack, { mix })
     ]),
-
-    // m('section.mix', [
-    //   m('header', 'Mix Controls'),
-    //   m(MixControls, { mix: mix })
-    // ]),
 
     m('section.tracks', [
 

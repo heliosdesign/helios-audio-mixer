@@ -3,10 +3,9 @@ const Stream = require('mithril/stream')
 
 /*
 
-  Sub-components
+  Formatted Time (00:00)
 
 */
-
 let formattedTime = {
   oncreate: function(vnode){
     let state = this
@@ -30,21 +29,80 @@ let formattedTime = {
   }
 }
 
-function volumeControl(){
-  let track = this
-  return m('.volumecontrol', [
-    m('.volumecontrol-label', 'Volume:'),
-    m('input[type="range"].volumecontrol-input', {
-      value: track.volume() * 100,
-      min:   0,
-      max:   100,
-      onchange: (e) => track.volume( e.target.value / 100 )
-    }),
-    m('.volumecontrol-label', Math.round(track.volume() * 100) + '%'),
-  ])
+
+/*
+
+  Volume Slider
+
+*/
+let volumeControl = {
+  oninit: function(vnode){
+    let state = this
+    state.track = vnode.attrs.track
+  },
+  oncreate: function(vnode){
+    let state = this
+
+    let isMouseDown
+    let input = vnode.dom.querySelector('input')
+    let label = vnode.dom.querySelector('.mod-currentvolume')
+
+    state.onmousedown = onmousedown
+    state.onmouseup   = onmouseup
+
+    updateVolume()
+
+    function updateVolume(){
+      state.hook = requestAnimationFrame(updateVolume)
+      if(isMouseDown) return
+      input.value = state.track.volume() * 100
+      label.innerText = input.value + '%'
+    }
+
+    function onmousedown(){
+      isMouseDown = true
+    }
+
+    function onmouseup(e){
+      isMouseDown = false
+      state.track.volume( e.target.value / 100 )
+    }
+  },
+  onremove: function(vnode){
+    let state = this
+    cancelAnimationFrame(state.hook)
+  },
+  view: function(vnode){
+    let state = this
+    return [
+      m('.tracks-track-col', [
+        m('.volumecontrol', [
+
+          m('.volumecontrol-label', 'Volume:'),
+          m('input[type="range"].volumecontrol-input', {
+            min:   0,
+            max:   100,
+            onmousedown: state.onmousedown,
+            onmouseup:   state.onmouseup,
+          }),
+          m('.volumecontrol-label.mod-currentvolume', Math.round(state.track.volume() * 100) + '%'),
+        ])
+      ]),
+
+      m('.tracks-track-col', [
+        m('button', { onclick: () => state.track.tweenVolume(0, 1) }, 'To 0'),
+        m('button', { onclick: () => state.track.tweenVolume(1, 1) }, 'To 100'),
+      ]),
+    ];
+  }
 }
 
 
+/*
+
+  Time Scrubber
+
+*/
 let scrubber = {
   oncreate: function(vnode){
     let state = this
@@ -93,7 +151,6 @@ let scrubber = {
 
         onmousedown: state.onmousedown,
         onmouseup:   state.onmouseup,
-        // onchange:    state.currentTime,
       }),
     ]);
   }
@@ -113,7 +170,18 @@ function analysis(){
 
 
 
-// ********************************************************
+
+
+
+/*
+
+  ##  ## #### ###### ##    ##
+  ##  ##  ##  ##     ##    ##
+  ##  ##  ##  #####  ## ## ##
+   ####   ##  ##     ## ## ##
+    ##   #### ######  ##  ##
+
+*/
 
 module.exports = {
   oninit: function(vnode){
@@ -169,9 +237,8 @@ function TrackListTracks(vnode){
         } }, m.trust('&#10005;')),
       ]),
 
-      m('.tracks-track-col', [
-        volumeControl.call(track)
-      ]),
+      m(volumeControl, { track }),
+
 
       // analysis.call(track)
 

@@ -270,7 +270,7 @@ class BufferSourceTrack extends WebAudioTrack {
 
       if(track.status.playing) {
         // to seek a buffer track, we need to pause and play
-        pause(setTo).play()
+        track.pause(setTo).play()
       } else {
         // if we're paused or not loaded yet, cache the time
         track.data.cachedTime = setTo
