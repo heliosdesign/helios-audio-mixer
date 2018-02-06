@@ -1,6 +1,6 @@
 # Audio Mixer
 
-Manage multiple audio tracks easily.
+Manage multiple audio tracks easily. Try the [demo](https://heliosdesign.github.io/helios-audio-mixer/demo)!
 
 Powered by HTML5 media or, optionally, the Web Audio API. Note that Web Audio is mandatory on iOS, due to extremely limited HTML5 media support.
 
