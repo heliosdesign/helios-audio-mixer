@@ -89,13 +89,13 @@ class WebAudioTrack extends BaseTrack {
             throw new Error(`Node type ${n.type} does not exist.`)
           }
 
-        } else if(n.connect) {
+        } else if(n.node) {
           // create custom node, this is a raw node object
 
           track.allNodes.push(n)
 
-          previousNode.connect(n)
-          previousNode = n
+          previousNode.connect(n.node)
+          previousNode = n.node
 
         }
       }
