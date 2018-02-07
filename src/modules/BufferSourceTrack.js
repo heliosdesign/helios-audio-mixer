@@ -218,10 +218,12 @@ class BufferSourceTrack extends WebAudioTrack {
   ended() {
     let track = this
     if(track.options.loop){
+      super.trigger('ended', track)
       super.trigger('loop', track)
       track.pause(0)
       track.play()
     } else {
+      track.status.playing = false
       super.trigger('ended', track)
     }
   }

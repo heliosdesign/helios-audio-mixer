@@ -25,10 +25,6 @@ class GainNode {
     this.gain( typeof params.gain === 'number' ? params.gain : 1 )
   }
 
-  connect(to){
-    this.node.connect(to)
-  }
-
   gain(setTo){
     if(typeof setTo === 'number'){
       /*
