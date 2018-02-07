@@ -31,8 +31,6 @@ class GainNode {
 
   gain(setTo){
     if(typeof setTo === 'number'){
-
-      console.log('gain', setTo)
       /*
 
         'AudioParam value setter will become equivalent to AudioParam.setValueAtTime() in (Chrome) M65'

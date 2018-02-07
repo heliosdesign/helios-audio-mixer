@@ -76,9 +76,9 @@ let volumeControl = {
     let state = this
     return [
       m('.tracks-track-col', [
-        m('.volumecontrol', [
+        m('.tracks-track-col-label', 'volume'),
 
-          m('.volumecontrol-label', 'Volume:'),
+        m('.volumecontrol', [
           m('input[type="range"].volumecontrol-input', {
             min:   0,
             max:   100,
@@ -145,7 +145,6 @@ let scrubber = {
     let state = this
     return m('.scrubber', [
       m('input[type="range"].scrubber-input', {
-        value: 0,
         min:   0,
         max:   state.max,
 
@@ -155,6 +154,101 @@ let scrubber = {
     ]);
   }
 }
+
+
+
+/*
+
+  PannerNode2D
+
+*/
+
+let pan2d = {
+  oncreate: function(vnode){
+    let state = this
+    var track = vnode.attrs.track
+
+    let angle, isMouseDown
+
+    let input = vnode.dom.querySelector('input')
+
+    state.min = -90
+    state.max = 90
+
+    // get a reference to the panner node (re-created every time we play)
+    track.on('play', () => {
+      if(track.node){
+        state.panNode = track.node('PannerNode2D')
+        m.redraw()
+      }
+    })
+
+    state.onmousedown = onmousedown
+    state.onmouseup   = onmouseup
+
+    updateTime()
+
+    function updateTime(){
+      state.hook = requestAnimationFrame(updateTime)
+      if(isMouseDown) return
+      if(!state.panNode) return
+
+      let angle = state.panNode.pan()
+      if(angle > 90) angle = 360 - angle
+
+      if(!input) input = vnode.dom.querySelector('input')
+      if(input) input.value = angle
+    }
+
+    function onmousedown(){
+      isMouseDown = true
+    }
+    function onmouseup(e){
+      isMouseDown = false
+
+      angle = parseInt(e.target.value)
+
+      let panNode = track.node('PannerNode2D')
+      panNode.pan( angle )
+    }
+
+  },
+  onremove: function(vnode){
+    let state = this
+    cancelAnimationFrame(state.hook)
+  },
+  view: function(vnode){
+    let state = this
+
+    if(state.panNode){
+      return m('.tracks-track-col', [
+        m('.tracks-track-col-label', 'pan (2d)'),
+
+        m('.pan', [
+          m('.pan-label', 'left'),
+          m('input[type="range"].scrubber-input', {
+            min:   state.min,
+            max:   state.max,
+
+            onmousedown: state.onmousedown,
+            onmouseup:   state.onmouseup,
+          }),
+          m('.pan-label', 'right'),
+        ]),
+
+      ]);
+    } else {
+      return m('')
+    }
+
+
+  }
+}
+
+
+
+
+
 // ********************************************************
 
 // TO DO
@@ -209,6 +303,7 @@ function TrackListTracks(vnode){
 
 
       m('.tracks-track-col', [
+        m('.tracks-track-col-label', 'time'),
         m(scrubber, { track })
       ]),
 
@@ -231,16 +326,13 @@ function TrackListTracks(vnode){
 
 
       m('.tracks-track-col', [
-        m('button', { onclick: () => {
-          console.log('remove', track.options.id)
-          vnode.attrs.mix.remove(track)
-        } }, m.trust('&#10005;')),
+        m('button', { onclick: () => vnode.attrs.mix.remove(track) }, m.trust('&#10005;')),
       ]),
 
       m(volumeControl, { track }),
 
 
-      // analysis.call(track)
+      m(pan2d, { track }),
 
     ])
   })

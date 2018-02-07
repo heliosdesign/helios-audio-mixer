@@ -321,9 +321,14 @@ let nodes = WebAudioTrack.nodes() // returns node array
 
 let pan = WebAudioTrack.node('PannerNode2D')
 pan.method()
+
+WebAudioTrack.node('PannerNode2D').method()
 ```
 
+**Important** Nodes are re-created every time the track is played. Don't store references to nodes, use `track.node('NodeType').method()` or re-create your reference on the track’s `play` event.
+
 If there are multiple nodes of the same type, accessing a node by name using `Track.node()` will return the last node of its type. Considering an alias system.
+
 
 ### Custom nodes
 

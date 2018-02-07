@@ -61,6 +61,8 @@ h3, h4
     flex-grow: 1
     overflow: hidden
 
+
+
 .input
   display: flex
   flex-direction: row
@@ -99,6 +101,15 @@ h3, h4
   margin: 0 1em
   width: 150px
 
+// ********************************************************
+
+.pan
+  display: flex
+  flex-direction: row
+
+  input
+    margin: 0 0.5rem
+
 /********************************************************/
 
 .controls
@@ -128,11 +139,30 @@ h3, h4
   flex-direction: row
   justify-content: flex-start
   align-items: center
+  height: 4rem
+  padding: 0.5rem 0
 
 .tracks-track-col
+  position: relative
   margin-right: 0.5em
+  height: 100%
+  display: flex
+  align-items: center
   &.mod-id
     width: 150px
     overflow: hidden
 
+
+.tracks-track-col-label
+  text-transform: uppercase
+  font-size: 0.9rem
+  position: absolute
+  top: -2.5rem
+  left: 0
+  font-weight: bold
+  color: grey
+  display: none
+.tracks-track:first-child
+  .tracks-track-col-label
+    display: block
 

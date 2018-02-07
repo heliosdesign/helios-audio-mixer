@@ -28,10 +28,10 @@ m.mount(document.querySelector('.container'), Interface)
 let dummyTrack = function(){
   return {
     options: { id: 'test a' },
-    paused: () => true,
-    play:   () => true,
-    on:     () => true,
-    volume: () => 1,
+    paused:  () => true,
+    play:    () => true,
+    on:      () => true,
+    volume:  () => 1,
   }
 }
 function dummyTracks(){

@@ -93,6 +93,7 @@ class ElementSourceTrack extends WebAudioTrack {
   }
 
   duration(){
+    let track = this
     return track.el.duration
   }
 

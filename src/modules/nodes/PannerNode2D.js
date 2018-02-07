@@ -43,6 +43,8 @@ class PannerNode2D {
 
       this.node.setPosition(x, y, z)
     }
+
+    return this.values.pan
   }
 
   tweenPan(angle, duration){
