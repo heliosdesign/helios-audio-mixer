@@ -1,16 +1,24 @@
 /*
 
-  base Track class, with event functionality
+  base Track class, with event and timeline functionality
 
 */
 
 
 class BaseTrack {
-  constructor(options){
-    this.id = options.id
+  constructor(params){
+    this.id = params.id
     this.events = {}
+    this.timelineEvents = params.timelineEvents ? [...params.timelineEvents] : []
   }
 
+  destroy(){}
+
+  /*
+
+    Events
+
+  */
   on(eventName, callback){
     let track = this
 
@@ -72,7 +80,31 @@ class BaseTrack {
     return track
   }
 
-  destroy(){}
+
+  /*
+
+    Timeline
+
+      check if any events need to be triggered
+
+      this is called by the mixer using requestAnimationFrame
+
+  */
+
+  updateTimelineEvents(time){
+    let track = this
+    let e
+    for (var i = 0; i < track.timelineEvents.length; i++) {
+      e = track.timelineEvents[i]
+      if(time >= e.time && !e.triggered){
+        e.triggered = true
+        if(e.callback)
+          e.callback.call(track)
+      }
+    }
+
+  }
+
 }
 
 module.exports = BaseTrack
