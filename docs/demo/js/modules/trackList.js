@@ -1,6 +1,8 @@
 const m = require('mithril')
 const Stream = require('mithril/stream')
 
+const frameRunner = require('frame-runner')
+
 /*
 
   Formatted Time (00:00)
@@ -12,17 +14,16 @@ let formattedTime = {
     let track = vnode.attrs.track
 
     track.on('play', () => updateTime())
-    track.on('pause', () => cancelAnimationFrame(state.hook))
     track.on('ended', () => m.redraw())
 
+    state.hook = frameRunner.add(track.options.id + '-formatted-time', updateTime)
     function updateTime(){
-      state.hook = requestAnimationFrame(updateTime)
       vnode.dom.innerText = track.formattedTime()
     }
   },
   onremove: function(vnode){
     let state = this
-    cancelAnimationFrame(state.hook)
+    state.hook()
   },
   view: function(vnode){
     return m('.tracks-track-time', '00:00')
@@ -50,10 +51,9 @@ let volumeControl = {
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    updateVolume()
+    state.hook = frameRunner.add(state.track.options.id + '-update-volume', updateVolume)
 
     function updateVolume(){
-      state.hook = requestAnimationFrame(updateVolume)
       if(isMouseDown) return
       input.value = state.track.volume() * 100
       label.innerText = input.value + '%'
@@ -70,7 +70,7 @@ let volumeControl = {
   },
   onremove: function(vnode){
     let state = this
-    cancelAnimationFrame(state.hook)
+    state.hook()
   },
   view: function(vnode){
     let state = this
@@ -116,11 +116,9 @@ let scrubber = {
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    track.on('play', () => updateTime())
-    track.on('pause', () => cancelAnimationFrame(state.hook))
+    state.hook = frameRunner.add(track.options.id + '-update-time', updateTime)
 
     function updateTime(){
-      state.hook = requestAnimationFrame(updateTime)
       if(isMouseDown) return
 
       percentage = track.currentTime() / track.duration()
@@ -139,7 +137,7 @@ let scrubber = {
   },
   onremove: function(vnode){
     let state = this
-    cancelAnimationFrame(state.hook)
+    state.hook()
   },
   view: function(vnode){
     let state = this
@@ -186,10 +184,9 @@ let pan2d = {
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    updateTime()
+    state.hook = frameRunner.add(track.options.id + '-update-time', updateTime)
 
     function updateTime(){
-      state.hook = requestAnimationFrame(updateTime)
       if(isMouseDown) return
       if(!state.panNode) return
 
@@ -215,7 +212,7 @@ let pan2d = {
   },
   onremove: function(vnode){
     let state = this
-    cancelAnimationFrame(state.hook)
+    state.hook()
   },
   view: function(vnode){
     let state = this

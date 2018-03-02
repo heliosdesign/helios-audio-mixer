@@ -261,7 +261,6 @@ test('volume', async t => {
   let gainNode = track.node('GainNode')
   t.is(gainNode instanceof allNodes.GainNode, true)
 
-  await timeoutPromise(500)
   t.is(gainNode.gain(), 0.5)
 
   // set the gain while playing -> direct to the gain node

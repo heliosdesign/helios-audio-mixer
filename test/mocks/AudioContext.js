@@ -10,9 +10,9 @@ class AudioParam {
   constructor(_val){
     this.value = _val
 
-    this.exponentialRampToValueAtTime = function(){}
-    this.linearRampToValueAtTime = function(){}
-    this.setTargetAtTime = function(){}
+    this.exponentialRampToValueAtTime = function(_setTo){ this.value = _setTo}
+    this.linearRampToValueAtTime = function(_setTo){ this.value = _setTo}
+    this.setTargetAtTime = function(_setTo){ this.value = _setTo}
   }
 }
 

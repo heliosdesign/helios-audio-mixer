@@ -187,9 +187,11 @@ track.tweenVolume(1, 10.5).then()
 Getter/setter for track muted status.
 
 
+
+
 ### Timeline Events
 
-Timeline events can trigger callbacks when audio playback reaches a specific time. You can add timeline events when a track is created:
+All track types have timeline events available to them. Timeline events trigger callbacks when audio playback reaches a specific time. Add timeline events when a track is created:
 
 ```js
 let timelineTrack = audioMixer.track('timelineTrack', {
@@ -201,19 +203,12 @@ let timelineTrack = audioMixer.track('timelineTrack', {
 })
 ```
 
-You can also add and remove timeline events after the track is created:
-
-##### `Track.timelineEvent(time, callback)`
-
-##### `Track.removeTimelineEvent(time, callback)`
-
-
 Timeline event callbacks get the Track object as their `this` context.
 
 ```js
-timelineTrack.timelineEvent(10, callback)
+timelineTrack.timelineEvent(10, adjustVolumeCallback)
 
-function callback(){
+function adjustVolumeCallback(){
   let track = this
   track.volume(1)
   ...

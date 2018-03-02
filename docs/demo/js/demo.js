@@ -13,7 +13,6 @@ const audioMixer = require('../../../audioMixer')
 const CreateTrack = require('modules/createTrack')
 const TrackList = require('modules/trackList')
 
-
 var mix = new audioMixer.default.Mixer()
 window.mix = mix
 
