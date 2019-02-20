@@ -162,4 +162,4 @@ class Html5Track extends BaseTrack {
 
 }
 
-module.exports = Html5Track
+export default Html5Track

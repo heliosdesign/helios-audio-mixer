@@ -107,4 +107,4 @@ class BaseTrack {
 
 }
 
-module.exports = BaseTrack
+export default BaseTrack

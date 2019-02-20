@@ -116,4 +116,4 @@ class WebAudioTrack extends BaseTrack {
 
 }
 
-module.exports = WebAudioTrack
+export default WebAudioTrack

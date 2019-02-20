@@ -24,8 +24,7 @@ track1.tweenVolume(0, 1)
 
 ## Demo
 
-Run `npm install` then `npm run demo`. If you want to make changes to the library while you're running webpack for the demo, run `npm build` in another terminal.
-
+Run `npm install` then `npm run demo`. If you want to make changes to the library while you're running webpack for the demo, run `npm run build` in another terminal.
 
 ## Development
 
@@ -36,15 +35,6 @@ The library is bundled using webpack, and tested using Ava.
 `npm run dist` bundles the library for production.
 
 `npm test` runs Ava in watch mode. Also try `test-verbose` and `test-single`.
-
-
-
-
-
-
-
-
-
 
 ## API
 
@@ -94,7 +84,7 @@ let buffer = mix.track('custom', {
 
 Returns the current array of tracks so you can operate on all tracks, ie
 
-```
+```js
 mix.tracks().forEach(track => track.pause())
 ```
 
@@ -105,16 +95,6 @@ Immediately removes a specified track, by `'track id'` or Track object.
 #### `AudioMixer.volume(0-1)`
 
 The AudioMixer’s volume setting acts like a master volume slider, independent of individual tracks. Track volume exists within the master volume envelope. If a track has a volume of 0.5 and the master volume is set to 0.5, it will play back at 0.25.
-
-
-
-
-
-
-
-
-
-
 
 ### Standard Track API
 
@@ -156,6 +136,7 @@ Add an event that fires only once, ie on `canplaythrough`.
 #### Playback Control
 
 ##### `Track.play()`
+
 ##### `Track.pause()`
 
 ##### `Track.currentTime(time)`
@@ -186,9 +167,6 @@ track.tweenVolume(1, 10.5).then()
 
 Getter/setter for track muted status.
 
-
-
-
 ### Timeline Events
 
 All track types have timeline events available to them. Timeline events trigger callbacks when audio playback reaches a specific time. Add timeline events when a track is created:
@@ -215,15 +193,6 @@ function adjustVolumeCallback(){
 }
 ```
 
-
-
-
-
-
-
-
-
-
 ## Track Types
 
 Additional track types implement the standard Track API, with added functionality.
@@ -234,42 +203,25 @@ _Requirements: HTML5 Media support_
 
 Uses an HTML5 `<audio>` element.
 
-
 #### `BufferSourceTrack`
 
 Uses a Web Audio buffer source. Best for use with small audio files, as the entire file must be downloaded before playback can begin. If you want to use the Web Audio API for larger files, `MediaSourceTrack` can play media as it downloads.
 
 If you want full audio mixer functionality (ie multiple tracks) on iOS, this track type makes things a lot easier. Media elements are subject to iOS rules about tap-to-play.
 
-
 #### `MediaSourceTrack`
 
 Uses an HTML5 `<audio>` element as input. Supports the full set of Web Audio nodes. Can stream files, so ideal for larger files.
-
 
 #### `StreamSourceTrack`
 
 Uses a MediaStream as input, ie a live mic input via `getUserMedia`.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Web Audio Tracks
 
 Web Audio tracks wrap the Web Audio API in the HTML5 media interface, making it easier to control. As with all abstractions, some flexibility is lost.
 
-Web Audio tracks gain functionality by chaining a audio nodes. By default, a web audio track has just one node which controls gain (volume). Some commonly used nodes (pan2d, pan3d, analysis) are included in this library. You can add your own nodes as well.
+Web Audio tracks gain functionality by chaining audio nodes. By default, a web audio track has just one node which controls gain (volume). Some commonly used nodes (pan2d, pan3d, analysis) are included in this library. You can add your own nodes as well.
 
 ### Creating Nodes
 
@@ -282,11 +234,13 @@ The `nodes` array can contain:
   ```js
   nodes: [ 'GainNode', 'PannerNode2D', 'PannerNode3D', 'AnalysisNode' ]
   ```
+
 - an object with the name of a pre-defined node and params
 
   ```js
   nodes: [ { type: 'PannerNode2D', options: {} } ]
   ```
+
 - a node object
 
   ```js
@@ -320,10 +274,9 @@ pan.method()
 WebAudioTrack.node('PannerNode2D').method()
 ```
 
-**Important** Nodes are re-created every time the track is played. Don't store references to nodes, use `track.node('NodeType').method()` or re-create your reference on the track’s `play` event.
+**Important**: Nodes are re-created every time the track is played. Don't store references to nodes, use `track.node('NodeType').method()` or re-create your reference on the track’s `play` event.
 
 If there are multiple nodes of the same type, accessing a node by name using `Track.node()` will return the last node of its type. Considering an alias system.
-
 
 ### Custom nodes
 
@@ -386,7 +339,7 @@ Pan can be expressed in degrees (0–360), or a direction (string):
 'left'   270
 ```
 
-Front and back (0 and 180) sound exactly the same on a two-speaker setup, ie headphones, but it's often useful when working with environmental audio to be able to with with polar coords so we accept the entire 0-360 degree range.
+Front and back (0 and 180) sound exactly the same on a two-speaker setup, ie headphones, but it's often useful when working with environmental audio to be able to work with polar coords so we accept the entire 0-360 degree range.
 
 #### `PannerNode`
 
@@ -402,21 +355,7 @@ FFT audio analysis.
 
 ```js
 
-
-
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Features under Consideration
 

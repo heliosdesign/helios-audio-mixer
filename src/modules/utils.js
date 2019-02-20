@@ -21,4 +21,4 @@ function timeoutPromise(duration){
   })
 }
 
-module.exports = { normalize, timeFormat, lerp }
+export default { normalize, timeFormat, lerp, timeoutPromise }

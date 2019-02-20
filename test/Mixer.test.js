@@ -174,7 +174,7 @@ test('tracks() returns all tracks as an array', t => {
 
   let track1 = mix.track('t1', { type: TestTrack })
   let track2 = mix.track('t2', { type: TestTrack })
-  let track3 = mix.track('t2', { type: TestTrack })
+  let track3 = mix.track('t3', { type: TestTrack })
 
   let tracks = mix.tracks()
 
@@ -183,5 +183,3 @@ test('tracks() returns all tracks as an array', t => {
   tracks.forEach(track => t.is(track.arbitraryFunction.called, true))
 
 })
-
-

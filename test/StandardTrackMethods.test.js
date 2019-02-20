@@ -52,7 +52,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(track instanceof Track, true)
   })
 
-  test(trackType + ': trigger arbitrary event', t => {
+  test(`${trackType}: trigger arbitrary event`, t => {
     let track = new Track(options)
     let eventName = 'asdfjkl'
     let callback = sinon.spy()
@@ -66,7 +66,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(callback.calledWith(eventData), true)
   })
 
-  test(trackType + ': set the volume', t => {
+  test(`${trackType}: set the volume`, t => {
     let track = new Track(options)
 
     let volumeLevel = 0.5
@@ -86,7 +86,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
   })
 
-  test(trackType + ': set the current time', t => {
+  test(`${trackType}: set the current time`, t => {
     let track = new Track(options)
 
     let time = 1.3
@@ -97,7 +97,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(track.currentTime(), time)
   })
 
-  test(trackType + ': get a formatted time', t => {
+  test(`${trackType}: get a formatted time`, t => {
     let track = new Track(options)
 
     let stub = sinon.stub(track, 'duration').returns(180)
@@ -110,7 +110,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
   })
 
-  test.cb(trackType + ': tween volume', t => {
+  test.cb(`${trackType}: tween volume`, t => {
     let mockRaf = createMockRaf()
     window.requestAnimationFrame = mockRaf.raf
 
@@ -125,7 +125,7 @@ Object.keys(trackTypes).forEach(trackType => {
     mockRaf.step({ count: 60 })
   })
 
-  test.cb(trackType + ': overwrite a volume tween', t => {
+  test.cb(`${trackType}: overwrite a volume tween`, t => {
     let mockRaf = createMockRaf()
     window.requestAnimationFrame = mockRaf.raf
     window.cancelAnimationFrame = mockRaf.cancel
@@ -143,7 +143,7 @@ Object.keys(trackTypes).forEach(trackType => {
     mockRaf.step({ count: 60 })
   })
 
-  test(trackType + ': mute and unmute', t => {
+  test(`${trackType}: mute and unmute`, t => {
     let track = new Track(options)
     t.is(track.muted(), false)
 
@@ -163,9 +163,8 @@ Object.keys(trackTypes).forEach(trackType => {
   })
 
 
-  // test(trackType + ': start at a specific time', t => t.todo)
+  // test(`${trackType}: start at a specific time`, t => t.todo)
 
-  // test(trackType + ': chain all non-getter function calls', t => t.todo)
+  // test(`${trackType}: chain all non-getter function calls`, t => t.todo)
 
 })
-

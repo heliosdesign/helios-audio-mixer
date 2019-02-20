@@ -130,4 +130,4 @@ class Mixer {
 
 }
 
-module.exports = Mixer
+export default Mixer

@@ -8,7 +8,6 @@
 
 `npm run dist` compiles a minified build.
 
-
 ## Links
 
 - [Web Audio API performance and debugging notes](https://padenot.github.io/web-audio-perf/)

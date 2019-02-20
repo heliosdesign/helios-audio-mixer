@@ -421,4 +421,4 @@ class BufferSourceTrack extends WebAudioTrack {
 
 }
 
-module.exports = BufferSourceTrack
+export default BufferSourceTrack

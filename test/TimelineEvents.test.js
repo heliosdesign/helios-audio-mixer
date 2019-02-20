@@ -54,7 +54,7 @@ Object.keys(trackTypes).forEach(trackType => {
   let options = trackTypes[trackType].options
 
 
-  test('create timeline events', t => {
+  test(`${trackType}: create timeline events`, t => {
 
     let callback = function(){}
 
@@ -70,7 +70,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
   })
 
-  test('fire timeline events', t => {
+  test(`${trackType}: fire timeline events`, t => {
 
     let callback  = sinon.spy()
     let callback2 = sinon.spy()
@@ -96,7 +96,7 @@ Object.keys(trackTypes).forEach(trackType => {
 
   })
 
-  test('timeline event callbacks receive track as this', t => {
+  test(`${trackType}: timeline event callbacks receive track as this`, t => {
 
     let callback  = sinon.spy()
 
@@ -113,4 +113,3 @@ Object.keys(trackTypes).forEach(trackType => {
 
 
 })
-
