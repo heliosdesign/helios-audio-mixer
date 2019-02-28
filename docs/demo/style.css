@@ -21,6 +21,7 @@ header {
   margin-bottom: 1em; }
 
 button {
+  height: 26px;
   padding: 0.5em 1em 0.6em 1em;
   margin-right: 1em;
   margin-top: 0.5em;
@@ -28,7 +29,8 @@ button {
   background: #eee;
   border: 1px solid #555;
   border-radius: 3px;
-  cursor: pointer; }
+  cursor: pointer;
+  white-space: nowrap; }
   button:hover {
     background: #555;
     color: #fff; }
@@ -69,10 +71,11 @@ h3, h4 {
     padding-right: 2em; }
   .input input, .input select {
     width: 15rem; }
+  #input-name {
+    padding-left: 1em; }
 
 /********************************************************/
 .dropzone {
-  display: block;
   width: 300px;
   height: 100px;
   padding: 1em;
@@ -91,6 +94,17 @@ h3, h4 {
 .volumecontrol-input {
   margin: 0 1em;
   width: 150px; }
+
+/********************************************************/
+
+.analyser {
+  border: 1px solid #eee;
+  display: block;
+  height: 7rem;
+  margin-right: 1em;
+  width: 200px; }
+
+/********************************************************/
 
 .pan {
   display: flex;
@@ -122,7 +136,7 @@ h3, h4 {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  height: 4rem;
+  height: 8rem;
   padding: 0.5rem 0; }
 
 .tracks-track-col {
@@ -147,4 +161,3 @@ h3, h4 {
 
 .tracks-track:first-child .tracks-track-col-label {
   display: block; }
-
