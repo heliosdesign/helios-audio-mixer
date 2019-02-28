@@ -3,13 +3,12 @@
   Web Audio API: Element Source track
 
 */
+
 import WebAudioTrack from './WebAudioTrack'
 import utils from './utils'
 
-import nodes from './nodes/allNodes'
-
-class ElementSourceTrack extends WebAudioTrack {
-  constructor(params){
+export default class ElementSourceTrack extends WebAudioTrack {
+  constructor(params) {
     super(params)
     let track = this
 
@@ -22,69 +21,73 @@ class ElementSourceTrack extends WebAudioTrack {
       autoplay: false,
       context:  false,
       mix:      false,
-      nodes:    [],
+      nodes:    []
     }
-
     track.options = Object.assign(defaults, params)
+    track.ctx     = track.options.context
 
-    if(!track.options.context){
+    if (!track.ctx) {
       throw new Error('Can’t create an ElementSourceTrack without Web Audio API support')
     }
 
     // set up our HTML5 <audio> element
-    if(!track.options.src){
+    if (!track.options.src) {
       throw new Error('Can’t create an ElementSourceTrack without a src parameter')
     }
 
-    track.el = document.createElement('audio')
-
+    track.el          = document.createElement('audio')
     track.el.volume   = track.options.volume
     track.el.muted    = track.options.muted
     track.el.loop     = track.options.loop
     track.el.autoplay = track.options.autoplay
-
-    track.el.src = track.options.src
+    track.el.src      = track.options.src
 
     let eventNames = [
       'loadstart', 'loadedmetadata',
-      'canplay', 'canplaythrough',
-      'play', 'pause',
-      'ended', 'timeupdate',
-      'seeking', 'seeked',
-      'error',
-    ];
+      'canplay',   'canplaythrough',
+      'play',      'pause',
+      'ended',     'timeupdate',
+      'seeking',   'seeked',
+      'error'
+    ]
 
     eventNames.forEach(eventName => {
       track.el.addEventListener(eventName, super.trigger.bind(track, eventName, false))
     })
 
     // web audio API setup (only needs to happen once)
-    track.data.source = track.options.context.createMediaElementSource(track.el)
+    track.data.source = track.ctx.createMediaElementSource(track.el)
 
-    let gainNode = { type: 'GainNode', options: { gain: track.data.gain } }
+    const gainNode = { type: 'GainNode', options: { gain: track.data.gain } }
     super.createNodes([gainNode, ...track.options.nodes], track.data.source)
-
   }
 
-  play(){
-    this.el.play()
-    return this
-  }
-
-  pause(){
-    this.el.pause()
-    return this
-  }
-
-  stop(){
-    this.el.pause()
-    this.el.currentTime = 0
-    return this
-  }
-
-  currentTime(setTo){
+  play() {
     let track = this
-    if(typeof setTo === 'number'){
+
+    track.el.play()
+    return track
+  }
+
+  pause() {
+    let track = this
+
+    track.el.pause()
+    return track
+  }
+
+  stop() {
+    let track = this
+
+    track.el.pause()
+    track.el.currentTime = 0
+    return track
+  }
+
+  currentTime(setTo) {
+    let track = this
+
+    if (typeof setTo === 'number') {
       track.el.currentTime = setTo
       return track
     } else {
@@ -92,50 +95,54 @@ class ElementSourceTrack extends WebAudioTrack {
     }
   }
 
-  duration(){
+  duration() {
     let track = this
     return track.el.duration
   }
 
-  formattedTime(includeDuration){
+  formattedTime(includeDuration) {
     let track = this
-    if(includeDuration)
-      return utils.timeFormat(track.currentTime()) + '/' + utils.timeFormat(track.duration());
-    else
-      return utils.timeFormat(track.currentTime());
+
+    const t = utils.timeFormat(track.currentTime())
+    const d = utils.timeFormat(track.duration())
+
+    if (includeDuration) { return `${t}/${d}` }
+    else { return t }
   }
 
-  volume(setTo){
+  volume(setTo) {
     let track = this
-    let gainNode = track.node('GainNode')
+    const gainNode = track.node('GainNode')
 
-    if(typeof setTo === 'number') {
+    if (typeof setTo === 'number') {
       setTo = utils.normalize(setTo)
       setTo = track.options.mix ? setTo * track.options.mix.volume() : setTo
 
-      // we don't need to set both the gain node and element volume,
-      // just the gain node will work, but element volume is a useful place
-      // to store the current volume value
+      /*
 
-      if(gainNode) gainNode.gain(setTo)
+        we don't need to set both the gain node and element volume,
+        just the gain node will work, but element volume is a useful place
+        to store the current volume value
+
+      */
+
+      if (gainNode) { gainNode.gain(setTo) }
       track.el.volume = setTo
-
       return track
     } else {
-      return track.el.volume;
+      return track.el.volume
     }
-
   }
 
-  tweenVolume(setTo, duration){
+  tweenVolume(setTo, duration) {
     let track = this
 
     // replace existing volume tween
-    if(track.volumeTween){
+    if (track.volumeTween) {
       window.cancelAnimationFrame(track.volumeTween)
     }
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve, reject) {
 
       let fps = 60 // requestAnimationFrame
       let durationInFrames = Math.round(duration * fps)
@@ -145,8 +152,8 @@ class ElementSourceTrack extends WebAudioTrack {
 
       tick()
 
-      function tick(){
-        if(frameCount <= 0){
+      function tick() {
+        if (frameCount <= 0) {
           track.volume(endVolume)
           resolve(track)
         } else {
@@ -154,32 +161,27 @@ class ElementSourceTrack extends WebAudioTrack {
         }
 
         frameCount -= 1
-        let progress = (1 - (frameCount / durationInFrames))
-        let v = utils.lerp(startVolume, endVolume, progress)
+        const progress = (1 - (frameCount / durationInFrames))
+        const v = utils.lerp(startVolume, endVolume, progress)
         track.volume( v )
       }
-
     })
   }
 
-  muted(setTo){
+  muted(setTo) {
     let track = this
-    if(typeof setTo === 'boolean'){
-      track.el.muted = setTo
-    }
+
+    if (typeof setTo === 'boolean') { track.el.muted = setTo }
     return track.el.muted
   }
 
-  destroy(){
+  destroy() {
     let track = this
     track.pause()
   }
 
-  paused(){
+  paused() {
     let track = this
     return track.el.paused
   }
-
 }
-
-export default ElementSourceTrack

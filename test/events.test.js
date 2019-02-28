@@ -4,6 +4,7 @@
   All track types should pass these tests.
 
 */
+
 import test from 'ava'
 import sinon from 'sinon'
 
@@ -18,23 +19,23 @@ let trackTypes = {
     track: BaseTrack,
     params: {
       id: 'id'
-    },
+    }
   },
   'Html5Track': {
     track: Html5Track,
     params: {
       id: 'hi',
-      src: 'hi',
-    },
+      src: 'hi'
+    }
   },
   'BufferSourceTrack': {
     track: BufferSourceTrack,
     params: {
       id: 'hi',
       src: 'hi',
-      context: {}, // dummy web audio context
-    },
-  },
+      context: {} // dummy web audio context
+    }
+  }
 }
 
 Object.keys(trackTypes).forEach(trackType => {
@@ -122,7 +123,5 @@ Object.keys(trackTypes).forEach(trackType => {
     track.trigger(eventName)
 
     t.is(callback.calledTwice, false)
-
   })
-
 })

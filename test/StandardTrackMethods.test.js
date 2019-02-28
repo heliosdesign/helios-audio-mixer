@@ -4,6 +4,7 @@
   should pass these tests.
 
 */
+
 import test from 'ava'
 import sinon from 'sinon'
 import createMockRaf from 'mock-raf'
@@ -11,18 +12,15 @@ import createMockRaf from 'mock-raf'
 import AudioContext from './mocks/AudioContext'
 import Tracks from '../src/modules/trackTypes'
 
-
-
 let trackId  = 'track'
 let trackSrc = 'file.ext'
-
 
 let trackTypes = {
   'Html5Track': {
     track: Tracks.Html5Track,
     options: {
       id:  trackId,
-      src: trackSrc,
+      src: trackSrc
     }
   },
   'ElementSourceTrack': {
@@ -30,7 +28,7 @@ let trackTypes = {
     options: {
       id:  trackId,
       src: trackSrc,
-      context: new AudioContext.Unprefixed(),
+      context: new AudioContext.Unprefixed()
     }
   },
   'BufferSourceTrack': {
@@ -38,9 +36,9 @@ let trackTypes = {
     options: {
       id:  trackId,
       src: trackSrc,
-      context: new AudioContext.Unprefixed(),
+      context: new AudioContext.Unprefixed()
     }
-  },
+  }
 }
 
 Object.keys(trackTypes).forEach(trackType => {
@@ -70,7 +68,6 @@ Object.keys(trackTypes).forEach(trackType => {
     let track = new Track(options)
 
     let volumeLevel = 0.5
-
     t.is(track.volume(), 1)
 
     track.volume(volumeLevel)
@@ -83,14 +80,12 @@ Object.keys(trackTypes).forEach(trackType => {
     let excessiveVolumeLevel = 11
     track.volume(excessiveVolumeLevel)
     t.is(track.volume(), 1)
-
   })
 
   test(`${trackType}: set the current time`, t => {
     let track = new Track(options)
 
     let time = 1.3
-
     t.is(track.currentTime(), 0)
 
     track.currentTime(time)
@@ -115,7 +110,6 @@ Object.keys(trackTypes).forEach(trackType => {
     window.requestAnimationFrame = mockRaf.raf
 
     let track = new Track(options)
-
     track.tweenVolume(0, 1)
       .then(() => {
         t.is( track.volume(), 0 )
@@ -131,7 +125,6 @@ Object.keys(trackTypes).forEach(trackType => {
     window.cancelAnimationFrame = mockRaf.cancel
 
     let track = new Track(options)
-
     track.tweenVolume(0.5, 1)
 
     track.tweenVolume(0, 1)
@@ -148,13 +141,10 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(track.muted(), false)
 
     let track2 = new Track(Object.assign(options, { muted: true }))
-
     t.is(track2.muted(), true)
 
     track2.muted(false)
-
     t.is(track2.muted(), false)
-
   })
 
   test(`${trackType}: return paused status`, t => {
@@ -162,9 +152,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(track.paused(), true)
   })
 
-
   // test(`${trackType}: start at a specific time`, t => t.todo)
 
   // test(`${trackType}: chain all non-getter function calls`, t => t.todo)
-
 })

@@ -3,15 +3,15 @@
   Tests for functionality specific to HTML5Track
 
 */
+
 import test from 'ava'
 import sinon from 'sinon'
-import createMockRaf from 'mock-raf'
 
 import Html5Track from '../src/modules/Html5Track'
 
 let options = {
   id:  'id',
-  src: 'file.ext',
+  src: 'file.ext'
 }
 
 test('Initialize track', t => {
@@ -24,7 +24,7 @@ test('Initialize track', t => {
   t.is(document.createElement.calledWith('audio'), true)
 })
 
-let methods = ['play', 'pause']
+let methods = [ 'play', 'pause' ]
 methods.forEach(method => {
   test(`track wraps native HTML5 ${method} method`, t => {
     let track = new Html5Track(options)

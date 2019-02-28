@@ -6,41 +6,38 @@
 
 */
 import BaseTrack from './BaseTrack'
-import utils from './utils'
-
 import Nodes from './nodes/allNodes'
 
-class WebAudioTrack extends BaseTrack {
-  constructor(params){
+export default class WebAudioTrack extends BaseTrack {
+  constructor(params) {
     super(params)
     let track = this
 
     let defaults = {
       src:      '',
       context:  false,
-      nodes:    [],
+      nodes:    []
     }
     track.options = Object.assign(defaults, params)
 
-    track.data = {}
-
+    track.data       = {}
     // reference nodes by ???
     track.allNodes   = []
     track.nodeLookup = {}
   }
-
 
   /*
 
     input is an array
 
   */
-  createNodes(nodes, source){
+
+  createNodes(nodes, source) {
     let track = this
 
-    if(!source){
+    if (!source) {
       throw new Error('Can’t create nodes without a valid source.')
-    } else if(!source.connect){
+    } else if (!source.connect) {
       throw new Error('Can’t create nodes without a valid source.')
     }
 
@@ -50,15 +47,12 @@ class WebAudioTrack extends BaseTrack {
     let previousNode = source
     nodes.forEach(n => {
 
-      let baseParams = {
-        context: track.options.context
-      }
+      let baseParams = { context: track.options.context }
 
       // determine node type by duck typing
-      if(typeof n === 'string'){
+      if (typeof n === 'string') {
         // predefined node with all defaults, no options
-
-        if(Nodes[n]){
+        if (Nodes[n]) {
 
           let newNode = new Nodes[n](baseParams)
           track.allNodes.push(newNode)
@@ -66,17 +60,16 @@ class WebAudioTrack extends BaseTrack {
 
           previousNode.connect(newNode.node)
           previousNode = newNode.node
-
         } else {
           throw new Error(`Node type ${n} does not exist.`)
         }
+      } else if (typeof n === 'object') {
+        // create predefined node with options
+        if ( n.type ) {
 
-      } else if(typeof n === 'object'){
-        if( n.type ){
-          // create predefined node with options
           let nodeType = Nodes[n.type]
+          if (nodeType) {
 
-          if(nodeType){
             let newNode = new nodeType( Object.assign(baseParams, n.options) )
 
             track.allNodes.push(newNode)
@@ -84,36 +77,28 @@ class WebAudioTrack extends BaseTrack {
 
             previousNode.connect(newNode.node)
             previousNode = newNode.node
-
           } else {
             throw new Error(`Node type ${n.type} does not exist.`)
           }
-
-        } else if(n.node) {
+        } else if (n.node) {
           // create custom node, this is a raw node object
 
           track.allNodes.push(n)
-
           previousNode.connect(n.node)
           previousNode = n.node
-
         }
       }
-
     })
-
     previousNode.connect(track.options.context.destination)
-
   }
 
-  nodes(){
-    return this.allNodes
+  nodes() {
+    let track = this
+    return track.allNodes
   }
 
-  node(id){
-    return this.nodeLookup[id] || false
+  node(id) {
+    let track = this
+    return track.nodeLookup[id] || false
   }
-
 }
-
-export default WebAudioTrack

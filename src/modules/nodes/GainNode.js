@@ -9,24 +9,28 @@
 
   g.node -> the web audio node object
 
-  g.gain(setTo) -> getter/setter
+  g.gain(setTo)  -> getter/setter
   g.muted(setTo) -> getter/setter
 
   g.tweenGain(setTo, duration)
 
 */
-import u from '../utils'
 
-class GainNode {
-  constructor(params){
-    this.ctx = params.context
-    this.node = this.ctx.createGainNode ? this.ctx.createGainNode() : this.ctx.createGain()
+import utils from '../utils.js'
 
-    this.gain( typeof params.gain === 'number' ? params.gain : 1 )
+export default class GainNode {
+  constructor(params) {
+    let state  = this
+    state.ctx  = params.context
+    state.node = state.ctx.createGainNode ? state.ctx.createGainNode() : state.ctx.createGain()
+
+    state.gain( typeof params.gain === 'number' ? params.gain : 1 )
   }
 
-  gain(setTo){
-    if(typeof setTo === 'number'){
+  gain(setTo) {
+    let state = this
+
+    if (typeof setTo === 'number') {
       /*
 
         'AudioParam value setter will become equivalent to AudioParam.setValueAtTime() in (Chrome) M65'
@@ -39,32 +43,33 @@ class GainNode {
         - https://www.chromestatus.com/features/5287995770929152
         - https://github.com/mrdoob/three.js/pull/11133
 
+        setTargetAtTime( value, start time (clamped to current time), time constant )
+
       */
 
-      // setTargetAtTime( value, start time (clamped to current time), time constant )
-      this.node.gain.setTargetAtTime(u.normalize(setTo), this.ctx.currentTime, 0)
-
+      state.node.gain.setTargetAtTime(utils.normalize(setTo), state.ctx.currentTime, 0)
     }
-    return this.node.gain.value
+    return state.node.gain.value
   }
 
+  /*
 
-  // tweenGain(0, 1, 'linear')
-  tweenGain(setTo, duration){
-    // using an exponential ramp (not linear) for a more even crossfade
-    // (linear creates a volume dip in the middle)
+    tweenGain(0, 1, 'linear')
+    using an exponential ramp (not linear) for a more even crossfade
+    (linear creates a volume dip in the middle)
 
-    if(typeof this.node.gain.exponentialRampToValueAtTime === 'function'){
-      setTo = u.normalize(setTo)
-      if(setTo === 0) setTo = 0.000001 // can't use zero for ramps
+  */
 
-      this.node.gain.exponentialRampToValueAtTime(setTo, this.ctx.currentTime + duration)
+  tweenGain(setTo, duration) {
+    let state = this
+
+    if (typeof state.node.gain.exponentialRampToValueAtTime === 'function') {
+      setTo = utils.normalize(setTo)
+      if (setTo === 0) { setTo = 0.000001 } // can't use zero for ramps
+
+      state.node.gain.exponentialRampToValueAtTime(setTo, state.ctx.currentTime + duration)
     }
   }
 
-  muted(setTo){
-
-  }
+  muted(setTo) {}
 }
-
-export default GainNode
