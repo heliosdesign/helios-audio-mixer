@@ -3,14 +3,12 @@
   Additional tests for Buffer Source Track
 
 */
+
 import test from 'ava'
-import sinon from 'sinon'
-import createMockRaf from 'mock-raf'
 
 import AudioContext from './mocks/AudioContext'
 
 import ElementSourceTrack from '../src/modules/ElementSourceTrack'
-import allNodes from '../src/modules/nodes/allNodes'
 
 test('instantiate', t => {
 
@@ -31,7 +29,7 @@ test('instantiate', t => {
     let errorTrack = new ElementSourceTrack({
       source: 'source.src',
       ctx: ctx,
-      sourceMode: 'asdfjkl',
+      sourceMode: 'asdfjkl'
     })
   })
 
@@ -42,5 +40,3 @@ test('instantiate', t => {
   })
   t.truthy(track)
 })
-
-

@@ -37,7 +37,7 @@ button {
   button.mod-green {
     background: #d0ffd0; }
 
-h3 {
+h3, h4 {
   margin: 1rem; }
 
 /********************************************************/
@@ -92,6 +92,12 @@ h3 {
   margin: 0 1em;
   width: 150px; }
 
+.pan {
+  display: flex;
+  flex-direction: row; }
+  .pan input {
+    margin: 0 0.5rem; }
+
 /********************************************************/
 .controls {
   display: flex; }
@@ -115,10 +121,30 @@ h3 {
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: center; }
+  align-items: center;
+  height: 4rem;
+  padding: 0.5rem 0; }
 
 .tracks-track-col {
-  margin-right: 0.5em; }
+  position: relative;
+  margin-right: 0.5em;
+  height: 100%;
+  display: flex;
+  align-items: center; }
   .tracks-track-col.mod-id {
     width: 150px;
     overflow: hidden; }
+
+.tracks-track-col-label {
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  position: absolute;
+  top: -2.5rem;
+  left: 0;
+  font-weight: bold;
+  color: grey;
+  display: none; }
+
+.tracks-track:first-child .tracks-track-col-label {
+  display: block; }
+

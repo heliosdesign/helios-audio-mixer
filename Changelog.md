@@ -1,3 +1,16 @@
+# Changelog
+
+## 1.0.0-alpha.3
+
+- upgrades to dependencies and wepback/babel configuration
+- completed integration of analysis node functionality, including demo and tests
+- assorted file cleanup and standardisation
+
+## 1.0.0-alpha.2
+
+- web audio API tracks added: buffer source track, element source track
+- demo functionality improvements
+
 ## 1.0.0-alpha.1
 
 - complete rewrite in ES7/2015 to be more modular, easily extensible, and testable
@@ -71,7 +84,7 @@ fixed `removeTrack()` memory leak
 
 - all async methods now use promises not callbacks (`tweenPan`, `tweenGain`)
 
-  ```
+  ```js
   track.tweenPan(0, 1000)
   .then(function(track){ mix.removeTrack(track.name) })
   ```

@@ -1,5 +1,4 @@
 const m = require('mithril')
-const Stream = require('mithril/stream')
 
 const frameRunner = require('frame-runner')
 
@@ -8,152 +7,157 @@ const frameRunner = require('frame-runner')
   Formatted Time (00:00)
 
 */
-let formattedTime = {
-  oncreate: function(vnode){
-    let state = this
-    let track = vnode.attrs.track
 
-    track.on('play', () => updateTime())
-    track.on('ended', () => m.redraw())
+const formattedTime = {
+  oncreate: function(vnode) {
+    let state   = this
+    state.track = vnode.attrs.track
+    state.id    = state.track.options.id
 
-    state.hook = frameRunner.add(track.options.id + '-formatted-time', updateTime)
-    function updateTime(){
-      vnode.dom.innerText = track.formattedTime()
+    state.track.on('play',  () => updateTime())
+    state.track.on('ended', () => m.redraw())
+
+    state.hook = frameRunner.add(`${state.id}-formatted-time`, updateTime)
+
+    function updateTime() {
+      vnode.dom.innerText = state.track.formattedTime()
     }
   },
-  onremove: function(vnode){
+  onremove: function(vnode) {
     let state = this
     state.hook()
   },
-  view: function(vnode){
+  view: function(vnode) {
     return m('.tracks-track-time', '00:00')
   }
 }
-
 
 /*
 
   Volume Slider
 
 */
-let volumeControl = {
-  oninit: function(vnode){
-    let state = this
+
+const volumeControl = {
+  oninit: function(vnode) {
+    let state   = this
     state.track = vnode.attrs.track
+    state.id    = state.track.options.id
   },
-  oncreate: function(vnode){
+  oncreate: function(vnode) {
     let state = this
 
     let isMouseDown
-    let input = vnode.dom.querySelector('input')
-    let label = vnode.dom.querySelector('.mod-currentvolume')
+    state.input = vnode.dom.querySelector('input')
+    state.label = vnode.dom.querySelector('.mod-currentvolume')
 
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    state.hook = frameRunner.add(state.track.options.id + '-update-volume', updateVolume)
+    state.hook = frameRunner.add(`${state.id}-update-volume`, updateVolume)
 
-    function updateVolume(){
-      if(isMouseDown) return
-      input.value = state.track.volume() * 100
-      label.innerText = input.value + '%'
+    function updateVolume() {
+      if (isMouseDown) { return }
+      state.input.value     = state.track.volume() * 100
+      state.label.innerText = `${state.input.value}%`
     }
 
-    function onmousedown(){
+    function onmousedown() {
       isMouseDown = true
     }
 
-    function onmouseup(e){
+    function onmouseup(e) {
       isMouseDown = false
       state.track.volume( e.target.value / 100 )
     }
   },
-  onremove: function(vnode){
+  onremove: function(vnode) {
     let state = this
     state.hook()
   },
-  view: function(vnode){
+  view: function(vnode) {
     let state = this
     return [
       m('.tracks-track-col', [
         m('.tracks-track-col-label', 'volume'),
-
         m('.volumecontrol', [
           m('input[type="range"].volumecontrol-input', {
-            min:   0,
-            max:   100,
+            min:           0,
+            max:         100,
             onmousedown: state.onmousedown,
-            onmouseup:   state.onmouseup,
+            onmouseup:   state.onmouseup
           }),
-          m('.volumecontrol-label.mod-currentvolume', Math.round(state.track.volume() * 100) + '%'),
+          m('.volumecontrol-label.mod-currentvolume', `${Math.round(state.track.volume() * 100)}%`)
         ])
       ]),
 
       m('.tracks-track-col', [
         m('button', { onclick: () => state.track.tweenVolume(0, 1) }, 'To 0'),
-        m('button', { onclick: () => state.track.tweenVolume(1, 1) }, 'To 100'),
-      ]),
-    ];
+        m('button', { onclick: () => state.track.tweenVolume(1, 1) }, 'To 100')
+      ])
+    ]
   }
 }
-
 
 /*
 
   Time Scrubber
 
 */
-let scrubber = {
-  oncreate: function(vnode){
-    let state = this
-    var track = vnode.attrs.track
-    let percentage, isMouseDown
 
-    let input = vnode.dom.querySelector('input')
+const scrubber = {
+  oninit: function(vnode) {
+    let state   = this
+    state.track = vnode.attrs.track
+    state.id    = state.track.options.id
+  },
+  oncreate: function(vnode) {
+    let state   = this
+
+    let percentage, isMouseDown
+    state.input = vnode.dom.querySelector('input')
 
     state.max = 1000
 
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    state.hook = frameRunner.add(track.options.id + '-update-time', updateTime)
+    state.hook = frameRunner.add(`${state.id}-update-time`, updateTime)
 
-    function updateTime(){
-      if(isMouseDown) return
+    function updateTime() {
+      if (isMouseDown || !state.track.duration()) { return }
 
-      percentage = track.currentTime() / track.duration()
-      input.value = percentage * state.max
+      percentage = state.track.currentTime() / state.track.duration()
+      state.input.value = percentage * state.max
     }
 
-    function onmousedown(){
+    function onmousedown() {
       isMouseDown = true
     }
-    function onmouseup(e){
-      isMouseDown = false
-      percentage = e.target.value / state.max
-      track.currentTime( percentage * track.duration() )
-    }
 
+    function onmouseup(e) {
+      isMouseDown = false
+      percentage  = e.target.value / state.max
+      state.track.currentTime( percentage * state.track.duration() )
+    }
   },
-  onremove: function(vnode){
+  onremove: function(vnode) {
     let state = this
     state.hook()
   },
-  view: function(vnode){
+  view: function(vnode) {
     let state = this
     return m('.scrubber', [
       m('input[type="range"].scrubber-input', {
-        min:   0,
-        max:   state.max,
-
+        min:         0,
+        max:         state.max,
+        value:       state.input ? state.input.value : 0,
         onmousedown: state.onmousedown,
-        onmouseup:   state.onmouseup,
-      }),
-    ]);
+        onmouseup:   state.onmouseup
+      })
+    ])
   }
 }
-
-
 
 /*
 
@@ -161,22 +165,22 @@ let scrubber = {
 
 */
 
-let pan2d = {
-  oncreate: function(vnode){
-    let state = this
-    var track = vnode.attrs.track
+const pan2d = {
+  oncreate: function(vnode) {
+    let state   = this
+    state.track = vnode.attrs.track
+    state.id    = state.track.options.id
 
     let angle, isMouseDown
-
-    let input = vnode.dom.querySelector('input')
+    state.input = vnode.dom.querySelector('input')
 
     state.min = -90
-    state.max = 90
+    state.max =  90
 
     // get a reference to the panner node (re-created every time we play)
-    track.on('play', () => {
-      if(track.node){
-        state.panNode = track.node('PannerNode2D')
+    state.track.on('play', () => {
+      if (state.track.node) {
+        state.panNode = state.track.node('PannerNode2D')
         m.redraw()
       }
     })
@@ -184,85 +188,120 @@ let pan2d = {
     state.onmousedown = onmousedown
     state.onmouseup   = onmouseup
 
-    state.hook = frameRunner.add(track.options.id + '-update-time', updateTime)
+    state.hook = frameRunner.add(`${state.id}-update-time`, updateTime)
 
-    function updateTime(){
-      if(isMouseDown) return
-      if(!state.panNode) return
+    function updateTime() {
+      if (isMouseDown || !state.panNode) { return }
 
       let angle = state.panNode.pan()
-      if(angle > 90) angle = 360 - angle
+      if (angle > 90) { angle = 360 - angle }
 
-      if(!input) input = vnode.dom.querySelector('input')
-      if(input) input.value = angle
+      if (state.input) { state.input.value = angle }
+      else { state.input = vnode.dom.querySelector('input') }
     }
 
-    function onmousedown(){
+    function onmousedown() {
       isMouseDown = true
     }
-    function onmouseup(e){
+
+    function onmouseup(e) {
       isMouseDown = false
-
       angle = parseInt(e.target.value)
-
-      let panNode = track.node('PannerNode2D')
-      panNode.pan( angle )
+      state.panNode.pan( angle )
     }
-
   },
-  onremove: function(vnode){
+  onremove: function(vnode) {
     let state = this
     state.hook()
   },
-  view: function(vnode){
+  view: function(vnode) {
     let state = this
 
-    if(state.panNode){
-      return m('.tracks-track-col', [
-        m('.tracks-track-col-label', 'pan (2d)'),
+    return m('.tracks-track-col', [
+      m('.tracks-track-col-label', 'pan (2d)'),
 
-        m('.pan', [
-          m('.pan-label', 'left'),
-          m('input[type="range"].scrubber-input', {
-            min:   state.min,
-            max:   state.max,
-
-            onmousedown: state.onmousedown,
-            onmouseup:   state.onmouseup,
-          }),
-          m('.pan-label', 'right'),
-        ]),
-
-      ]);
-    } else {
-      return m('')
-    }
-
-
+      m('.pan', { style: { visibility: state.panNode ? 'visible' : 'hidden' }}, [
+        m('.pan-label', 'left'),
+        m('input[type="range"].scrubber-input', {
+          min:         state.min,
+          max:         state.max,
+          value:       state.panNode ? state.panNode.values.pan : 0,
+          onmousedown: state.onmousedown,
+          onmouseup:   state.onmouseup
+        }),
+        m('.pan-label', 'right')
+      ])
+    ])
   }
 }
 
+const analyser = {
+  oncreate: function(vnode) {
+    let state   = this
+    state.track = vnode.attrs.track
+    state.id    = state.track.options.id
 
+    let canvas, canvasCtx
 
+    state.track.on('play', () => {
+      if (state.track.node) {
+        state.analyser = state.track.node('AnalyserNode')
+        m.redraw()
 
+        if (state.analyser) {
+          canvas    = document.getElementById(`${state.id}-oscilloscope`)
+          canvasCtx = canvas.getContext('2d')
+          draw()
+        }
+      }
+    })
 
-// ********************************************************
+    function draw() {
+      requestAnimationFrame(draw)
 
-// TO DO
+      const bufferLength = state.analyser.bufferLength
+      const dataArray    = state.analyser.analysis.raw
 
-// ********************************************************
+      state.analyser.node.getByteTimeDomainData(dataArray)
 
-function analysis(){
-  let track = this
-  return m('.tracks-track-col', [
-    'analysis'
-  ])
+      canvasCtx.fillStyle = 'rgb(255, 255, 255)'
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height)
+
+      canvasCtx.lineWidth   = 2
+      canvasCtx.strokeStyle = 'rgb(0, 0, 0)'
+
+      canvasCtx.beginPath()
+
+      const sliceWidth = canvas.width  / bufferLength
+      const center     = canvas.height / 2
+      let x = 0
+
+      for (let i = 0; i < bufferLength; i++) {
+        const y = (dataArray[i] / 128) * center
+
+        if (i === 0) {
+          canvasCtx.moveTo(x, y)
+        } else {
+          canvasCtx.lineTo(x, y)
+        }
+        x += sliceWidth
+      }
+
+      canvasCtx.lineTo(canvas.width, center)
+      canvasCtx.stroke()
+    }
+  },
+  view: function(vnode) {
+    let state = this
+
+    return m('.tracks-track-col', [
+      m('.tracks-track-col-label', 'analyser'),
+      m('canvas.analyser', { id: `${state.id}-oscilloscope`, style: {
+        visibility: state.analyser ? 'visible' : 'hidden'
+      }})
+    ])
+  }
 }
-
-
-
-
-
 
 /*
 
@@ -275,43 +314,39 @@ function analysis(){
 */
 
 module.exports = {
-  oninit: function(vnode){
+  oninit: function(vnode) {
     let state = this
-    let mix = vnode.attrs.mix
-
+    state.mix = vnode.attrs.mix
   },
-  view: function(vnode){
+  view: function(vnode) {
     let state = this
-    let mix = vnode.attrs.mix
-
     return m('.tracks', [
-      mix.tracks().length ? TrackListTracks.call(state, vnode) : TrackListEmpty()
+      state.mix.tracks().length
+        ? TrackListTracks.call(state, vnode)
+        : TrackListEmpty()
     ])
   }
 }
 
-function TrackListTracks(vnode){
+function TrackListTracks(vnode) {
   let state = this
-  return vnode.attrs.mix.tracks().map(track => {
+  state.mix = vnode.attrs.mix
 
+  return state.mix.tracks().map(track => {
     return m('.tracks-track', [
 
       m('.tracks-track-col.mod-id', track.options.id),
-
 
       m('.tracks-track-col', [
         m('.tracks-track-col-label', 'time'),
         m(scrubber, { track })
       ]),
 
-      m('.tracks-track-col', [
-        m(formattedTime, { track })
-      ]),
+      m('.tracks-track-col', [ m(formattedTime, { track }) ]),
 
       // track controls
       m('.tracks-track-col', [
-        m('button', {
-          style: { display: track.paused() ? 'none' : 'block' },
+        m('button', { style: { display: track.paused() ? 'none' : 'block' },
           onclick: () => track.pause()
         }, '| |'),
 
@@ -321,23 +356,18 @@ function TrackListTracks(vnode){
         }, m.trust('&#9655;')),
       ]),
 
-
       m('.tracks-track-col', [
-        m('button', { onclick: () => vnode.attrs.mix.remove(track) }, m.trust('&#10005;')),
+        m('button', { onclick: () => state.mix.remove(track)
+        }, m.trust('&#10005;')),
       ]),
 
       m(volumeControl, { track }),
-
-
-      m(pan2d, { track }),
-
+      m(analyser,      { track }),
+      m(pan2d,         { track })
     ])
   })
 }
 
-function TrackListEmpty(){
+function TrackListEmpty() {
   return m('.tracks-track', ['no tracks'])
 }
-
-
-

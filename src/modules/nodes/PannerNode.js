@@ -4,17 +4,15 @@
 
 */
 
-class PanNode3D {
-  constructor(params){
-    let ctx = params.context
+export default class PanNode3D {
+  constructor(params) {
+    let state = this
+    state.ctx = params.context
 
     // the name of this function is the same for
     // both prefixed and unprefixed audio contexts
-    this.node = ctx.createPanner()
+    state.node = state.ctx.createPanner()
 
     // additional setup here
   }
-
 }
-
-export default PanNode3D

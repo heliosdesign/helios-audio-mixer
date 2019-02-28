@@ -3,22 +3,20 @@
   Mock AudioContext
 
 */
+
 import sinon from 'sinon'
 
-
 class AudioParam {
-  constructor(_val){
+  constructor(_val) {
     this.value = _val
 
-    this.exponentialRampToValueAtTime = function(_setTo){ this.value = _setTo}
-    this.linearRampToValueAtTime = function(_setTo){ this.value = _setTo}
-    this.setTargetAtTime = function(_setTo){ this.value = _setTo}
+    this.exponentialRampToValueAtTime = function(_setTo) { this.value = _setTo }
+    this.linearRampToValueAtTime      = function(_setTo) { this.value = _setTo }
+    this.setTargetAtTime              = function(_setTo) { this.value = _setTo }
   }
 }
 
-let dummyNode = {
-  connect: sinon.spy()
-}
+let dummyNode = { connect: sinon.spy() }
 
 let gainNode = {
   gain: new AudioParam(1),
@@ -27,67 +25,74 @@ let gainNode = {
 
 let mediaElementSource = { connect: sinon.spy() }
 
-
 /*
 
   W3C Standard (Edge, Chrome, FF)
 
 */
+
 class Unprefixed {
-  constructor(params){
+  constructor(params) {
     this.currentTime = (new Date()).getTime()
     this.destination = {}
   }
 
-  createGain(){ return gainNode }
+  createGain()            { return gainNode  }
 
-  createPanner(){ return dummyNode }
+  createPanner()          { return dummyNode }
 
-  createBufferSource(){
+  createAnalyser()        { return dummyNode }
+
+  createScriptProcessor() { return dummyNode }
+
+  createBufferSource() {
     let bufferSource = {}
 
-    bufferSource.start = sinon.spy()
+    bufferSource.start   = sinon.spy()
     bufferSource.connect = sinon.spy()
     bufferSource.context = { currentTime: 0 }
 
     return bufferSource
   }
 
-  decodeAudioData(audioData, callback){
+  decodeAudioData(audioData, callback) {
     let decodedBuffer = { duration: 1 }
     callback(decodedBuffer)
   }
 
-  createMediaElementSource(){
+  createMediaElementSource() {
     return mediaElementSource
   }
 }
-
 
 /*
 
   Prefixed (Safari, only)
 
 */
+
 class Prefixed {
-  constructor(params){
-    this.destination = {}
-  }
+  constructor(params) { this.destination = {} }
 
-  createGainNode(){ return gainNode }
+  createGainNode()        { return gainNode  }
 
-  createPanner(){ return dummyNode }
+  createPanner()          { return dummyNode }
 
-  createBufferSource(){
+  createAnalyser()        { return dummyNode }
+
+  createScriptProcessor() { return dummyNode }
+
+  createBufferSource() {
     let bufferSource = {}
-    bufferSource.start = sinon.spy()
+
+    bufferSource.start   = sinon.spy()
     bufferSource.connect = sinon.spy()
     bufferSource.context = { currentTime: 0 }
 
     return bufferSource
   }
 
-  createBuffer(audioData){
+  createBuffer(audioData) {
     let decodedBuffer = { duration: 1 }
     return decodedBuffer
   }
@@ -95,7 +100,6 @@ class Prefixed {
   createMediaElementSource(){
     return mediaElementSource
   }
-
 }
 
 export default { Prefixed, Unprefixed }

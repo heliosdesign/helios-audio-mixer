@@ -4,51 +4,47 @@
 
 */
 
+export default class BaseTrack {
+  constructor(params) {
+    let track = this
 
-class BaseTrack {
-  constructor(params){
-    this.id = params.id
-    this.events = {}
-    this.timelineEvents = params.timelineEvents ? [...params.timelineEvents] : []
+    track.id     = params.id
+    track.events = {}
+    track.timelineEvents = params.timelineEvents ? [...params.timelineEvents ] : []
   }
 
-  destroy(){}
+  destroy() {}
 
   /*
 
     Events
 
   */
-  on(eventName, callback){
+
+  on(eventName, callback) {
     let track = this
 
-    if(typeof eventName !== 'string'){
+    if (typeof eventName !== 'string') {
       throw new Error('Event name must be a string.')
-    } else if(!callback) {
-      throw new Error('Can’t register an event without a callback.')
-    } else {
-      if(track.events[eventName]){
-        track.events[eventName].push(callback)
-      } else {
-        track.events[eventName] = [callback]
-      }
     }
+
+    if (!callback) {
+      throw new Error('Can’t register an event without a callback.')
+    }
+
+    track.events[eventName] ? track.events[eventName].push(callback) : track.events[eventName] = [callback]
 
     return track
   }
 
-  off(eventName, callback){
+  off(eventName, callback) {
     let track = this
 
-    if(callback){
-      // remove specific callback
-      if(track.events[eventName]){
-        let index = track.events[eventName].indexOf(callback)
+    if (track.events[eventName]) {
+      if (callback) { // remove specific callback
+        const index = track.events[eventName].indexOf(callback)
         track.events[eventName].splice(index,1)
-      }
-    } else {
-      // remove all callbacks for a given event name
-      if(track.events[eventName]){
+      } else {        // remove all callbacks for a given event name
         track.events[eventName] = []
       }
     }
@@ -56,10 +52,10 @@ class BaseTrack {
     return track
   }
 
-  one(eventName, callback){
+  one(eventName, callback) {
     let track = this
 
-    let wrappedCallback = function(){
+    const wrappedCallback = function() {
       track.off(eventName, wrappedCallback)
       callback()
     }
@@ -69,42 +65,36 @@ class BaseTrack {
     return track
   }
 
-  trigger(eventName){
+  trigger(eventName) {
     let track = this
 
-    if(track.events[eventName]){
-      let args = Array.prototype.slice.call(arguments, 1)
+    if (track.events[eventName]) {
+      const args = Array.prototype.slice.call(arguments, 1)
       track.events[eventName].forEach(fn => fn.apply(track, args))
     }
 
     return track
   }
 
-
   /*
 
     Timeline
 
       check if any events need to be triggered
-
       this is called by the mixer using requestAnimationFrame
 
   */
 
-  updateTimelineEvents(time){
+  updateTimelineEvents(time) {
     let track = this
     let e
-    for (var i = 0; i < track.timelineEvents.length; i++) {
+
+    for (let i = 0; i < track.timelineEvents.length; i++) {
       e = track.timelineEvents[i]
-      if(time >= e.time && !e.triggered){
+      if (time >= e.time && !e.triggered) {
         e.triggered = true
-        if(e.callback)
-          e.callback.call(track)
+        if (e.callback) { e.callback.call(track) }
       }
     }
-
   }
-
 }
-
-module.exports = BaseTrack

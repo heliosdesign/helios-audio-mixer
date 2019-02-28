@@ -4,6 +4,7 @@
   All track types should pass these tests.
 
 */
+
 import test from 'ava'
 import sinon from 'sinon'
 
@@ -18,30 +19,30 @@ let trackTypes = {
     track: BaseTrack,
     params: {
       id: 'id'
-    },
+    }
   },
   'Html5Track': {
     track: Html5Track,
     params: {
       id: 'hi',
-      src: 'hi',
-    },
+      src: 'hi'
+    }
   },
   'BufferSourceTrack': {
     track: BufferSourceTrack,
     params: {
       id: 'hi',
       src: 'hi',
-      context: {}, // dummy web audio context
-    },
-  },
+      context: {} // dummy web audio context
+    }
+  }
 }
 
 Object.keys(trackTypes).forEach(trackType => {
   let Track = trackTypes[trackType].track
   let params = trackTypes[trackType].params
 
-  test(trackType + ': register an event', t => {
+  test(`${trackType}: register an event`, t => {
     let track = new Track(params)
     let eventName = 'eeeeee'
     let callback = sinon.spy()
@@ -50,14 +51,14 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(track.events[eventName][0], callback)
   })
 
-  test(trackType + ': don’t register invalid events', t => {
+  test(`${trackType}: don’t register invalid events`, t => {
     let track = new Track(params)
 
     t.throws(() => track.on(12345, function(){}))
     t.throws(() => track.on('validEventName'))
   })
 
-  test(trackType + ': trigger an event', t => {
+  test(`${trackType}: trigger an event`, t => {
     let track = new Track(params)
     let eventName = 'eeeeee'
     let callback = sinon.spy()
@@ -71,7 +72,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(callback.calledWith(eventData), true)
   })
 
-  test(trackType + ': remove an event', t => {
+  test(`${trackType}: remove an event`, t => {
     let track = new Track(params)
     let eventName = 'asdfjkl'
     let callback = sinon.spy()
@@ -90,7 +91,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(callback2.calledWith(eventData1, eventData2), true)
   })
 
-  test(trackType + ': remove all events for a given event type', t => {
+  test(`${trackType}: remove all events for a given event type`, t => {
     let track = new Track(params)
     let eventName = 'fffff'
     let callback = sinon.spy()
@@ -108,7 +109,7 @@ Object.keys(trackTypes).forEach(trackType => {
     t.is(callback2.called, false)
   })
 
-  test(trackType + ': register a one-time event', t => {
+  test(`${trackType}: register a one-time event`, t => {
     let track = new Track(params)
     let eventName = 'fffff'
     let callback = sinon.spy()
@@ -122,8 +123,5 @@ Object.keys(trackTypes).forEach(trackType => {
     track.trigger(eventName)
 
     t.is(callback.calledTwice, false)
-
   })
-
 })
-

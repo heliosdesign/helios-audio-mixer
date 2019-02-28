@@ -48,7 +48,6 @@ test('Create a track with arguments', t => {
 
   t.is(track.test, 'test')
   t.is(track.args.source, 'source.file')
-
 })
 
 test('Don’t overwrite when creating a second track with the same name', t => {
@@ -100,7 +99,6 @@ test('Remove a track by id', t => {
   mix.remove('hi')
 
   t.falsy( mix.track('hi') )
-
 })
 
 test('Remove a track by track object', t => {
@@ -114,7 +112,6 @@ test('Remove a track by track object', t => {
   mix.remove(track)
 
   t.falsy( mix.track('hi') )
-
 })
 
 test('Remove one track but not another', t => {
@@ -128,7 +125,6 @@ test('Remove one track but not another', t => {
 
   t.is( mix.track('t2'), track2 )
   t.falsy( mix.track('t1'))
-
 })
 
 test('Set volume for the entire mixer', t => {
@@ -162,7 +158,6 @@ test('Setting the volume for the mixer also sets calls volume() for all tracks',
   t.is( mix.volume(), 0.5 )
   t.is(track1.volume.calledWith(1), true)
   t.is(track2.volume.calledWith(1), true)
-
 })
 
 test('tracks() returns all tracks as an array', t => {
@@ -174,14 +169,10 @@ test('tracks() returns all tracks as an array', t => {
 
   let track1 = mix.track('t1', { type: TestTrack })
   let track2 = mix.track('t2', { type: TestTrack })
-  let track3 = mix.track('t2', { type: TestTrack })
+  let track3 = mix.track('t3', { type: TestTrack })
 
   let tracks = mix.tracks()
 
   tracks.forEach(track => track.arbitraryFunction())
-
   tracks.forEach(track => t.is(track.arbitraryFunction.called, true))
-
 })
-
-

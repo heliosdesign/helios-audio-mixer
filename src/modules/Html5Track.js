@@ -6,10 +6,8 @@
 import BaseTrack from './BaseTrack'
 import utils from './utils'
 
-class Html5Track extends BaseTrack {
-
-  constructor(params){
-    // call the parent class’s constructor
+export default class Html5Track extends BaseTrack {
+  constructor(params) {
     super(params)
     let track = this
 
@@ -20,62 +18,60 @@ class Html5Track extends BaseTrack {
       muted:    false,
       start:    0,
       loop:     false,
-      autoplay: false,
+      autoplay: false
     }
-
     track.options = Object.assign(defaults, params)
 
     // set up our HTML5 <audio> element
-    if(!track.options.src){
+    if (!track.options.src) {
       throw new Error('Can’t create an Html5Track without a src parameter')
     }
 
-    track.el = document.createElement('audio')
-
+    track.el          = document.createElement('audio')
     track.el.volume   = track.options.volume
     track.el.muted    = track.options.muted
     track.el.loop     = track.options.loop
     track.el.autoplay = track.options.autoplay
-
-    track.el.src = track.options.src
+    track.el.src      = track.options.src
 
     let eventNames = [
       'loadstart', 'loadedmetadata',
-      'canplay', 'canplaythrough',
-      'play', 'pause',
-      'ended', 'timeupdate',
-      'seeking', 'seeked',
-      'error',
-    ];
+      'canplay',   'canplaythrough',
+      'play',      'pause',
+      'ended',     'timeupdate',
+      'seeking',   'seeked',
+      'error'
+    ]
 
     eventNames.forEach(eventName => {
       track.el.addEventListener(eventName, super.trigger.bind(track, eventName, false))
     })
-
-
   }
 
   // ********************************************************
 
-  play(){
-    this.el.play()
-    return this
-  }
-
-  pause(){
-    this.el.pause()
-    return this
-  }
-
-  stop(){
-    this.el.pause()
-    this.el.currentTime = 0
-    return this
-  }
-
-  currentTime(setTo){
+  play() {
     let track = this
-    if(typeof setTo === 'number'){
+    track.el.play()
+    return track
+  }
+
+  pause() {
+    let track = this
+    track.el.pause()
+    return track
+  }
+
+  stop() {
+    let track = this
+    track.el.pause()
+    track.el.currentTime = 0
+    return track
+  }
+
+  currentTime(setTo) {
+    let track = this
+    if (typeof setTo === 'number') {
       track.el.currentTime = setTo
       return track
     } else {
@@ -83,22 +79,24 @@ class Html5Track extends BaseTrack {
     }
   }
 
-  duration(){
+  duration() {
     let track = this
     return track.el.duration
   }
 
-  formattedTime(includeDuration){
+  formattedTime(includeDuration) {
     let track = this
-    if(includeDuration)
-      return utils.timeFormat(track.currentTime()) + '/' + utils.timeFormat(track.duration());
-    else
-      return utils.timeFormat(track.currentTime());
+
+    const t = utils.timeFormat(track.currentTime())
+    const d = utils.timeFormat(track.duration())
+
+    if (includeDuration) { return `${t}/${d}` }
+    else { return t }
   }
 
-  volume(setTo){
+  volume(setTo) {
     let track = this
-    if(typeof setTo === 'number'){
+    if (typeof setTo === 'number') {
       track.el.volume = utils.normalize(setTo)
       return track
     } else {
@@ -106,15 +104,15 @@ class Html5Track extends BaseTrack {
     }
   }
 
-  tweenVolume(setTo, duration){
+  tweenVolume(setTo, duration) {
     let track = this
 
     // replace existing volume tween
-    if(track.volumeTween){
+    if (track.volumeTween) {
       window.cancelAnimationFrame(track.volumeTween)
     }
 
-    return new Promise(function(resolve, reject){
+    return new Promise(function(resolve, reject) {
 
       let fps = 60 // requestAnimationFrame
       let durationInFrames = Math.round(duration * fps)
@@ -124,8 +122,8 @@ class Html5Track extends BaseTrack {
 
       tick()
 
-      function tick(){
-        if(frameCount <= 0){
+      function tick() {
+        if (frameCount <= 0) {
           track.volume(endVolume)
           resolve(track)
         } else {
@@ -133,33 +131,28 @@ class Html5Track extends BaseTrack {
         }
 
         frameCount -= 1
-        let progress = (1 - (frameCount / durationInFrames))
-        let v = utils.lerp(startVolume, endVolume, progress)
+        const progress = (1 - (frameCount / durationInFrames))
+        const v = utils.lerp(startVolume, endVolume, progress)
         track.volume( v )
       }
-
     })
   }
 
-  muted(setTo){
+  muted(setTo) {
     let track = this
-    if(typeof setTo === 'boolean'){
+    if (typeof setTo === 'boolean') {
       track.el.muted = setTo
     }
     return track.el.muted
   }
 
-  paused(){
+  paused() {
     let track = this
     return track.el.paused
   }
 
-  destroy(){
+  destroy() {
     let track = this
     track.pause()
   }
-
-
 }
-
-module.exports = Html5Track

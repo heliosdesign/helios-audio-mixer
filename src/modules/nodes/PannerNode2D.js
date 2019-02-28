@@ -4,53 +4,49 @@
 
 */
 
-class PannerNode2D {
-  constructor(params){
-    let ctx = params.context
+export default class PannerNode2D {
+  constructor(params) {
+    let state = this
+    state.ctx = params.context
 
     // the name of this function is the same for
     // both prefixed and unprefixed audio contexts
-    this.node = ctx.createPanner()
+    state.node = state.ctx.createPanner()
 
-    this.values = {
+    state.values = {
       pan:  0,
       panX: 0,
       panY: 0,
-      panZ: 0,
+      panZ: 0
     }
 
     // additional setup here
   }
 
-  pan(angle){
+  pan(angle) {
+    let state = this
 
-    if(typeof angle === 'string') {
-      if(     angle === 'front') angle =   0;
-      else if(angle === 'back' ) angle = 180;
-      else if(angle === 'left' ) angle = 270;
-      else if(angle === 'right') angle =  90;
+    if (typeof angle === 'string') {
+      if (angle === 'front') { angle =   0 }
+      if (angle === 'back' ) { angle = 180 }
+      if (angle === 'left' ) { angle = 270 }
+      if (angle === 'right') { angle =  90 }
     }
 
-    if(typeof angle === 'number') {
+    if (typeof angle === 'number') {
+      state.values.pan = angle % 360
 
-      this.values.pan = angle % 360;
+      const angleRad = (-angle + 90) * 0.017453292519943295 // * PI/180
 
-      var angleRad = (-angle + 90) * 0.017453292519943295; // * PI/180
+      let x = state.values.panX = Math.cos(angleRad)
+      let y = state.values.panY = Math.sin(angleRad)
+      let z = state.values.panZ = -0.5
 
-      var x = this.values.panX = Math.cos(angleRad);
-      var y = this.values.panY = Math.sin(angleRad);
-      var z = this.values.panZ = -0.5;
-
-      this.node.setPosition(x, y, z)
+      state.node.setPosition(x, y, z)
     }
 
-    return this.values.pan
+    return state.values.pan
   }
 
-  tweenPan(angle, duration){
-
-  }
-
+  tweenPan(angle, duration) {}
 }
-
-export default PannerNode2D

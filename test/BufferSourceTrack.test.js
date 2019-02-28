@@ -3,22 +3,14 @@
   Additional tests for Buffer Source Track
 
 */
+
 import test from 'ava'
 import sinon from 'sinon'
-import createMockRaf from 'mock-raf'
 
 import AudioContext from './mocks/AudioContext'
 
 import BufferSourceTrack from '../src/modules/BufferSourceTrack'
 import allNodes from '../src/modules/nodes/allNodes'
-
-
-function timeoutPromise(duration){
-  return new Promise(resolve => {
-    setTimeout(() => resolve(), duration)
-  })
-}
-
 
 test('instantiate', t => {
 
@@ -39,7 +31,7 @@ test('instantiate', t => {
     let errorTrack = new BufferSourceTrack({
       source: 'source.src',
       ctx: ctx,
-      sourceMode: 'asdfjkl',
+      sourceMode: 'asdfjkl'
     })
   })
 
@@ -51,11 +43,8 @@ test('instantiate', t => {
   t.truthy(track)
 })
 
-
-
 test.cb('load', t => {
   let ctx = new AudioContext.Unprefixed()
-
 
   let audioData = {}
   window.fetch = window.fetch.bind(null, audioData)
@@ -66,13 +55,13 @@ test.cb('load', t => {
     context:     ctx,
     sourceMode: 'buffer',
     autoplay:    false,
-    autoload:    false,
+    autoload:    false
   })
 
   track.play = sinon.spy()
 
   // ensure all relevant events are triggered
-  let events = ['loadstart', 'loadedmetadata', 'canplay', 'canplaythrough']
+  let events = [ 'loadstart', 'loadedmetadata', 'canplay', 'canplaythrough' ]
   let eventSpies = events.map(eventName => {
     let spy = sinon.spy()
     track.on(eventName, spy)
@@ -95,9 +84,7 @@ test.cb('load', t => {
       })
 
       t.end()
-
     })
-
 })
 
 test('play', t => {
@@ -108,7 +95,7 @@ test('play', t => {
     context:     ctx,
     sourceMode: 'buffer',
     autoplay:    false,
-    autoload:    false,
+    autoload:    false
   })
 
   track.load = sinon.spy()
@@ -130,7 +117,6 @@ test('play', t => {
 
   t.is(track.status.playing, true)
   t.is(playSpy.called, true)
-
 })
 
 test.cb('ended event', t => {
@@ -141,7 +127,7 @@ test.cb('ended event', t => {
     context:     ctx,
     sourceMode: 'buffer',
     autoplay:    false,
-    autoload:    false,
+    autoload:    false
   })
 
   // fake load
@@ -153,10 +139,9 @@ test.cb('ended event', t => {
   t.truthy(track.data.onendtimer)
   t.is(track.data.timerDuration, 0.1)
 
-  track.on('ended', function(){
+  track.on('ended', function() {
     t.end()
   })
-
 })
 
 
@@ -168,7 +153,7 @@ test.cb('pause', t => {
     context:     ctx,
     sourceMode: 'buffer',
     autoplay:    false,
-    autoload:    false,
+    autoload:    false
   })
 
   track.load = sinon.spy()
@@ -195,7 +180,6 @@ test.cb('pause', t => {
   setTimeout(() => {
 
     track.data.source.context.currentTime = 0.1
-
     track.pause()
 
     t.is(window.clearTimeout.called, true)
@@ -206,7 +190,6 @@ test.cb('pause', t => {
     t.end()
 
   }, 100)
-
 })
 
 test('pause and restart at the right time', t => {
@@ -217,7 +200,7 @@ test('pause and restart at the right time', t => {
     context:     ctx,
     sourceMode: 'buffer',
     autoplay:    false,
-    autoload:    false,
+    autoload:    false
   })
 
   track.status.ready = true
@@ -230,14 +213,13 @@ test('pause and restart at the right time', t => {
 
   t.is(track.status.playing, false)
   t.is(track.data.cachedTime, 0.1)
-
 })
 
 
 test('volume', async t => {
   let ctx = new AudioContext.Unprefixed()
   let mixVolume = 1
-  let mix = { volume: function(){ return mixVolume } }
+  let mix = { volume: function() { return mixVolume } }
 
   let track = new BufferSourceTrack({
     src:        'asdf',
@@ -245,7 +227,7 @@ test('volume', async t => {
     sourceMode: 'buffer',
     autoplay:    false,
     autoload:    false,
-    mix:         mix,
+    mix:         mix
   })
 
   // set volume before track is ready
@@ -277,8 +259,4 @@ test('volume', async t => {
   t.is(gainNode.gain(), 0.25)
   t.is(track.status.muted, false)
   t.is(track.muted(), false)
-
 })
-
-
-

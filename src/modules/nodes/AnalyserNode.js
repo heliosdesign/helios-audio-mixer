@@ -4,75 +4,73 @@
 
 */
 
-class AnalyserNode {
-  constructor(params){
-    let ctx = params.context
+export default class AnalyserNode {
+  constructor(params) {
+    let state  = this
+    state.ctx  = params.context
+    state.node = state.ctx.createAnalyser()
 
-    this.node = ctx.createAnalyser()
-
-    analyserNode.smoothingTimeConstant = 0.2
-    analyserNode.fftSize = 32
+    state.node.smoothingTimeConstant = 0.2
+    state.node.fftSize = 2048
 
     // create a script processor with bufferSize of 2048
-    this.processor = ctx.createScriptProcessor(2048, 1, 1)
+    state.processor = state.ctx.createScriptProcessor(2048, 1, 1)
 
-    processorNode.connect(ctx.destination) // processor -> destination
-    analyserNode.connect(processorNode)    // analyser  -> processor
+    state.processor.connect(state.ctx.destination) // processor -> destination
+    state.node.connect(state.processor)            // analyser  -> processor
 
-    this.bufferLength = analyserNode.frequencyBinCount
+    state.bufferLength = state.node.frequencyBinCount
 
-    this.analysis = {
-      raw: new Uint8Array(options.bufferLength),
+    state.analysis = {
+      raw: new Uint8Array(state.bufferLength),
       average: 0,
       low:     0,
       mid:     0,
-      high:    0,
+      high:    0
     }
-
   }
 
-  connect(to){
-    this.node.connect(to)
+  connect(to) {
+    let state = this
+    state.node.connect(to)
   }
 
-  get(){
-
-    let third = Math.round(this.bufferLength / 3)
+  get() {
+    let state   = this
+    const third = Math.round(state.bufferLength / 3)
     let scratch = 0
     let i = 0
 
-    this.node.getByteFrequencyData(this.analysis.raw)
+    state.node.getByteFrequencyData(state.analysis.raw)
 
-    // calculate average, mid, high
+    // calculate average
     scratch = 0
-    for (i = 0 i < this.bufferLength i++)
-      scratch += this.analysis.raw[i]
-
-    this.analysis.average = (scratch / this.bufferLength) / 256
+    for (i = 0; i < state.bufferLength; i++) {
+      scratch += state.analysis.raw[i]
+    }
+    state.analysis.average = (scratch / state.bufferLength) / 256
 
     // lows
     scratch = 0
-    for (i=0 i < third i++)
-      scratch += this.analysis.raw[i]
-
-    this.analysis.low = scratch / third / 256
+    for (i = 0; i < third; i++) {
+      scratch += state.analysis.raw[i]
+    }
+    state.analysis.low = (scratch / third) / 256
 
     // mids
     scratch = 0
-    for (i = third i < third*2 i++)
-      scratch += this.analysis.raw[i]
-
-    this.analysis.mid = scratch / third / 256
+    for (i = third; i < (third * 2); i++) {
+      scratch += state.analysis.raw[i]
+    }
+    state.analysis.mid = (scratch / third) / 256
 
     // highs
     scratch = 0
-    for (i= third*2 i < this.bufferLength i++)
-      scratch += this.analysis.raw[i]
+    for (i = (third * 2); i < state.bufferLength; i++) {
+      scratch += state.analysis.raw[i]
+    }
+    state.analysis.high = (scratch / third) / 256
 
-    this.analysis.high = scratch / third / 256
-
-    return this.analysis
+    return state.analysis
   }
 }
-
-export default AnalyserNode
