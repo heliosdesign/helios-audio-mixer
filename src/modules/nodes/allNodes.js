@@ -28,8 +28,10 @@
   }
 
 */
+
 import GainNode from './GainNode'
 import PannerNode2D from './PannerNode2D'
 import PannerNode from './PannerNode'
+import AnalyserNode from './AnalyserNode'
 
-export default { GainNode, PannerNode2D, PannerNode }
+export default { GainNode, PannerNode2D, PannerNode, AnalyserNode }
