@@ -233,10 +233,12 @@ export default class BufferSourceTrack extends WebAudioTrack {
     if (track.data.onendtimer) { window.clearTimeout(track.data.onendtimer) }
 
     // prefer stop(), fallback to deprecated noteOff()
-    if (typeof track.data.source.stop === 'function') {
-      track.data.source.stop(0)
-    } else if (typeof track.data.source.noteOff === 'function') {
-      track.data.source.noteOff(0)
+    if (track.data.source) {
+      if (typeof track.data.source.stop === 'function') {
+        track.data.source.stop(0)
+      } else if (typeof track.data.source.noteOff === 'function') {
+        track.data.source.noteOff(0)
+      }
     }
 
     super.trigger('pause', track)

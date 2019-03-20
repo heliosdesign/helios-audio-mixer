@@ -4,10 +4,9 @@
   "description": "Helios Audio Mixer",
   "main": "audioMixer.min.js",
   "scripts": {
-    "dev": "webpack --mode development",
-    "build": "webpack --mode production",
+    "build": "webpack --config webpack.config.js",
     "start": "npm run build && webpack-dev-server -d --hot --config webpack.config.js --watch",
-    "demo": "npm run build && webpack-dev-server -d --hot --config webpack-demo.config.js --watch",
+    "demo":  "npm run build && webpack-dev-server -d --hot --config webpack-demo.config.js --watch",
     "build-demo": "webpack --config webpack-demo.config.js",
     "dist": "NODE_ENV=production npm run build",
     "test": "ava --watch",

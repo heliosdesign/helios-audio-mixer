@@ -6,7 +6,7 @@
 
 const m = require('mithril')
 const audioMixer = require('../../../audioMixer')
-
+const style = require('../style.sass')
 const CreateTrack = require('modules/createTrack')
 const TrackList = require('modules/trackList')
 

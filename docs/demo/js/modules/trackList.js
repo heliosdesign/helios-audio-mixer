@@ -25,7 +25,7 @@ const formattedTime = {
   },
   onremove: function(vnode) {
     let state = this
-    state.hook()
+    state.hook
   },
   view: function(vnode) {
     return m('.tracks-track-time', '00:00')
@@ -73,7 +73,7 @@ const volumeControl = {
   },
   onremove: function(vnode) {
     let state = this
-    state.hook()
+    state.hook
   },
   view: function(vnode) {
     let state = this
@@ -143,7 +143,7 @@ const scrubber = {
   },
   onremove: function(vnode) {
     let state = this
-    state.hook()
+    state.hook
   },
   view: function(vnode) {
     let state = this
@@ -212,7 +212,7 @@ const pan2d = {
   },
   onremove: function(vnode) {
     let state = this
-    state.hook()
+    state.hook
   },
   view: function(vnode) {
     let state = this
