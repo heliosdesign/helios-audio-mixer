@@ -10,48 +10,50 @@ html {
   max-width: 1200px; }
 
 section {
+  border: 1px solid #eeeeee;
   display: block;
-  width: 100%;
-  padding: 1rem;
   margin-bottom: 1rem;
-  border: 1px solid #eee; }
+  padding: 1rem;
+  width: 100%; }
 
 header {
   font-weight: bold;
   margin-bottom: 1em; }
 
 button {
-  height: 26px;
-  padding: 0.5em 1em 0.6em 1em;
-  margin-right: 1em;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  background: #eee;
-  border: 1px solid #555;
+  background: #eeeeee;
+  border: 1px solid #555555;
   border-radius: 3px;
   cursor: pointer;
+  height: 26px;
+  margin: 0.5em 1em 0.5em 0;
+  padding: 0.5em 1em 0.6em;
   white-space: nowrap; }
   button:hover {
-    background: #555;
-    color: #fff; }
-  button.mod-red {
-    background: #ffd9d9; }
+    background: #555555;
+    color: #ffffff; }
   button.mod-green {
     background: #d0ffd0; }
+    button.mod-green:hover {
+      background: #00d000; }
+  button.mod-red {
+    background: #ffd9d9; }
+    button.mod-red:hover {
+      background: #d90000; }
 
 h3, h4 {
   margin: 1rem; }
 
 /********************************************************/
 .row {
-  width: 100%;
   display: flex;
+  width: 100%;
   flex-direction: row; }
 
 .col {
-  padding: 0 0.5em;
   display: flex;
-  flex-direction: column; }
+  flex-direction: column;
+  padding: 0 0.5em; }
   .col:first-child {
     padding-left: 0; }
   .col:last-child {
@@ -66,25 +68,27 @@ h3, h4 {
   justify-content: space-between;
   margin-bottom: 0.5em; }
   .input label {
+    align-self: center;
     font-size: 0.9em;
-    padding-bottom: 0.3em;
-    padding-right: 2em; }
+    padding: 0 2em 0.3em 0; }
   .input input, .input select {
     width: 15rem; }
-  #input-name {
+  .input #input-name {
     padding-left: 1em; }
 
 /********************************************************/
 .dropzone {
-  width: 300px;
-  height: 100px;
-  padding: 1em;
-  border: 1px solid #aaa;
-  display: flex;
   align-items: center;
-  justify-content: center; }
+  border: 1px solid #aaaaaa;
+  display: flex;
+  justify-content: center;
+  padding: 1em;
+  position: relative;
+  width: 15rem; }
   .dropzone.is-over {
-    background: #ddd; }
+    background: #eeeeee; }
+  .dropzone.disabled {
+    visibility: hidden; }
 
 /********************************************************/
 .volumecontrol {
@@ -92,20 +96,18 @@ h3, h4 {
   flex-direction: row; }
 
 .volumecontrol-input {
-  margin: 0 1em;
+  margin-right: 1em;
   width: 150px; }
 
 /********************************************************/
-
 .analyser {
-  border: 1px solid #eee;
+  border: 1px solid #eeeeee;
   display: block;
   height: 7rem;
   margin-right: 1em;
   width: 200px; }
 
 /********************************************************/
-
 .pan {
   display: flex;
   flex-direction: row; }
@@ -120,44 +122,44 @@ h3, h4 {
     pointer-events: none; }
 
 .controls-control {
-  padding: 0.5em 1em;
-  border: 1px solid #000;
-  margin-right: 0.5em;
-  margin-top: 0.5em;
-  opacity: 0.6; }
+  border: 1px solid #000000;
+  margin: 0 0.5em;
+  opacity: 0.6;
+  padding: 0.5em 1em; }
   .controls-control:hover {
-    opacity: 1;
-    cursor: pointer; }
+    cursor: pointer;
+    opacity: 1; }
 
 /********************************************************/
 /* track list */
 .tracks-track {
+  align-items: center;
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
   height: 8rem;
+  justify-content: flex-start;
   padding: 0.5rem 0; }
 
 .tracks-track-col {
-  position: relative;
-  margin-right: 0.5em;
-  height: 100%;
+  align-items: center;
   display: flex;
-  align-items: center; }
+  height: 100%;
+  margin-right: 0.5em;
+  position: relative; }
   .tracks-track-col.mod-id {
-    width: 150px;
-    overflow: hidden; }
+    overflow: hidden;
+    width: 150px; }
 
 .tracks-track-col-label {
-  text-transform: uppercase;
+  color: #aaaaaa;
+  display: none;
   font-size: 0.9rem;
-  position: absolute;
-  top: -2.5rem;
-  left: 0;
   font-weight: bold;
-  color: grey;
-  display: none; }
+  left: 0;
+  position: absolute;
+  text-transform: uppercase;
+  top: 0; }
 
 .tracks-track:first-child .tracks-track-col-label {
   display: block; }
+

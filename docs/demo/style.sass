@@ -1,3 +1,13 @@
+$colorGn: #d0ffd0
+$colorRd: #ffd9d9
+
+$colorDk: #555555
+$colorLt: #eeeeee
+$colorMd: #aaaaaa
+
+$colorBk: #000000
+$colorWh: #ffffff
+
 *
   box-sizing: border-box
 
@@ -10,7 +20,7 @@ html
   max-width: 1200px
 
 section
-  border: 1px solid #eee
+  border: 1px solid $colorLt
   display: block
   margin-bottom: 1rem
   padding: 1rem
@@ -21,8 +31,8 @@ header
   margin-bottom: 1em
 
 button
-  background: #eee
-  border: 1px solid #555
+  background: $colorLt
+  border: 1px solid $colorDk
   border-radius: 3px
   cursor: pointer
   height: 26px
@@ -31,13 +41,20 @@ button
   white-space: nowrap
 
   &:hover
-    background: #555
-    color: #fff
+    background: $colorDk
+    color: $colorWh
 
   &.mod-green
-    background: #d0ffd0
+    background: $colorGn
+
+    &:hover
+      background: darken($colorGn, 50%)
+
   &.mod-red
-    background: #ffd9d9
+    background: $colorRd
+
+    &:hover
+      background: darken($colorRd, 50%)
 
 h3, h4
   margin: 1rem
@@ -56,6 +73,7 @@ h3, h4
 
   &:first-child
     padding-left: 0
+
   &:last-child
     padding-right: 0
 
@@ -70,6 +88,7 @@ h3, h4
   margin-bottom: 0.5em
 
   label
+    align-self: center
     font-size: 0.9em
     padding: 0 2em 0.3em 0
 
@@ -83,15 +102,19 @@ h3, h4
 
 .dropzone
   align-items: center
-  border: 1px solid #aaa
+  border: 1px solid $colorMd
   display: flex
-  height: 100px
+  // height: 100px
   justify-content: center
   padding: 1em
-  width: 300px
+  position: relative
+  width: 15rem
 
   &.is-over
-    background: #ddd
+    background: $colorLt
+
+  &.disabled
+    visibility: hidden
 
 /********************************************************/
 
@@ -108,7 +131,7 @@ h3, h4
 /********************************************************/
 
 .analyser
-  border: 1px solid #eee
+  border: 1px solid $colorLt
   display: block
   height: 7rem
   margin-right: 1em
@@ -133,9 +156,8 @@ h3, h4
     pointer-events: none
 
 .controls-control
-  border: 1px solid #000
-  margin-right: 0.5em
-  margin-top: 0.5em
+  border: 1px solid $colorBk
+  margin: 0 0.5em
   opacity: 0.6
   padding: 0.5em 1em
 
@@ -169,14 +191,14 @@ h3, h4
     width: 150px
 
 .tracks-track-col-label
-  color: grey
+  color: $colorMd
   display: none
   font-size: 0.9rem
   font-weight: bold
   left: 0
   position: absolute
   text-transform: uppercase
-  top: -2.5rem
+  top: 0
 
 .tracks-track:first-child
   .tracks-track-col-label
