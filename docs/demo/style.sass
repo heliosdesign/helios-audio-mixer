@@ -35,7 +35,6 @@ button
   border: 1px solid $colorDk
   border-radius: 3px
   cursor: pointer
-  height: 26px
   margin: 0.5em 1em 0.5em 0
   padding: 0.5em 1em 0.6em
   white-space: nowrap
@@ -84,19 +83,20 @@ h3, h4
 .input
   display: flex
   flex-direction: row
-  justify-content: space-between
   margin-bottom: 0.5em
 
   label
     align-self: center
     font-size: 0.9em
     padding: 0 2em 0.3em 0
+    width: 8em
 
-  input, select
-    width: 15rem
+  select
+    padding: 0.3em 0 0.2em
+    width: 62%
 
   #input-name
-    padding-left: 1em
+    padding-left: 0.8em
 
 /********************************************************/
 
@@ -104,11 +104,10 @@ h3, h4
   align-items: center
   border: 1px solid $colorMd
   display: flex
-  // height: 100px
   justify-content: center
-  padding: 1em
+  padding: 1.2em 1em 1.3em
   position: relative
-  width: 15rem
+  white-space: nowrap
 
   &.is-over
     background: $colorLt
