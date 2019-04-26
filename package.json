@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "start": "npm run build && webpack-dev-server -d --hot --config webpack.config.js --watch",
-    "demo":  "npm run build && webpack-dev-server -d --hot --config webpack-demo.config.js --watch",
+    "demo": "npm run build && webpack-dev-server -d --hot --config webpack-demo.config.js --watch",
     "build-demo": "webpack --config webpack-demo.config.js",
     "dist": "NODE_ENV=production npm run build",
     "test": "ava --watch",
@@ -41,7 +41,7 @@
     "mithril": "^1.1.6",
     "mock-raf": "^1.0.1",
     "node-sass": "^4.11.0",
-    "npm": "^6.8.0",
+    "npm": "^6.9.0",
     "postcss-loader": "^3.0.0",
     "raf": "^3.4.1",
     "sass-loader": "^7.1.0",
